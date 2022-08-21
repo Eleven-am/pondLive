@@ -1,5 +1,3 @@
-import {PondSocket, PondChannel, PonEndpoint} from "./sockets";
-import {SocketClientMessageType}  from "./channels";
+import {PondSocket} from "./sockets";
 
-export {PondChannel, PonEndpoint, SocketClientMessageType};
-export default PondSocket;
+export {PondSocket};

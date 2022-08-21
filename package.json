@@ -1,6 +1,6 @@
 {
   "name": "pondsocket",
-  "version": "0.1.0",
+  "version": "0.1.7",
   "description": "Pond socket is a simple socket server",
   "main": "./dist/index.js",
   "scripts": {
@@ -8,6 +8,7 @@
   },
   "author": "Roy OSSAI",
   "license": "ISC",
+  "types": "index.d.ts",
   "exports": "./dist/index.js",
   "dependencies": {
     "rxjs": "^7.5.6",
