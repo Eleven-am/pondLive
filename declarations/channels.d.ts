@@ -66,6 +66,9 @@ export declare type Presence<T> = default_t<T> & {
 declare type Assign<T> = default_t<T> & {
     id: string;
 };
+declare type RoomData<T = any> = default_t<T> & {
+    id: string;
+};
 interface ChannelsContext<T = any> {
     presences: BaseMap<string, Omit<Presence<T>, 'id'>>;
     assigns: BaseMap<string, Omit<Assign<T>, 'id'>>;
@@ -93,19 +96,19 @@ export declare type OutBoundChannelEvent = NewIncomingRequest<Omit<ChannelMessag
 }> & {
     room: InternalPondChannel;
 };
-export declare type ChannelMessageEventVerifiers = Map<string, ((outBound: OutBoundChannelEvent) => void)>;
+export declare type ChannelMessageEventVerifiers = BaseMap<string | RegExp, ((outBound: OutBoundChannelEvent) => void)>;
 export declare class Channel {
     readonly channel: string;
     readonly _state$: Subject<ChannelMessageEvent | UserMessageEvent>;
     private _isActive;
     private readonly _messageEventVerifiers;
     private _interpreter;
-    constructor(channel: string, roomData: default_t, verifiers: ChannelMessageEventVerifiers);
+    constructor(channel: string, roomData: RoomData, verifiers: ChannelMessageEventVerifiers);
     private _roomData;
     /**
      * @desc Getter for the room data of the channel
      */
-    get roomData(): default_t;
+    get roomData(): RoomData;
     /**
      * @desc checks if the channel is active
      */
@@ -127,6 +130,12 @@ export declare class Channel {
      * @desc Checks if the channel has at least one user
      */
     private static atLeastOneUser;
+    /**
+     * @desc compares string to string | regex
+     * @param string - the string to compare to the pattern
+     * @param pattern - the pattern to compare to the string
+     */
+    private static compareStringToPattern;
     /**
      * @desc adds the user to the channel
      * @param event - The event that triggered the transition

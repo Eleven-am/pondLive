@@ -195,9 +195,8 @@ var PondSocket = /** @class */ (function () {
      * @private
      */
     PondSocket.prototype.createRoom = function (endpoint, pattern, handler) {
-        var _a;
-        var events = new Map();
-        var channels = ((_a = this._interpreter) === null || _a === void 0 ? void 0 : _a.state.context.channels) || new Map();
+        var _this = this;
+        var events = new base_1.BaseMap();
         endpoint.rooms.push({ pattern: pattern, handler: handler, events: events });
         return {
             /**
@@ -210,62 +209,62 @@ var PondSocket = /** @class */ (function () {
             },
             /**
              * @desc Broadcasts an event to all clients in the room
-             * @param roomName - the name of the room to broadcast to
+             * @param roomId - the id of the room to broadcast to
              * @param event - the event to broadcast
              * @param data - the data to broadcast
              */
-            broadcast: function (roomName, event, data) {
-                var channel = channels.get(roomName);
+            broadcast: function (roomId, event, data) {
+                var channel = _this.getChannelById(roomId);
                 if (channel)
                     channel.room.broadcast(event, data);
             },
             /**
              * @desc Broadcasts an event to all clients in the room except the clientId provided
-             * @param roomName - the name of the room to broadcast to
+             * @param roomId - the id of the room to broadcast to
              * @param clientId - the clientId to exclude from the broadcast
              * @param event - the event to broadcast
              * @param data - the data to broadcast
              */
-            broadcastFrom: function (roomName, clientId, event, data) {
-                var channel = channels.get(roomName);
+            broadcastFrom: function (roomId, clientId, event, data) {
+                var channel = _this.getChannelById(roomId);
                 if (channel)
                     channel.broadcastFrom(clientId, event, data);
             },
-            /**
+            /**`
              * @desc Sends an event to the clientId provided
-             * @param roomName - the name of the room to broadcast to
+             * @param roomId - the id of the room to broadcast to
              * @param clientId - the clientId to send the event to
              * @param event - the event to broadcast
              * @param data - the data to broadcast
              */
-            send: function (roomName, clientId, event, data) {
-                var channel = channels.get(roomName);
+            send: function (roomId, clientId, event, data) {
+                var channel = _this.getChannelById(roomId);
                 if (channel)
                     channel.privateMessage(clientId, event, data);
             },
             /**
              * @desc Gets the list of clients in the channel
-             * @param roomName - the name of the room to get the clients from
+             * @param roomId - the id of the room to get the clients from
              */
-            getPresenceList: function (roomName) {
-                var channel = channels.get(roomName);
+            getPresenceList: function (roomId) {
+                var channel = _this.getChannelById(roomId);
                 return (channel === null || channel === void 0 ? void 0 : channel.presenceList) || [];
             },
             /**
              * @desc Gets the metadata of the channel
-             * @param roomName
+             * @param roomId - the id of the room to broadcast to
              */
-            getRoomData: function (roomName) {
-                var channel = channels.get(roomName);
+            getRoomData: function (roomId) {
+                var channel = _this.getChannelById(roomId);
                 return (channel === null || channel === void 0 ? void 0 : channel.roomData) || {};
             },
-            /**
+            /**roomId
              * @desc Disconnects the client from the channel
-             * @param roomName - the name of the room to disconnect from
+             * @param roomId - the id of the room to broadcast to
              * @param clientId - the clientId to disconnect
              */
-            disconnect: function (roomName, clientId) {
-                var channel = channels.get(roomName);
+            disconnect: function (roomId, clientId) {
+                var channel = _this.getChannelById(roomId);
                 if (channel)
                     channel.removeSocket(clientId);
             }
@@ -356,7 +355,7 @@ var PondSocket = /** @class */ (function () {
                 },
             },
             context: {
-                channels: new Map(),
+                channels: new base_1.BaseMap(),
                 sockets: new base_1.BaseMap(),
             },
             predictableActionArguments: true,
@@ -366,7 +365,7 @@ var PondSocket = /** @class */ (function () {
             actions: {
                 sendErrorMessage: function (_ctx, event) { return PondSocket.sendErrorMessage(event); },
                 joinRoom: function (context, event) { return _this.joinRoom(context, event); },
-                addSocketToDB: function (context, event) { return _this.addSocketToDB(context, event); },
+                addSocketToDB: function (context, event) { return PondSocket.addSocketToDB(context, event); },
                 rejectSocketConnection: function (_ctx, event) { return PondSocket.rejectSocketConnection(event); },
                 shutDownServer: function (context, event) { return _this.shutDownServer(context, event); },
             }, services: {
@@ -393,7 +392,7 @@ var PondSocket = /** @class */ (function () {
                 var clientId = _this._base.createUUID();
                 _this._wss.emit('connection', ws, __assign(__assign({}, assigns), { clientId: clientId }));
                 ws.on('message', function (message) {
-                    var _a, _b;
+                    var _a;
                     try {
                         var data = JSON.parse(message.toString());
                         if (data.topic === 'NEW_INCOMING_REQUEST' && data.channel && data.payload)
@@ -402,7 +401,7 @@ var PondSocket = /** @class */ (function () {
                                 clientId: clientId,
                                 socket: ws, roomToJoin: data.channel,
                                 endpoint: endpoint,
-                                assigns: __assign(__assign({}, assigns), { id: clientId }), roomData: ((_b = data.payload) === null || _b === void 0 ? void 0 : _b.roomData) || {},
+                                assigns: __assign(__assign({}, assigns), { id: clientId })
                             });
                     }
                     catch (e) {
@@ -454,10 +453,10 @@ var PondSocket = /** @class */ (function () {
      * @param event - the event that is being handled
      * @private
      */
-    PondSocket.prototype.addSocketToDB = function (context, event) {
+    PondSocket.addSocketToDB = function (context, event) {
         var assigns = __assign(__assign({}, event.data.assigns), { clientId: event.data.clientId, endpoint: event.data.endpoint });
         (0, xstate_1.assign)({
-            sockets: new Map(context.sockets.set(event.data.socket, assigns))
+            sockets: new base_1.BaseMap(context.sockets.set(event.data.socket, assigns))
         });
     };
     /**
@@ -476,7 +475,6 @@ var PondSocket = /** @class */ (function () {
                 endpoint: endpoint,
                 assigns: event.assigns,
                 roomToJoin: roomToJoin,
-                roomData: event.roomData,
             };
             var auth = (_a = _this._paths.find(function (p) { return PondSocket.compareStringToPattern(endpoint, p.pattern); })) === null || _a === void 0 ? void 0 : _a.rooms.find(function (r) { return PondSocket.compareStringToPattern(roomToJoin, r.pattern); });
             if (!auth)
@@ -518,10 +516,10 @@ var PondSocket = /** @class */ (function () {
         var accessor = this._base.encrypt(event.data.endpoint, { room: event.data.roomName });
         var channel = context.channels.get(accessor);
         if (!channel || channel.state === 'inactive')
-            channel = new channels_1.Channel(event.data.roomName, event.data.roomData, event.data.verifiers);
+            channel = new channels_1.Channel(event.data.roomName, __assign(__assign({}, event.data.roomData), { id: this._base.createUUID() }), event.data.verifiers);
         channel.addSocket(event.data);
         (0, xstate_1.assign)({
-            channels: new Map(context.channels.set(accessor, channel))
+            channels: new base_1.BaseMap(context.channels.set(accessor, channel))
         });
     };
     /**
@@ -609,6 +607,14 @@ var PondSocket = /** @class */ (function () {
      */
     PondSocket.prototype.getSocketById = function (socketId, endpoint) {
         return this.getAllSockets().find(function (s) { return s.clientId === socketId && PondSocket.comparePatternToPattern(s.endpoint, endpoint); });
+    };
+    /**
+     * @desc Gets a specific channel by its id
+     * @param channelId - the id of the channel to get
+     */
+    PondSocket.prototype.getChannelById = function (channelId) {
+        var _a, _b;
+        return (_b = (_a = this._interpreter) === null || _a === void 0 ? void 0 : _a.state.context.channels.toKeyValueArray().find(function (c) { return c.value.roomData.id === channelId; })) === null || _b === void 0 ? void 0 : _b.value;
     };
     return PondSocket;
 }());

@@ -110,6 +110,12 @@ var BaseMap = /** @class */ (function () {
             return (__assign({ id: key }, value));
         });
     };
+    BaseMap.prototype.toKeyValueArray = function () {
+        return Array.from(this.map.entries(), function (_a) {
+            var _b = __read(_a, 2), key = _b[0], value = _b[1];
+            return ({ key: key, value: value });
+        });
+    };
     BaseMap.prototype.deleteKey = function (key) {
         this.map.delete(key);
         return this;

@@ -128,6 +128,18 @@ var Channel = /** @class */ (function () {
         return ctx.presences.allExcept(evt.clientId).length > 0;
     };
     /**
+     * @desc compares string to string | regex
+     * @param string - the string to compare to the pattern
+     * @param pattern - the pattern to compare to the string
+     */
+    Channel.compareStringToPattern = function (string, pattern) {
+        if (typeof pattern === 'string')
+            return string === pattern;
+        else {
+            return pattern.test(string);
+        }
+    };
+    /**
      * @desc adds the user to the channel
      * @param event - The event that triggered the transition
      */
@@ -639,7 +651,7 @@ var Channel = /** @class */ (function () {
                     assigns: event.assigns,
                     presence: {},
                 });
-            var verifier = _this._messageEventVerifiers.get(event.message.event);
+            var verifier = _this._messageEventVerifiers.toKeyValueArray().find(function (verifier) { return Channel.compareStringToPattern(event.message.event, verifier.key); });
             var client = context.presences.get(event.clientId);
             if (!client)
                 return reject('Action forbidden: You are currently not in the channel', 403, {
@@ -675,7 +687,7 @@ var Channel = /** @class */ (function () {
                         assigns: event.assigns,
                     }
                 };
-                verifier(outbound);
+                verifier.value(outbound);
             }
             else
                 return resolve({

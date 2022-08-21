@@ -32,6 +32,10 @@ export declare class BaseMap<A, B> {
     toArray(): Array<B & {
         id: A;
     }>;
+    toKeyValueArray(): Array<{
+        key: A;
+        value: B;
+    }>;
     deleteKey(key: A): this;
     allExcept(...keys: A[]): (B & {
         id: A;
