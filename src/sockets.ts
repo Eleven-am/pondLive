@@ -3,12 +3,14 @@ import {WebSocket, WebSocketServer} from 'ws';
 import {assign, createMachine, interpret, Interpreter} from "xstate";
 import {
     Channel,
-    ChannelMessageEventVerifiers, DefaultServerErrorResponse,
+    ChannelMessageEventVerifiers,
+    DefaultServerErrorResponse,
     OutBoundChannelEvent,
     Presence,
-    SocketClientMessageType, SocketJoinRoomResponse
+    SocketClientMessageType,
+    SocketJoinRoomResponse
 } from "./channels";
-import {BaseClass, BasePromise, RejectPromise} from "./base";
+import {BaseClass, BaseMap, BasePromise, RejectPromise} from "./base";
 import internal from "stream";
 import {parse} from "url";
 
@@ -16,9 +18,24 @@ export type default_t<T = any> = {
     [p: string]: T;
 }
 
+type GlobalBroadcastMessage = {
+    topic: "GLOBAL_BROADCAST" | "GLOBAL_SEND";
+    payload: {
+        event: string;
+        message: default_t;
+        response: default_t;
+        timestamp: string;
+    }
+}
+
+type SocketContext = default_t & {
+    clientId: string;
+    endpoint: string | RegExp;
+}
+
 interface GlobalSocketContext {
     channels: Map<string, Channel>;
-    sockets: Map<WebSocket, default_t>;
+    sockets: BaseMap<WebSocket, SocketContext>;
 }
 
 type SendErrorMessage = {
@@ -49,6 +66,7 @@ type AddSocketPromise = {
     clientId: string;
     socket: WebSocket;
     assigns: default_t;
+    endpoint: string | RegExp;
 }
 
 type AddSocketToDB = {
@@ -92,7 +110,7 @@ type GlobalSocketEvent =
     | TerminateServer
     | IncomingRequest;
 
-export type GlobalSocketService = {
+type GlobalSocketService = {
     authenticateRoom: {
         data: JoinRoomPromise;
     };
@@ -127,7 +145,7 @@ type Endpoint = FunctionBank<IncomingMessage> & {
     })[];
 }
 
-export interface PonEndpoint {
+interface PondEndpoint {
     /**
      * @desc Accepts a new socket join request to the room provided using the handler function to authorise the socket
      * @param pattern - the pattern to accept || can also be a regex
@@ -142,7 +160,7 @@ export interface PonEndpoint {
      *   accept({assigns: {admin: true, joinedDate: new Date()}, presence: {state: online}, roomData: {private: true}});
      * });
      *
-     * room.on('ping', ({assigns, roomData, assign}) => {
+     * room.on('croak', ({assigns, roomData, assign}) => {
      *     assign({
      *        presence: {state: online},
      *        assigns: {lastPing: new Date()}
@@ -150,9 +168,31 @@ export interface PonEndpoint {
      * })
      */
     createRoom: (pattern: string | RegExp, handler: ((request: NewIncomingRequest<IncomingJoinRoomRequest, JoinRoomAssigns>) => void)) => PondChannel;
+
+    /**
+     * @desc Broadcasts a message to all sockets connected through the endpoint
+     * @param event - the event to broadcast
+     * @param message - the message to broadcast
+     */
+    broadcast: (event: string, message: default_t) => void;
+
+    /**
+     * @desc Sends a message to a specific socket
+     * @param socketId - the socketId to send the message to
+     * @param event - the event to broadcast
+     * @param message - the message to broadcast
+     */
+    send: (socketId: string, event: string, message: default_t) => void;
+
+    /**
+     * @desc Closes a specific socket if it is connected to the endpoint
+     * @param socketId - the socketId to close
+     * @param code - the code to send to the socket
+     */
+    close: (socketId: string, code?: number) => void;
 }
 
-export interface PondChannel {
+interface PondChannel {
     /**
      * @desc Adds an event listener to the channel
      * @param event - the event to listen for
@@ -239,7 +279,7 @@ export class PondSocket {
             topic: "JOIN_ROOM_RESPONSE",
             channel: event.data.data.room,
             payload: {
-                status:  "failure",
+                status: "failure",
                 response: {
                     error: event.data.errorMessage
                 }
@@ -259,6 +299,26 @@ export class PondSocket {
         else {
             return pattern.test(string);
         }
+    }
+
+    /**
+     * @desc Broadcasts a message to the given sockets
+     * @param sockets - the sockets to broadcast to
+     * @param message - the message to broadcast
+     */
+    private static broadcast(sockets: WebSocket[], message: default_t) {
+        sockets.forEach(socket => {
+            socket.send(JSON.stringify(message));
+        });
+    }
+
+    /**
+     * @desc Compare a pattern to another pattern
+     * @param pattern - the pattern to compare to
+     * @param other - the other pattern to compare to
+     */
+    private static comparePatternToPattern(pattern: string | RegExp, other: string | RegExp) {
+        return pattern.toString() === other.toString();
     }
 
     /**
@@ -285,12 +345,11 @@ export class PondSocket {
      *    accept({ token });
      * })
      */
-    public createEndpoint(pattern: string | RegExp, handler: ((request: NewIncomingRequest<IncomingMessage, GlobalAssigns>) => void)): PonEndpoint {
+    public createEndpoint(pattern: string | RegExp, handler: ((request: NewIncomingRequest<IncomingMessage, GlobalAssigns>) => void)): PondEndpoint {
         const newEndpoint: Endpoint = {
             pattern, handler, rooms: [],
         }
         this._paths.push(newEndpoint);
-        console.log(this._paths);
         return {
             /**
              * @desc Accepts a new socket join request to the room provided using the handler function to authorise the socket
@@ -313,6 +372,57 @@ export class PondSocket {
              */
             createRoom: (pattern: string | RegExp, handler: ((request: NewIncomingRequest<IncomingJoinRoomRequest, JoinRoomAssigns>) => void)) => {
                 return this.createRoom(newEndpoint, pattern, handler);
+            },
+
+            /**
+             * @desc Broadcasts a message to all sockets connected through this endpoint
+             * @param event - the event to broadcast
+             * @param message - the message to broadcast
+             */
+            broadcast: (event: string, message: default_t) => {
+                const data: GlobalBroadcastMessage = {
+                    topic: "GLOBAL_BROADCAST",
+                    payload: {
+                        event: event,
+                        message: message,
+                        response: {},
+                        timestamp: new Date().toISOString()
+                    }
+                }
+                const sockets = this.getSocketsByEndpoint(pattern).map(socket => socket.id);
+                return PondSocket.broadcast(sockets, data);
+            },
+
+            /**
+             * @desc Sends a message to a specific socket
+             * @param socketId - the socketId to send the message to
+             * @param event - the event to broadcast
+             * @param message - the message to broadcast
+             */
+            send: (socketId: string, event: string, message: default_t) => {
+                const data: GlobalBroadcastMessage = {
+                    topic: "GLOBAL_SEND",
+                    payload: {
+                        event: event,
+                        message: message,
+                        response: {},
+                        timestamp: new Date().toISOString()
+                    }
+                }
+                const socket = this.getSocketById(socketId, pattern);
+                if (socket)
+                    socket.id.send(JSON.stringify(data));
+            },
+
+            /**
+             * @desc Closes a specific socket if it is connected to the endpoint
+             * @param socketId - the socketId to close
+             * @param code - the code to send to the socket
+             */
+            close: (socketId: string, code?: number) => {
+                const socket = this.getSocketById(socketId, pattern);
+                if (socket)
+                    socket.id.close(code);
             }
         }
     }
@@ -492,7 +602,7 @@ export class PondSocket {
             },
             context: {
                 channels: new Map(),
-                sockets: new Map(),
+                sockets: new BaseMap<WebSocket, SocketContext>(),
             },
             predictableActionArguments: true,
             id: "globalSockets",
@@ -519,9 +629,10 @@ export class PondSocket {
      * @param obj - the object that is being accepted
      * @param resolve - the resolve function of the promise
      * @param endpoint - the endpoint of the socket connection
+     * @param pattern - the pattern of the endpoint for the socket connection
      * @private
      */
-    private generateAccept(obj: Omit<IncomingRequest, 'type'>, resolve: (value: AddSocketPromise) => void, endpoint: string) {
+    private generateAccept(obj: Omit<IncomingRequest, 'type'>, resolve: (value: AddSocketPromise) => void, endpoint: string, pattern: string | RegExp) {
         return <T extends object>(assigns?: T) => {
             this._wss.handleUpgrade(obj.request, obj.socket, obj.head, (ws) => {
                 assigns = assigns || {} as T;
@@ -553,6 +664,7 @@ export class PondSocket {
                 resolve({
                     clientId,
                     socket: ws,
+                    endpoint: pattern,
                     assigns: assigns,
                 })
             })
@@ -578,7 +690,7 @@ export class PondSocket {
 
             auth.handler({
                 request: event.request,
-                accept: this.generateAccept(event, resolve, pathname),
+                accept: this.generateAccept(event, resolve, pathname, auth.pattern),
                 decline: (message: string) => reject(message, 401, event.socket)
             });
         })
@@ -594,6 +706,7 @@ export class PondSocket {
         const assigns = {
             ...event.data.assigns,
             clientId: event.data.clientId,
+            endpoint: event.data.endpoint,
         };
         assign({
             sockets: new Map(context.sockets.set(event.data.socket, assigns))
@@ -722,5 +835,32 @@ export class PondSocket {
         }, 30000);
 
         server.on('close', () => clearInterval(interval))
+    }
+
+    /**
+     * @desc Returns all the sockets that are currently connected to the pond
+     * @private
+     */
+    private getAllSockets() {
+        return this._interpreter?.state.context.sockets.toArray() ?? [];
+    }
+
+    /**
+     * @desc Returns all the sockets connected to the specified endpoint
+     * @param endpoint - the endpoint to search for
+     */
+    private getSocketsByEndpoint(endpoint: string | RegExp) {
+        const sockets = this.getAllSockets();
+        return sockets.filter(s => PondSocket.comparePatternToPattern(s.endpoint, endpoint));
+    }
+
+    /**
+     * @desc Gets a specific socket by its client id if it is connected to this endpoint
+     * @param socketId - the client id of the socket to get
+     * @param endpoint - the endpoint to search for
+     * @private
+     */
+    private getSocketById(socketId: string, endpoint: string | RegExp) {
+        return this.getAllSockets().find(s => s.clientId === socketId && PondSocket.comparePatternToPattern(s.endpoint, endpoint));
     }
 }

@@ -41,8 +41,8 @@ type SocketPresenceUpdate = {
     topic: "PRESENCE_UPDATE";
     channel: string;
     payload: {
-        joins: (default_t & {id: string})[];
-        leaves: (default_t & {id: string})[];
+        joins: (default_t & { id: string })[];
+        leaves: (default_t & { id: string })[];
         response: default_t;
     }
 }
@@ -51,7 +51,7 @@ type SocketPresenceBrief = {
     topic: "PRESENCE_BRIEF";
     channel: string;
     payload: {
-        presence: (default_t & {id: string})[];
+        presence: (default_t & { id: string })[];
         response: default_t;
     }
 }
@@ -93,7 +93,7 @@ type SocketServerErrorMessage = {
 
 export type SocketClientMessageType = SocketClientMessage | SocketJoinRoomRequest | SocketLeaveRoomRequest
 
-export interface UserMessageEvent<T = any> {
+interface UserMessageEvent<T = any> {
     payload?: T;
     channel: string;
     event: 'joinRoom' | 'leaveRoom' | 'sendMessage' | 'updatePresence';
@@ -102,7 +102,7 @@ export interface UserMessageEvent<T = any> {
     clientId: string;
 }
 
-export interface ChannelMessageEvent<T = any> {
+interface ChannelMessageEvent<T = any> {
     payload?: T;
     timestamp: string;
     channel: string;
@@ -112,11 +112,11 @@ export interface ChannelMessageEvent<T = any> {
     senderId: string;
 }
 
-export type Presence<T> = default_t<T> & {id: string};
+export type Presence<T> = default_t<T> & { id: string };
 
-export type Assign<T> = default_t<T> & {id: string};
+type Assign<T> = default_t<T> & { id: string };
 
-export interface ChannelsContext<T = any> {
+interface ChannelsContext<T = any> {
     presences: BaseMap<string, Omit<Presence<T>, 'id'>>;
     assigns: BaseMap<string, Omit<Assign<T>, 'id'>>;
 }
@@ -152,6 +152,7 @@ type ChannelMessageBody = {
     clientId: string;
     assigns: default_t
     targets: string[] | 'all' | 'allExcept';
+    severSent: boolean;
 }
 
 type ChannelSendMessageEvent = {
@@ -187,7 +188,9 @@ type ChannelEvent =
     | ChannelSendMessageEvent
     | SendMessageErrorEvent;
 
-export type OutBoundChannelEvent = NewIncomingRequest<ChannelMessageBody, {assigns?: default_t, presence?: default_t}> & { room: InternalPondChannel };
+export type OutBoundChannelEvent =
+    NewIncomingRequest<ChannelMessageBody, { assigns?: default_t, presence?: default_t }>
+    & { room: InternalPondChannel };
 
 export type ChannelMessageEventVerifiers = Map<string, ((outBound: OutBoundChannelEvent) => void)>;
 
@@ -195,10 +198,9 @@ type Machine = StateMachine<ChannelsContext, any, ChannelJoinRoomEvent | Channel
 
 export class Channel {
     public readonly channel: string;
-    private _isActive: boolean;
-    private _roomData: default_t;
-    private readonly _messageEventVerifiers: ChannelMessageEventVerifiers;
     public readonly _state$: Subject<ChannelMessageEvent | UserMessageEvent>;
+    private _isActive: boolean;
+    private readonly _messageEventVerifiers: ChannelMessageEventVerifiers;
     private _interpreter: Interpreter<ChannelsContext, any, ChannelEvent, { value: any; context: ChannelsContext; }, any> | undefined;
 
     constructor(channel: string, roomData: default_t, verifiers: ChannelMessageEventVerifiers) {
@@ -209,6 +211,8 @@ export class Channel {
         this._state$ = new Subject<ChannelMessageEvent | UserMessageEvent>();
         this.init();
     }
+
+    private _roomData: default_t;
 
     /**
      * @desc Getter for the room data of the channel
@@ -232,6 +236,35 @@ export class Channel {
     }
 
     /**
+     * @desc Gets the presence list of the channel
+     */
+    public get presenceList(): Presence<any>[] {
+        return this.context?.presences.toArray() || [];
+    }
+
+    /**
+     * @desc Getter for the internal channel
+     * @private
+     */
+    public get room(): InternalPondChannel {
+        return {
+            getPresenceList: () => this.presenceList,
+            getRoomData: () => this._roomData,
+            disconnect: this.removeSocket.bind(this),
+            broadcast: this.broadcast.bind(this),
+            broadcastFrom: this.broadcastFrom.bind(this),
+            send: this.privateMessage.bind(this)
+        }
+    }
+
+    /**
+     * @desc Checks if the channel has at least one user
+     */
+    private static atLeastOneUser(ctx: ChannelsContext, evt: ChannelLeaveRoomEvent): boolean {
+        return ctx.presences.allExcept(evt.clientId).length > 0;
+    }
+
+    /**
      * @desc adds the user to the channel
      * @param event - The event that triggered the transition
      */
@@ -245,7 +278,7 @@ export class Channel {
                 topic: "JOIN_ROOM_RESPONSE",
                 channel: this.channel,
                 payload: {
-                    status:  "failure",
+                    status: "failure",
                     response: {
                         error: "already_joined",
                     }
@@ -260,7 +293,7 @@ export class Channel {
             topic: "JOIN_ROOM_RESPONSE",
             channel: this.channel,
             payload: {
-                status:  "success",
+                status: "success",
                 response: {}
             }
         };
@@ -292,7 +325,14 @@ export class Channel {
      * @param message - The message to broadcast
      */
     public broadcast(event: string, message: default_t): void {
-        console.log('broadcasting', event, message);
+        const data: ChannelSendMessageEvent = {
+            severSent: true,
+            type: 'sendMessage',
+            clientId: 'SERVER', assigns: {},
+            message: {event, payload: message},
+            targets: 'all'
+        }
+        this._interpreter?.send(data);
     }
 
     /**
@@ -302,7 +342,14 @@ export class Channel {
      * @param message - The message to broadcast
      */
     public broadcastFrom(clientId: string, event: string, message: default_t): void {
-        console.log('broadcasting from', clientId, event, message);
+        const data: ChannelSendMessageEvent = {
+            severSent: true,
+            type: 'sendMessage',
+            clientId: clientId, assigns: {},
+            message: {event, payload: message},
+            targets: 'allExcept'
+        }
+        this._interpreter?.send(data);
     }
 
     /**
@@ -312,29 +359,14 @@ export class Channel {
      * @param message - The message to send
      */
     public privateMessage(clientId: string, event: string, message: default_t): void {
-        console.log('private messaging', clientId, event, message);
-    }
-
-    /**
-     * @desc Gets the presence list of the channel
-     */
-    public get presenceList(): Presence<any>[] {
-        return this.context?.presences.toArray() || [];
-    }
-
-    /**
-     * @desc Getter for the internal channel
-     * @private
-     */
-    public get room(): InternalPondChannel {
-        return {
-            getPresenceList: () => this.presenceList,
-            getRoomData: () => this._roomData,
-            disconnect: this.removeSocket.bind(this),
-            broadcast: this.broadcast.bind(this),
-            broadcastFrom: this.broadcastFrom.bind(this),
-            send: this.privateMessage.bind(this)
+        const data: ChannelSendMessageEvent = {
+            severSent: true,
+            type: 'sendMessage',
+            clientId: 'SERVER', assigns: {},
+            message: {event, payload: message},
+            targets: [clientId]
         }
+        this._interpreter?.send(data);
     }
 
     /**
@@ -428,17 +460,7 @@ export class Channel {
         });
 
         this._interpreter = interpret(stateMachine).start();
-        this._interpreter?.subscribe(state => {
-            console.log(state.value);
-        });
         this._isActive = true;
-    }
-
-    /**
-     * @desc Checks if the channel has at least one user
-     */
-    private static atLeastOneUser(ctx: ChannelsContext, evt: ChannelLeaveRoomEvent): boolean {
-        return ctx.presences.allExcept(evt.clientId).length > 0;
     }
 
     /**
@@ -598,8 +620,7 @@ export class Channel {
                     };
                     const message = JSON.stringify(data);
                     socket.send(message);
-                }
-                else if (state.event === 'presenceChange') {
+                } else if (state.event === 'presenceChange') {
                     const data: SocketPresenceUpdate = {
                         topic: 'PRESENCE_UPDATE',
                         channel: this.channel,
@@ -611,8 +632,21 @@ export class Channel {
                     };
                     const message = JSON.stringify(data);
                     socket.send(message);
-                }
-                else if (state.event === 'broadcast') {
+                } else if (state.event === 'errorMessage') {
+                    const data: SocketServerErrorMessage = {
+                        topic: 'ERROR_MESSAGE',
+                        channel: this.channel,
+                        sender: 'server',
+                        payload: {
+                            error: state.payload.message,
+                            errorCode: state.payload.errorCode,
+                            response: {}
+                        }
+                    }
+
+                    const message = JSON.stringify(data);
+                    socket.send(message);
+                } else if (state.event === 'broadcast' || state.event === 'broadcastFrom' || state.event === 'privateMessage') {
                     const data: SocketServerMessage = {
                         topic: 'MESSAGE',
                         channel: this.channel,
@@ -627,25 +661,6 @@ export class Channel {
                     const message = JSON.stringify(data);
                     socket.send(message);
                 }
-                else if (state.event === 'errorMessage') {
-                    const data: SocketServerErrorMessage = {
-                        topic: 'ERROR_MESSAGE',
-                        channel: this.channel,
-                        sender: 'server',
-                        payload: {
-                            error: state.payload.message,
-                            errorCode: state.payload.errorCode,
-                            response: {}
-                        }
-                    }
-
-                    const message = JSON.stringify(data);
-                    socket.send(message);
-                }
-                else
-                    console.log(`Sending message to ${clientId}`, state);
-                // todo: check if the message is from the server
-                // todo: check if the message is for the user
             }
         })
 
@@ -670,14 +685,13 @@ export class Channel {
                     });
 
                     subscription.unsubscribe();
-                }
-
-                else if (data.topic === 'MESSAGE' && data.payload.event) {
+                } else if (data.topic === 'MESSAGE' && data.payload.event) {
                     let message: ChannelSendMessageEvent | null = null;
                     const assigns = this.context?.assigns.get(clientId) || {};
                     const presence = this.presenceList || [];
                     if (data.mode === 'BROADCAST')
                         message = {
+                            severSent: false,
                             type: 'sendMessage',
                             clientId, assigns,
                             message: {...data.payload.message, event: data.payload.event},
@@ -687,14 +701,14 @@ export class Channel {
                     else if (data.mode === 'BROADCAST_EXCEPT_SELF') {
                         const targets = presence.filter(presence => presence.id !== clientId).map(presence => presence.id);
                         message = {
+                            severSent: false,
                             type: 'sendMessage',
                             clientId, assigns, targets,
                             message: {...data.payload.message, event: data.payload.event},
                         }
-                    }
-
-                    else if (data.mode === 'BROADCAST_TO_ASSIGNED' && data.payload.assignedTo)
+                    } else if (data.mode === 'BROADCAST_TO_ASSIGNED' && data.payload.assignedTo)
                         message = {
+                            severSent: false,
                             type: 'sendMessage',
                             clientId, assigns, targets: data.payload.assignedTo,
                             message: {...data.payload.message, event: data.payload.event},
@@ -706,7 +720,7 @@ export class Channel {
                     else
                         this._interpreter?.send({
                             type: 'errorMessage',
-                            data:  new PondError('Invalid message mode', 400, {
+                            data: new PondError('Invalid message mode', 400, {
                                 addresses: [clientId],
                                 clientId: clientId,
                             })
@@ -715,7 +729,7 @@ export class Channel {
             } catch (error) {
                 this._interpreter?.send({
                     type: 'errorMessage',
-                    data:  error as RejectPromise<{addresses: string[], clientId: string}>
+                    data: error as RejectPromise<{ addresses: string[], clientId: string }>
                 })
             }
         });
@@ -745,6 +759,16 @@ export class Channel {
     private canPerformAction(context: ChannelsContext, event: ChannelSendMessageEvent) {
         return BasePromise<ChannelSendMessageSuccessEvent, { addresses: string[], clientId: string }>((resolve, reject) => {
             let message: default_t & { event?: string } = event.message;
+            delete message.event;
+            if (event.severSent)
+                resolve({
+                    message: JSON.stringify(message),
+                    clientId: event.clientId,
+                    targets: event.targets,
+                    assigns: event.assigns,
+                    presence: {},
+                })
+
             const verifier = this._messageEventVerifiers.get(event.message.event);
             const client = context.presences.get(event.clientId);
             if (!client)
@@ -753,11 +777,10 @@ export class Channel {
                     clientId: event.clientId
                 });
 
-            delete message.event;
             if (verifier) {
                 let newAssigns = event.assigns;
                 let newPresence = client;
-                const getAssigns = (assigns?: {assigns?: default_t, presence?: default_t}): void => {
+                const getAssigns = (assigns?: { assigns?: default_t, presence?: default_t }): void => {
                     if (assigns) {
                         newAssigns = {...newAssigns, ...assigns.assigns};
                         newPresence = {...newPresence, ...assigns.presence};
@@ -780,6 +803,7 @@ export class Channel {
                     decline: deny,
                     room: this.room,
                     request: {
+                        severSent: false,
                         message: event.message,
                         targets: event.targets,
                         clientId: event.clientId,
@@ -805,7 +829,7 @@ export class Channel {
      * @param clientId - The client id of the client
      */
     private readMessage(message: string, clientId: string) {
-        return BasePromise<SocketClientMessageType, {addresses: string[], clientId: string}>((resolve, reject) => {
+        return BasePromise<SocketClientMessageType, { addresses: string[], clientId: string }>((resolve, reject) => {
             try {
                 const data = JSON.parse(message) as SocketClientMessageType
                 if (data.channel && data.channel === this.channel)

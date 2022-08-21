@@ -81,6 +81,25 @@ declare class PondEndpoint {
      * })
      */
     createRoom: (pattern: string | RegExp, handler: ((request: NewIncomingRequest<IncomingJoinRoomRequest, JoinRoomAssigns>) => void)) => PondChannel;
+    /**
+     * @desc Broadcasts a message to all sockets connected through the endpoint
+     * @param event - the event to broadcast
+     * @param message - the message to broadcast
+     */
+    broadcast: (event: string, message: default_t) => void;
+    /**
+     * @desc Sends a message to a specific socket
+     * @param socketId - the socketId to send the message to
+     * @param event - the event to broadcast
+     * @param message - the message to broadcast
+     */
+    send: (socketId: string, event: string, message: default_t) => void;
+    /**
+     * @desc Closes a specific socket if it is connected to the endpoint
+     * @param socketId - the socketId to close
+     * @param code - the code to send to the socket
+     */
+    close: (socketId: string, code?: number) => void;
 }
 
 declare class PondChannel {
