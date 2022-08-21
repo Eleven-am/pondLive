@@ -15,11 +15,6 @@ export declare type JoinRoomPromise = {
     endpoint: string;
     verifiers: ChannelMessageEventVerifiers;
 };
-declare type AddSocketPromise = {
-    clientId: string;
-    socket: WebSocket;
-    assigns: default_t;
-};
 declare type AuthenticateRoom = {
     type: 'requestToJoinRoom';
     clientId: string;
@@ -29,30 +24,19 @@ declare type AuthenticateRoom = {
     roomToJoin: string;
     roomData: default_t;
 };
-export declare type GlobalSocketService = {
-    authenticateRoom: {
-        data: JoinRoomPromise;
-    };
-    setupServer: {
-        data: void;
-    };
-    authenticateSocket: {
-        data: AddSocketPromise;
-    };
-};
 declare type JoinRoomAssigns = {
     assigns?: default_t;
     roomData?: default_t;
     presence?: default_t;
 };
 declare type GlobalAssigns = default_t;
-declare type IncomingJoinRoomRequest = Omit<AuthenticateRoom, 'type'>;
+declare type IncomingJoinRoomRequest = Omit<AuthenticateRoom, 'type' | 'socket'>;
 export declare type NewIncomingRequest<T, V = default_t> = {
     request: T;
     accept: (assigns?: V) => void;
     decline: (message: string) => void;
 };
-export interface PonEndpoint {
+interface PondEndpoint {
     /**
      * @desc Accepts a new socket join request to the room provided using the handler function to authorise the socket
      * @param pattern - the pattern to accept || can also be a regex
@@ -67,7 +51,7 @@ export interface PonEndpoint {
      *   accept({assigns: {admin: true, joinedDate: new Date()}, presence: {state: online}, roomData: {private: true}});
      * });
      *
-     * room.on('ping', ({assigns, roomData, assign}) => {
+     * room.on('croak', ({assigns, roomData, assign}) => {
      *     assign({
      *        presence: {state: online},
      *        assigns: {lastPing: new Date()}
@@ -75,8 +59,27 @@ export interface PonEndpoint {
      * })
      */
     createRoom: (pattern: string | RegExp, handler: ((request: NewIncomingRequest<IncomingJoinRoomRequest, JoinRoomAssigns>) => void)) => PondChannel;
+    /**
+     * @desc Broadcasts a message to all sockets connected through the endpoint
+     * @param event - the event to broadcast
+     * @param message - the message to broadcast
+     */
+    broadcast: (event: string, message: default_t) => void;
+    /**
+     * @desc Sends a message to a specific socket
+     * @param socketId - the socketId to send the message to
+     * @param event - the event to broadcast
+     * @param message - the message to broadcast
+     */
+    send: (socketId: string, event: string, message: default_t) => void;
+    /**
+     * @desc Closes a specific socket if it is connected to the endpoint
+     * @param socketId - the socketId to close
+     * @param code - the code to send to the socket
+     */
+    close: (socketId: string, code?: number) => void;
 }
-export interface PondChannel {
+interface PondChannel {
     /**
      * @desc Adds an event listener to the channel
      * @param event - the event to listen for
@@ -149,6 +152,18 @@ export declare class PondSocket {
      */
     private static compareStringToPattern;
     /**
+     * @desc Broadcasts a message to the given sockets
+     * @param sockets - the sockets to broadcast to
+     * @param message - the message to broadcast
+     */
+    private static broadcast;
+    /**
+     * @desc Compare a pattern to another pattern
+     * @param pattern - the pattern to compare to
+     * @param other - the other pattern to compare to
+     */
+    private static comparePatternToPattern;
+    /**
      * @desc Specifies the port to listen on
      * @param port - the port to listen on
      * @param callback - the callback to call when the server is listening
@@ -169,7 +184,7 @@ export declare class PondSocket {
      *    accept({ token });
      * })
      */
-    createEndpoint(pattern: string | RegExp, handler: ((request: NewIncomingRequest<IncomingMessage, GlobalAssigns>) => void)): PonEndpoint;
+    createEndpoint(pattern: string | RegExp, handler: ((request: NewIncomingRequest<IncomingMessage, GlobalAssigns>) => void)): PondEndpoint;
     /**
      * @desc Accepts a new socket join request to the room provided using the handler function to authorise the socket
      * @param endpoint - the endpoint to accept the socket on
@@ -188,6 +203,7 @@ export declare class PondSocket {
      * @param obj - the object that is being accepted
      * @param resolve - the resolve function of the promise
      * @param endpoint - the endpoint of the socket connection
+     * @param pattern - the pattern of the endpoint for the socket connection
      * @private
      */
     private generateAccept;
@@ -237,5 +253,22 @@ export declare class PondSocket {
      * @param server - WebSocket server
      */
     private pingClients;
+    /**
+     * @desc Returns all the sockets that are currently connected to the pond
+     * @private
+     */
+    private getAllSockets;
+    /**
+     * @desc Returns all the sockets connected to the specified endpoint
+     * @param endpoint - the endpoint to search for
+     */
+    private getSocketsByEndpoint;
+    /**
+     * @desc Gets a specific socket by its client id if it is connected to this endpoint
+     * @param socketId - the client id of the socket to get
+     * @param endpoint - the endpoint to search for
+     * @private
+     */
+    private getSocketById;
 }
 export {};

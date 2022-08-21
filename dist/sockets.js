@@ -66,6 +66,24 @@ var PondSocket = /** @class */ (function () {
         }
     };
     /**
+     * @desc Broadcasts a message to the given sockets
+     * @param sockets - the sockets to broadcast to
+     * @param message - the message to broadcast
+     */
+    PondSocket.broadcast = function (sockets, message) {
+        sockets.forEach(function (socket) {
+            socket.send(JSON.stringify(message));
+        });
+    };
+    /**
+     * @desc Compare a pattern to another pattern
+     * @param pattern - the pattern to compare to
+     * @param other - the other pattern to compare to
+     */
+    PondSocket.comparePatternToPattern = function (pattern, other) {
+        return pattern.toString() === other.toString();
+    };
+    /**
      * @desc Specifies the port to listen on
      * @param port - the port to listen on
      * @param callback - the callback to call when the server is listening
@@ -96,7 +114,6 @@ var PondSocket = /** @class */ (function () {
             rooms: [],
         };
         this._paths.push(newEndpoint);
-        console.log(this._paths);
         return {
             /**
              * @desc Accepts a new socket join request to the room provided using the handler function to authorise the socket
@@ -119,6 +136,54 @@ var PondSocket = /** @class */ (function () {
              */
             createRoom: function (pattern, handler) {
                 return _this.createRoom(newEndpoint, pattern, handler);
+            },
+            /**
+             * @desc Broadcasts a message to all sockets connected through this endpoint
+             * @param event - the event to broadcast
+             * @param message - the message to broadcast
+             */
+            broadcast: function (event, message) {
+                var data = {
+                    topic: "GLOBAL_BROADCAST",
+                    payload: {
+                        event: event,
+                        message: message,
+                        response: {},
+                        timestamp: new Date().toISOString()
+                    }
+                };
+                var sockets = _this.getSocketsByEndpoint(pattern).map(function (socket) { return socket.id; });
+                return PondSocket.broadcast(sockets, data);
+            },
+            /**
+             * @desc Sends a message to a specific socket
+             * @param socketId - the socketId to send the message to
+             * @param event - the event to broadcast
+             * @param message - the message to broadcast
+             */
+            send: function (socketId, event, message) {
+                var data = {
+                    topic: "GLOBAL_SEND",
+                    payload: {
+                        event: event,
+                        message: message,
+                        response: {},
+                        timestamp: new Date().toISOString()
+                    }
+                };
+                var socket = _this.getSocketById(socketId, pattern);
+                if (socket)
+                    socket.id.send(JSON.stringify(data));
+            },
+            /**
+             * @desc Closes a specific socket if it is connected to the endpoint
+             * @param socketId - the socketId to close
+             * @param code - the code to send to the socket
+             */
+            close: function (socketId, code) {
+                var socket = _this.getSocketById(socketId, pattern);
+                if (socket)
+                    socket.id.close(code);
             }
         };
     };
@@ -292,7 +357,7 @@ var PondSocket = /** @class */ (function () {
             },
             context: {
                 channels: new Map(),
-                sockets: new Map(),
+                sockets: new base_1.BaseMap(),
             },
             predictableActionArguments: true,
             id: "globalSockets",
@@ -317,9 +382,10 @@ var PondSocket = /** @class */ (function () {
      * @param obj - the object that is being accepted
      * @param resolve - the resolve function of the promise
      * @param endpoint - the endpoint of the socket connection
+     * @param pattern - the pattern of the endpoint for the socket connection
      * @private
      */
-    PondSocket.prototype.generateAccept = function (obj, resolve, endpoint) {
+    PondSocket.prototype.generateAccept = function (obj, resolve, endpoint, pattern) {
         var _this = this;
         return function (assigns) {
             _this._wss.handleUpgrade(obj.request, obj.socket, obj.head, function (ws) {
@@ -354,6 +420,7 @@ var PondSocket = /** @class */ (function () {
                 resolve({
                     clientId: clientId,
                     socket: ws,
+                    endpoint: pattern,
                     assigns: assigns,
                 });
             });
@@ -376,7 +443,7 @@ var PondSocket = /** @class */ (function () {
                 return reject('No authentication found for this endpoint', 404, event.socket);
             auth.handler({
                 request: event.request,
-                accept: _this.generateAccept(event, resolve, pathname),
+                accept: _this.generateAccept(event, resolve, pathname, auth.pattern),
                 decline: function (message) { return reject(message, 401, event.socket); }
             });
         });
@@ -388,7 +455,7 @@ var PondSocket = /** @class */ (function () {
      * @private
      */
     PondSocket.prototype.addSocketToDB = function (context, event) {
-        var assigns = __assign(__assign({}, event.data.assigns), { clientId: event.data.clientId });
+        var assigns = __assign(__assign({}, event.data.assigns), { clientId: event.data.clientId, endpoint: event.data.endpoint });
         (0, xstate_1.assign)({
             sockets: new Map(context.sockets.set(event.data.socket, assigns))
         });
@@ -404,6 +471,13 @@ var PondSocket = /** @class */ (function () {
         return (0, base_1.BasePromise)(function (resolve, reject) {
             var _a;
             var roomToJoin = event.roomToJoin, endpoint = event.endpoint;
+            var request = {
+                clientId: event.clientId,
+                endpoint: endpoint,
+                assigns: event.assigns,
+                roomToJoin: roomToJoin,
+                roomData: event.roomData,
+            };
             var auth = (_a = _this._paths.find(function (p) { return PondSocket.compareStringToPattern(endpoint, p.pattern); })) === null || _a === void 0 ? void 0 : _a.rooms.find(function (r) { return PondSocket.compareStringToPattern(roomToJoin, r.pattern); });
             if (!auth)
                 return reject('No authentication found for this endpoint', 404, {
@@ -411,7 +485,7 @@ var PondSocket = /** @class */ (function () {
                     socket: event.socket,
                 });
             auth.handler({
-                request: event,
+                request: request,
                 accept: function (data) {
                     var newAssigns = __assign(__assign({}, event.assigns), data === null || data === void 0 ? void 0 : data.assigns);
                     var newPresence = __assign({}, data === null || data === void 0 ? void 0 : data.presence);
@@ -510,6 +584,31 @@ var PondSocket = /** @class */ (function () {
             });
         }, 30000);
         server.on('close', function () { return clearInterval(interval); });
+    };
+    /**
+     * @desc Returns all the sockets that are currently connected to the pond
+     * @private
+     */
+    PondSocket.prototype.getAllSockets = function () {
+        var _a, _b;
+        return (_b = (_a = this._interpreter) === null || _a === void 0 ? void 0 : _a.state.context.sockets.toArray()) !== null && _b !== void 0 ? _b : [];
+    };
+    /**
+     * @desc Returns all the sockets connected to the specified endpoint
+     * @param endpoint - the endpoint to search for
+     */
+    PondSocket.prototype.getSocketsByEndpoint = function (endpoint) {
+        var sockets = this.getAllSockets();
+        return sockets.filter(function (s) { return PondSocket.comparePatternToPattern(s.endpoint, endpoint); });
+    };
+    /**
+     * @desc Gets a specific socket by its client id if it is connected to this endpoint
+     * @param socketId - the client id of the socket to get
+     * @param endpoint - the endpoint to search for
+     * @private
+     */
+    PondSocket.prototype.getSocketById = function (socketId, endpoint) {
+        return this.getAllSockets().find(function (s) { return s.clientId === socketId && PondSocket.comparePatternToPattern(s.endpoint, endpoint); });
     };
     return PondSocket;
 }());

@@ -91,6 +91,42 @@ var Channel = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(Channel.prototype, "presenceList", {
+        /**
+         * @desc Gets the presence list of the channel
+         */
+        get: function () {
+            var _a;
+            return ((_a = this.context) === null || _a === void 0 ? void 0 : _a.presences.toArray()) || [];
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Channel.prototype, "room", {
+        /**
+         * @desc Getter for the internal channel
+         * @private
+         */
+        get: function () {
+            var _this = this;
+            return {
+                getPresenceList: function () { return _this.presenceList; },
+                getRoomData: function () { return _this._roomData; },
+                disconnect: this.removeSocket.bind(this),
+                broadcast: this.broadcast.bind(this),
+                broadcastFrom: this.broadcastFrom.bind(this),
+                send: this.privateMessage.bind(this)
+            };
+        },
+        enumerable: false,
+        configurable: true
+    });
+    /**
+     * @desc Checks if the channel has at least one user
+     */
+    Channel.atLeastOneUser = function (ctx, evt) {
+        return ctx.presences.allExcept(evt.clientId).length > 0;
+    };
     /**
      * @desc adds the user to the channel
      * @param event - The event that triggered the transition
@@ -150,7 +186,15 @@ var Channel = /** @class */ (function () {
      * @param message - The message to broadcast
      */
     Channel.prototype.broadcast = function (event, message) {
-        console.log('broadcasting', event, message);
+        var _a;
+        var data = {
+            severSent: true,
+            type: 'sendMessage',
+            clientId: 'SERVER', assigns: {},
+            message: { event: event, payload: message },
+            targets: 'all'
+        };
+        (_a = this._interpreter) === null || _a === void 0 ? void 0 : _a.send(data);
     };
     /**
      * @desc broadcasts from a user to a message to the channel
@@ -159,7 +203,15 @@ var Channel = /** @class */ (function () {
      * @param message - The message to broadcast
      */
     Channel.prototype.broadcastFrom = function (clientId, event, message) {
-        console.log('broadcasting from', clientId, event, message);
+        var _a;
+        var data = {
+            severSent: true,
+            type: 'sendMessage',
+            clientId: clientId, assigns: {},
+            message: { event: event, payload: message },
+            targets: 'allExcept'
+        };
+        (_a = this._interpreter) === null || _a === void 0 ? void 0 : _a.send(data);
     };
     /**
      * @desc sends a message to a user
@@ -168,45 +220,22 @@ var Channel = /** @class */ (function () {
      * @param message - The message to send
      */
     Channel.prototype.privateMessage = function (clientId, event, message) {
-        console.log('private messaging', clientId, event, message);
+        var _a;
+        var data = {
+            severSent: true,
+            type: 'sendMessage',
+            clientId: 'SERVER', assigns: {},
+            message: { event: event, payload: message },
+            targets: [clientId]
+        };
+        (_a = this._interpreter) === null || _a === void 0 ? void 0 : _a.send(data);
     };
-    Object.defineProperty(Channel.prototype, "presenceList", {
-        /**
-         * @desc Gets the presence list of the channel
-         */
-        get: function () {
-            var _a;
-            return ((_a = this.context) === null || _a === void 0 ? void 0 : _a.presences.toArray()) || [];
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Channel.prototype, "room", {
-        /**
-         * @desc Getter for the internal channel
-         * @private
-         */
-        get: function () {
-            var _this = this;
-            return {
-                getPresenceList: function () { return _this.presenceList; },
-                getRoomData: function () { return _this._roomData; },
-                disconnect: this.removeSocket.bind(this),
-                broadcast: this.broadcast.bind(this),
-                broadcastFrom: this.broadcastFrom.bind(this),
-                send: this.privateMessage.bind(this)
-            };
-        },
-        enumerable: false,
-        configurable: true
-    });
     /**
      * @desc initialises the channel
      * @private
      */
     Channel.prototype.init = function () {
         var _this = this;
-        var _a;
         var stateMachine = (0, xstate_1.createMachine)({
             tsTypes: {},
             schema: {
@@ -292,16 +321,7 @@ var Channel = /** @class */ (function () {
             }
         });
         this._interpreter = (0, xstate_1.interpret)(stateMachine).start();
-        (_a = this._interpreter) === null || _a === void 0 ? void 0 : _a.subscribe(function (state) {
-            console.log(state.value);
-        });
         this._isActive = true;
-    };
-    /**
-     * @desc Checks if the channel has at least one user
-     */
-    Channel.atLeastOneUser = function (ctx, evt) {
-        return ctx.presences.allExcept(evt.clientId).length > 0;
     };
     /**
      * @desc Modifies the of the users in the channel
@@ -469,21 +489,6 @@ var Channel = /** @class */ (function () {
                     var message = JSON.stringify(data);
                     socket.send(message);
                 }
-                else if (state.event === 'broadcast') {
-                    var data = {
-                        topic: 'MESSAGE',
-                        channel: _this.channel,
-                        sender: 'server',
-                        payload: {
-                            message: state.payload,
-                            response: {},
-                            sentBy: state.senderId,
-                            timestamp: new Date().toISOString()
-                        }
-                    };
-                    var message = JSON.stringify(data);
-                    socket.send(message);
-                }
                 else if (state.event === 'errorMessage') {
                     var data = {
                         topic: 'ERROR_MESSAGE',
@@ -498,10 +503,21 @@ var Channel = /** @class */ (function () {
                     var message = JSON.stringify(data);
                     socket.send(message);
                 }
-                else
-                    console.log("Sending message to " + clientId, state);
-                // todo: check if the message is from the server
-                // todo: check if the message is for the user
+                else if (state.event === 'broadcast' || state.event === 'broadcastFrom' || state.event === 'privateMessage') {
+                    var data = {
+                        topic: 'MESSAGE',
+                        channel: _this.channel,
+                        sender: 'server',
+                        payload: {
+                            message: state.payload,
+                            response: {},
+                            sentBy: state.senderId,
+                            timestamp: new Date().toISOString()
+                        }
+                    };
+                    var message = JSON.stringify(data);
+                    socket.send(message);
+                }
             }
         });
         this.subscribeToSocket(event, subscription);
@@ -538,6 +554,7 @@ var Channel = /** @class */ (function () {
                             presence = this.presenceList || [];
                             if (data.mode === 'BROADCAST')
                                 message_2 = {
+                                    severSent: false,
                                     type: 'sendMessage',
                                     clientId: clientId,
                                     assigns: assigns,
@@ -547,6 +564,7 @@ var Channel = /** @class */ (function () {
                             else if (data.mode === 'BROADCAST_EXCEPT_SELF') {
                                 targets = presence.filter(function (presence) { return presence.id !== clientId; }).map(function (presence) { return presence.id; });
                                 message_2 = {
+                                    severSent: false,
                                     type: 'sendMessage',
                                     clientId: clientId,
                                     assigns: assigns,
@@ -556,6 +574,7 @@ var Channel = /** @class */ (function () {
                             }
                             else if (data.mode === 'BROADCAST_TO_ASSIGNED' && data.payload.assignedTo)
                                 message_2 = {
+                                    severSent: false,
                                     type: 'sendMessage',
                                     clientId: clientId,
                                     assigns: assigns,
@@ -611,6 +630,15 @@ var Channel = /** @class */ (function () {
         var _this = this;
         return (0, base_1.BasePromise)(function (resolve, reject) {
             var message = event.message;
+            delete message.event;
+            if (event.severSent)
+                resolve({
+                    message: JSON.stringify(message),
+                    clientId: event.clientId,
+                    targets: event.targets,
+                    assigns: event.assigns,
+                    presence: {},
+                });
             var verifier = _this._messageEventVerifiers.get(event.message.event);
             var client = context.presences.get(event.clientId);
             if (!client)
@@ -618,7 +646,6 @@ var Channel = /** @class */ (function () {
                     addresses: [event.clientId],
                     clientId: event.clientId
                 });
-            delete message.event;
             if (verifier) {
                 var newAssigns_1 = event.assigns;
                 var newPresence_1 = client;
@@ -644,7 +671,6 @@ var Channel = /** @class */ (function () {
                     room: _this.room,
                     request: {
                         message: event.message,
-                        targets: event.targets,
                         clientId: event.clientId,
                         assigns: event.assigns,
                     }

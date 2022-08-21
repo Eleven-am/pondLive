@@ -126,7 +126,7 @@ type JoinRoomAssigns = { assigns?: default_t, roomData?: default_t, presence?: d
 
 type GlobalAssigns = default_t;
 
-type IncomingJoinRoomRequest = Omit<AuthenticateRoom, 'type'>;
+type IncomingJoinRoomRequest = Omit<AuthenticateRoom, 'type' | 'socket'>;
 
 export type NewIncomingRequest<T, V = default_t> = {
     request: T;
@@ -725,6 +725,13 @@ export class PondSocket {
             socket: WebSocket;
         }>((resolve, reject) => {
             const {roomToJoin, endpoint} = event;
+            const request: IncomingJoinRoomRequest = {
+                clientId: event.clientId,
+                endpoint: endpoint,
+                assigns: event.assigns,
+                roomToJoin: roomToJoin,
+                roomData: event.roomData,
+            };
 
             const auth = this._paths.find(p => PondSocket.compareStringToPattern(endpoint, p.pattern))?.rooms.find(r => PondSocket.compareStringToPattern(roomToJoin, r.pattern));
 
@@ -735,7 +742,7 @@ export class PondSocket {
                 });
 
             auth.handler({
-                request: event,
+                request: request,
                 accept: (data) => {
                     const newAssigns = {...event.assigns, ...data?.assigns};
                     const newPresence = {...{}, ...data?.presence};

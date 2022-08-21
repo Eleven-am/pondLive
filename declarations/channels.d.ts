@@ -43,7 +43,7 @@ declare type SocketClientMessage = {
     };
 };
 export declare type SocketClientMessageType = SocketClientMessage | SocketJoinRoomRequest | SocketLeaveRoomRequest;
-export interface UserMessageEvent<T = any> {
+interface UserMessageEvent<T = any> {
     payload?: T;
     channel: string;
     event: 'joinRoom' | 'leaveRoom' | 'sendMessage' | 'updatePresence';
@@ -51,7 +51,7 @@ export interface UserMessageEvent<T = any> {
     emitter: 'userMessage';
     clientId: string;
 }
-export interface ChannelMessageEvent<T = any> {
+interface ChannelMessageEvent<T = any> {
     payload?: T;
     timestamp: string;
     channel: string;
@@ -63,10 +63,10 @@ export interface ChannelMessageEvent<T = any> {
 export declare type Presence<T> = default_t<T> & {
     id: string;
 };
-export declare type Assign<T> = default_t<T> & {
+declare type Assign<T> = default_t<T> & {
     id: string;
 };
-export interface ChannelsContext<T = any> {
+interface ChannelsContext<T = any> {
     presences: BaseMap<string, Omit<Presence<T>, 'id'>>;
     assigns: BaseMap<string, Omit<Assign<T>, 'id'>>;
 }
@@ -85,8 +85,9 @@ declare type ChannelMessageBody = {
     clientId: string;
     assigns: default_t;
     targets: string[] | 'all' | 'allExcept';
+    severSent: boolean;
 };
-export declare type OutBoundChannelEvent = NewIncomingRequest<ChannelMessageBody, {
+export declare type OutBoundChannelEvent = NewIncomingRequest<Omit<ChannelMessageBody, 'targets' | 'severSent'>, {
     assigns?: default_t;
     presence?: default_t;
 }> & {
@@ -95,12 +96,12 @@ export declare type OutBoundChannelEvent = NewIncomingRequest<ChannelMessageBody
 export declare type ChannelMessageEventVerifiers = Map<string, ((outBound: OutBoundChannelEvent) => void)>;
 export declare class Channel {
     readonly channel: string;
-    private _isActive;
-    private _roomData;
-    private readonly _messageEventVerifiers;
     readonly _state$: Subject<ChannelMessageEvent | UserMessageEvent>;
+    private _isActive;
+    private readonly _messageEventVerifiers;
     private _interpreter;
     constructor(channel: string, roomData: default_t, verifiers: ChannelMessageEventVerifiers);
+    private _roomData;
     /**
      * @desc Getter for the room data of the channel
      */
@@ -113,6 +114,19 @@ export declare class Channel {
      * @desc Getter for the context of the state machine
      */
     get context(): ChannelsContext | undefined;
+    /**
+     * @desc Gets the presence list of the channel
+     */
+    get presenceList(): Presence<any>[];
+    /**
+     * @desc Getter for the internal channel
+     * @private
+     */
+    get room(): InternalPondChannel;
+    /**
+     * @desc Checks if the channel has at least one user
+     */
+    private static atLeastOneUser;
     /**
      * @desc adds the user to the channel
      * @param event - The event that triggered the transition
@@ -144,23 +158,10 @@ export declare class Channel {
      */
     privateMessage(clientId: string, event: string, message: default_t): void;
     /**
-     * @desc Gets the presence list of the channel
-     */
-    get presenceList(): Presence<any>[];
-    /**
-     * @desc Getter for the internal channel
-     * @private
-     */
-    get room(): InternalPondChannel;
-    /**
      * @desc initialises the channel
      * @private
      */
     private init;
-    /**
-     * @desc Checks if the channel has at least one user
-     */
-    private static atLeastOneUser;
     /**
      * @desc Modifies the of the users in the channel
      * @param context - The current context of the state machine

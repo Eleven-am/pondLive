@@ -189,7 +189,7 @@ type ChannelEvent =
     | SendMessageErrorEvent;
 
 export type OutBoundChannelEvent =
-    NewIncomingRequest<ChannelMessageBody, { assigns?: default_t, presence?: default_t }>
+    NewIncomingRequest<Omit<ChannelMessageBody, 'targets' | 'severSent'>, { assigns?: default_t, presence?: default_t }>
     & { room: InternalPondChannel };
 
 export type ChannelMessageEventVerifiers = Map<string, ((outBound: OutBoundChannelEvent) => void)>;
@@ -803,9 +803,7 @@ export class Channel {
                     decline: deny,
                     room: this.room,
                     request: {
-                        severSent: false,
                         message: event.message,
-                        targets: event.targets,
                         clientId: event.clientId,
                         assigns: event.assigns,
                     }
