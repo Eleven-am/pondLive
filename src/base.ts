@@ -91,6 +91,9 @@ export class BaseMap<A, B> {
     public toArray(): Array<B & {id: A}> {
         return Array.from(this.map.entries(), ([key, value]) => ({id: key, ...value}));
     }
+    public toKeyValueArray(): Array<{key: A, value: B}> {
+        return Array.from(this.map.entries(), ([key, value]) => ({key: key, value: value}));
+    }
     public deleteKey(key: A): this {
         this.map.delete(key);
         return this;

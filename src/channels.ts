@@ -116,6 +116,8 @@ export type Presence<T> = default_t<T> & { id: string };
 
 type Assign<T> = default_t<T> & { id: string };
 
+type RoomData<T = any> = default_t<T> & { id: string };
+
 interface ChannelsContext<T = any> {
     presences: BaseMap<string, Omit<Presence<T>, 'id'>>;
     assigns: BaseMap<string, Omit<Assign<T>, 'id'>>;
@@ -192,7 +194,7 @@ export type OutBoundChannelEvent =
     NewIncomingRequest<Omit<ChannelMessageBody, 'targets' | 'severSent'>, { assigns?: default_t, presence?: default_t }>
     & { room: InternalPondChannel };
 
-export type ChannelMessageEventVerifiers = Map<string, ((outBound: OutBoundChannelEvent) => void)>;
+export type ChannelMessageEventVerifiers = BaseMap<string | RegExp, ((outBound: OutBoundChannelEvent) => void)>;
 
 type Machine = StateMachine<ChannelsContext, any, ChannelJoinRoomEvent | ChannelUpdatePresenceEvent | ChannelLeaveRoomEvent | ChannelSendMessageEvent | SendMessageErrorEvent, any, BaseActionObject, ChannelService, any>
 
@@ -203,7 +205,7 @@ export class Channel {
     private readonly _messageEventVerifiers: ChannelMessageEventVerifiers;
     private _interpreter: Interpreter<ChannelsContext, any, ChannelEvent, { value: any; context: ChannelsContext; }, any> | undefined;
 
-    constructor(channel: string, roomData: default_t, verifiers: ChannelMessageEventVerifiers) {
+    constructor(channel: string, roomData: RoomData, verifiers: ChannelMessageEventVerifiers) {
         this.channel = channel;
         this._roomData = roomData;
         this._isActive = false;
@@ -212,12 +214,12 @@ export class Channel {
         this.init();
     }
 
-    private _roomData: default_t;
+    private _roomData: RoomData;
 
     /**
      * @desc Getter for the room data of the channel
      */
-    public get roomData(): default_t {
+    public get roomData(): RoomData {
         return this._roomData;
     }
 
@@ -262,6 +264,19 @@ export class Channel {
      */
     private static atLeastOneUser(ctx: ChannelsContext, evt: ChannelLeaveRoomEvent): boolean {
         return ctx.presences.allExcept(evt.clientId).length > 0;
+    }
+
+    /**
+     * @desc compares string to string | regex
+     * @param string - the string to compare to the pattern
+     * @param pattern - the pattern to compare to the string
+     */
+    private static compareStringToPattern(string: string, pattern: string | RegExp) {
+        if (typeof pattern === 'string')
+            return string === pattern;
+        else {
+            return pattern.test(string);
+        }
     }
 
     /**
@@ -769,7 +784,7 @@ export class Channel {
                     presence: {},
                 })
 
-            const verifier = this._messageEventVerifiers.get(event.message.event);
+            const verifier = this._messageEventVerifiers.toKeyValueArray().find(verifier => Channel.compareStringToPattern(event.message.event, verifier.key));
             const client = context.presences.get(event.clientId);
             if (!client)
                 return reject('Action forbidden: You are currently not in the channel', 403, {
@@ -808,7 +823,7 @@ export class Channel {
                         assigns: event.assigns,
                     }
                 }
-                verifier(outbound);
+                verifier.value(outbound);
 
             } else
                 return resolve({

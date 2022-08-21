@@ -108,46 +108,46 @@ declare class PondChannel {
      * @param event - the event to listen for
      * @param callback - the callback to call when the event is triggered
      */
-    on: (event: string, callback: (outBound: OutBoundChannelEvent) => void) => void;
+    on: (event: string | RegExp, callback: (outBound: OutBoundChannelEvent) => void) => void;
     /**
      * @desc Broadcasts an event to all clients in the room
-     * @param roomName - the name of the room to broadcast to
+     * @param roomId - the id of the room to broadcast to
      * @param event - the event to broadcast
      * @param data - the data to broadcast
      */
-    broadcast: (roomName: string, event: string, data: default_t) => void;
+    broadcast: (roomId: string, event: string, data: default_t) => void;
     /**
      * @desc Broadcasts an event to all clients in the room except the clientId provided
-     * @param roomName - the name of the room to broadcast to
+     * @param roomId - the id of the room to broadcast to
      * @param clientId - the clientId to exclude from the broadcast
      * @param event - the event to broadcast
      * @param data - the data to broadcast
      */
-    broadcastFrom: (roomName: string, clientId: string, event: string, data: default_t) => void;
+    broadcastFrom: (roomId: string, clientId: string, event: string, data: default_t) => void;
     /**
      * @desc Sends an event to the clientId provided
-     * @param roomName - the name of the room to broadcast to
+     * @param roomId - the name of the room to broadcast to
      * @param clientId - the clientId to send the event to
      * @param event - the event to broadcast
      * @param data - the data to broadcast
      */
-    send: (roomName: string, clientId: string, event: string, data: default_t) => void;
+    send: (roomId: string, clientId: string, event: string, data: default_t) => void;
     /**
      * @desc Gets the list of clients in the channel
-     * @param roomName - the name of the room to get the clients from
+     * @param roomId - the id of the room to get the clients from
      */
-    getPresenceList: <T>(roomName: string) => Presence<T>[];
+    getPresenceList: <T>(roomId: string) => Presence<T>[];
     /**
      * @desc Gets the metadata of the channel
-     * @param roomName
+     * @param roomId - the id of the room to get the metadata from
      */
-    getRoomData: (roomName: string) => default_t;
+    getRoomData: (roomId: string) => default_t;
     /**
      * @desc Disconnects the client from the channel
-     * @param roomName - the name of the room to disconnect from
+     * @param roomId - the id of the room to disconnect from
      * @param clientId - the clientId to disconnect
      */
-    disconnect: (roomName: string, clientId: string) => void;
+    disconnect: (roomId: string, clientId: string) => void;
 }
 
 export declare class PondSocket {

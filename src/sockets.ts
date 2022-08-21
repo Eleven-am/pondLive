@@ -34,7 +34,7 @@ type SocketContext = default_t & {
 }
 
 interface GlobalSocketContext {
-    channels: Map<string, Channel>;
+    channels: BaseMap<string, Channel>;
     sockets: BaseMap<WebSocket, SocketContext>;
 }
 
@@ -98,7 +98,6 @@ type AuthenticateRoom = {
     endpoint: string;
     assigns: default_t;
     roomToJoin: string;
-    roomData: default_t;
 }
 
 type GlobalSocketEvent =
@@ -198,52 +197,52 @@ interface PondChannel {
      * @param event - the event to listen for
      * @param callback - the callback to call when the event is triggered
      */
-    on: (event: string, callback: (outBound: OutBoundChannelEvent) => void) => void;
+    on: (event: string | RegExp, callback: (outBound: OutBoundChannelEvent) => void) => void;
 
     /**
      * @desc Broadcasts an event to all clients in the room
-     * @param roomName - the name of the room to broadcast to
+     * @param roomId - the id of the room to broadcast to
      * @param event - the event to broadcast
      * @param data - the data to broadcast
      */
-    broadcast: (roomName: string, event: string, data: default_t) => void;
+    broadcast: (roomId: string, event: string, data: default_t) => void;
 
     /**
      * @desc Broadcasts an event to all clients in the room except the clientId provided
-     * @param roomName - the name of the room to broadcast to
+     * @param roomId - the id of the room to broadcast to
      * @param clientId - the clientId to exclude from the broadcast
      * @param event - the event to broadcast
      * @param data - the data to broadcast
      */
-    broadcastFrom: (roomName: string, clientId: string, event: string, data: default_t) => void;
+    broadcastFrom: (roomId: string, clientId: string, event: string, data: default_t) => void;
 
     /**
      * @desc Sends an event to the clientId provided
-     * @param roomName - the name of the room to broadcast to
+     * @param roomId - the name of the room to broadcast to
      * @param clientId - the clientId to send the event to
      * @param event - the event to broadcast
      * @param data - the data to broadcast
      */
-    send: (roomName: string, clientId: string, event: string, data: default_t) => void;
+    send: (roomId: string, clientId: string, event: string, data: default_t) => void;
 
     /**
      * @desc Gets the list of clients in the channel
-     * @param roomName - the name of the room to get the clients from
+     * @param roomId - the id of the room to get the clients from
      */
-    getPresenceList: <T>(roomName: string) => Presence<T>[];
+    getPresenceList: <T>(roomId: string) => Presence<T>[];
 
     /**
      * @desc Gets the metadata of the channel
-     * @param roomName
+     * @param roomId - the id of the room to get the metadata from
      */
-    getRoomData: (roomName: string) => default_t;
+    getRoomData: (roomId: string) => default_t;
 
     /**
      * @desc Disconnects the client from the channel
-     * @param roomName - the name of the room to disconnect from
+     * @param roomId - the id of the room to disconnect from
      * @param clientId - the clientId to disconnect
      */
-    disconnect: (roomName: string, clientId: string) => void;
+    disconnect: (roomId: string, clientId: string) => void;
 }
 
 export class PondSocket {
@@ -435,8 +434,7 @@ export class PondSocket {
      * @private
      */
     private createRoom(endpoint: Endpoint, pattern: string | RegExp, handler: ((request: NewIncomingRequest<IncomingJoinRoomRequest, JoinRoomAssigns>) => void)): PondChannel {
-        const events = new Map<string, ((outBound: OutBoundChannelEvent) => void)>();
-        const channels = this._interpreter?.state.context.channels || new Map<string, Channel>();
+        const events = new BaseMap<string | RegExp, ((outBound: OutBoundChannelEvent) => void)>();
         endpoint.rooms.push({pattern, handler, events})
         return {
             /**
@@ -450,67 +448,67 @@ export class PondSocket {
 
             /**
              * @desc Broadcasts an event to all clients in the room
-             * @param roomName - the name of the room to broadcast to
+             * @param roomId - the id of the room to broadcast to
              * @param event - the event to broadcast
              * @param data - the data to broadcast
              */
-            broadcast: (roomName: string, event: string, data: default_t) => {
-                const channel = channels.get(roomName);
+            broadcast: (roomId: string, event: string, data: default_t) => {
+                const channel = this.getChannelById(roomId);
                 if (channel)
                     channel.room.broadcast(event, data);
             },
 
             /**
              * @desc Broadcasts an event to all clients in the room except the clientId provided
-             * @param roomName - the name of the room to broadcast to
+             * @param roomId - the id of the room to broadcast to
              * @param clientId - the clientId to exclude from the broadcast
              * @param event - the event to broadcast
              * @param data - the data to broadcast
              */
-            broadcastFrom: (roomName: string, clientId: string, event: string, data: default_t) => {
-                const channel = channels.get(roomName);
+            broadcastFrom: (roomId: string, clientId: string, event: string, data: default_t) => {
+                const channel = this.getChannelById(roomId);
                 if (channel)
                     channel.broadcastFrom(clientId, event, data);
             },
 
-            /**
+            /**`
              * @desc Sends an event to the clientId provided
-             * @param roomName - the name of the room to broadcast to
+             * @param roomId - the id of the room to broadcast to
              * @param clientId - the clientId to send the event to
              * @param event - the event to broadcast
              * @param data - the data to broadcast
              */
-            send: (roomName: string, clientId: string, event: string, data: default_t) => {
-                const channel = channels.get(roomName);
+            send: (roomId, clientId, event, data) => {
+                const channel = this.getChannelById(roomId);
                 if (channel)
                     channel.privateMessage(clientId, event, data);
             },
 
             /**
              * @desc Gets the list of clients in the channel
-             * @param roomName - the name of the room to get the clients from
+             * @param roomId - the id of the room to get the clients from
              */
-            getPresenceList: (roomName) => {
-                const channel = channels.get(roomName);
+            getPresenceList: (roomId) => {
+                const channel = this.getChannelById(roomId);
                 return channel?.presenceList || [];
             },
 
             /**
              * @desc Gets the metadata of the channel
-             * @param roomName
+             * @param roomId - the id of the room to broadcast to
              */
-            getRoomData: (roomName) => {
-                const channel = channels.get(roomName);
+            getRoomData: (roomId) => {
+                const channel = this.getChannelById(roomId);
                 return channel?.roomData || {};
             },
 
-            /**
+            /**roomId
              * @desc Disconnects the client from the channel
-             * @param roomName - the name of the room to disconnect from
+             * @param roomId - the id of the room to broadcast to
              * @param clientId - the clientId to disconnect
              */
-            disconnect: (roomName, clientId) => {
-                const channel = channels.get(roomName);
+            disconnect: (roomId, clientId) => {
+                const channel = this.getChannelById(roomId);
                 if (channel)
                     channel.removeSocket(clientId);
             }
@@ -601,7 +599,7 @@ export class PondSocket {
                 },
             },
             context: {
-                channels: new Map(),
+                channels: new BaseMap<string, Channel>(),
                 sockets: new BaseMap<WebSocket, SocketContext>(),
             },
             predictableActionArguments: true,
@@ -611,7 +609,7 @@ export class PondSocket {
             actions: {
                 sendErrorMessage: (_ctx, event) => PondSocket.sendErrorMessage(event),
                 joinRoom: (context, event) => this.joinRoom(context, event),
-                addSocketToDB: (context, event) => this.addSocketToDB(context, event),
+                addSocketToDB: (context, event) => PondSocket.addSocketToDB(context, event),
                 rejectSocketConnection: (_ctx, event) => PondSocket.rejectSocketConnection(event),
                 shutDownServer: (context, event) => this.shutDownServer(context, event),
             }, services: {
@@ -646,7 +644,7 @@ export class PondSocket {
                             this._interpreter?.send({
                                 type: 'requestToJoinRoom',
                                 clientId, socket: ws, roomToJoin: data.channel, endpoint,
-                                assigns: {...assigns, id: clientId}, roomData: data.payload?.roomData || {},
+                                assigns: {...assigns, id: clientId}
                             });
                     } catch (e) {
                         const message: DefaultServerErrorResponse = {
@@ -702,14 +700,14 @@ export class PondSocket {
      * @param event - the event that is being handled
      * @private
      */
-    private addSocketToDB(context: GlobalSocketContext, event: AddSocketToDB) {
+    private static addSocketToDB(context: GlobalSocketContext, event: AddSocketToDB) {
         const assigns = {
             ...event.data.assigns,
             clientId: event.data.clientId,
             endpoint: event.data.endpoint,
         };
         assign({
-            sockets: new Map(context.sockets.set(event.data.socket, assigns))
+            sockets: new BaseMap(context.sockets.set(event.data.socket, assigns))
         });
     }
 
@@ -730,7 +728,6 @@ export class PondSocket {
                 endpoint: endpoint,
                 assigns: event.assigns,
                 roomToJoin: roomToJoin,
-                roomData: event.roomData,
             };
 
             const auth = this._paths.find(p => PondSocket.compareStringToPattern(endpoint, p.pattern))?.rooms.find(r => PondSocket.compareStringToPattern(roomToJoin, r.pattern));
@@ -776,11 +773,14 @@ export class PondSocket {
         const accessor = this._base.encrypt(event.data.endpoint, {room: event.data.roomName});
         let channel = context.channels.get(accessor);
         if (!channel || channel.state === 'inactive')
-            channel = new Channel(event.data.roomName, event.data.roomData, event.data.verifiers);
+            channel = new Channel(event.data.roomName, {
+                ...event.data.roomData,
+                id: this._base.createUUID(),
+            }, event.data.verifiers);
 
         channel.addSocket(event.data);
         assign({
-            channels: new Map(context.channels.set(accessor, channel))
+            channels: new BaseMap(context.channels.set(accessor, channel))
         });
     }
 
@@ -869,5 +869,13 @@ export class PondSocket {
      */
     private getSocketById(socketId: string, endpoint: string | RegExp) {
         return this.getAllSockets().find(s => s.clientId === socketId && PondSocket.comparePatternToPattern(s.endpoint, endpoint));
+    }
+
+    /**
+     * @desc Gets a specific channel by its id
+     * @param channelId - the id of the channel to get
+     */
+    private getChannelById(channelId: string) {
+        return this._interpreter?.state.context.channels.toKeyValueArray().find(c => c.value.roomData.id === channelId)?.value;
     }
 }
