@@ -1,177 +1,80 @@
-import {IncomingMessage, Server} from "http";
-import {WebSocket, WebSocketServer} from "ws";
+import { InternalPondChannel } from "./src/channel";
+import { IncomingMessage, Server } from "http";
+import { WebSocketServer } from "ws";
+import PondEndpoint from "./src/endpoint";
 
-type ChannelMessageBody = {
-    message: default_t & { event: string };
+export type default_t = {
+    [key: string]: any;
+}
+
+export type InternalAssigns = default_t & {clientId: string};
+
+export type RemoveClientId<T> = Omit<T, "clientId">;
+
+export type PondAssigns = RemoveClientId<InternalAssigns>;
+export type PondPresence = RemoveClientId<InternalAssigns>;
+export type PondChannelData = RemoveClientId<InternalAssigns>;
+
+export interface PondResponseAssigns {
+    assign?: PondAssigns;
+    presence?: PondPresence;
+    channelData?: PondChannelData;
+}
+
+export interface IncomingJoinMessage {
     clientId: string;
-    assigns: default_t
-    targets: string[] | 'all' | 'allExcept';
+    channelId: string;
+    channelName: string;
+    clientAssigns: PondAssigns;
 }
 
-declare type NewIncomingRequest<T, V = default_t> = {
-    request: T;
-    accept: (assigns?: V) => void;
-    decline: (message: string) => void;
-};
-
-declare type Presence<T> = default_t<T> & { id: string };
-
-declare type InternalPondChannel = {
-    getPresenceList: <T>() => Presence<T>[];
-    getRoomData: () => default_t;
-    disconnect: (clientId: string) => void;
-    broadcast: (event: string, payload: default_t) => void;
-    broadcastFrom: (clientId: string, event: string, payload: default_t) => void;
-    send: (clientId: string, event: string, payload: default_t) => void;
+export interface IncomingChannelMessage {
+    event: string;
+    channelId: string;
+    channelName: string;
+    message: default_t;
+    client: {
+        clientId: string;
+        clientAssigns: PondAssigns;
+        clientPresence: PondPresence;
+    }
 }
 
-declare type LocalAssigns = {
-    assigns?: default_t;
-    presence?: default_t;
+export interface PondResponse {
+    accept: (assigns?: PondResponseAssigns) => void;
+    reject: (message?: string, statusCode?: number) => void;
 }
 
-declare type OutBoundChannelEvent = NewIncomingRequest<ChannelMessageBody, LocalAssigns> & {
-    room: InternalPondChannel;
-};
-
-declare type GlobalAssigns = default_t;
-
-declare type default_t<T = any> = {
-    [p: string]: T;
-};
-
-declare type AuthenticateRoom = {
-    type: 'requestToJoinRoom';
-    clientId: string;
-    socket: WebSocket;
-    endpoint: string;
-    assigns: default_t;
-    roomToJoin: string;
-    roomData: default_t;
-};
-
-declare type JoinRoomAssigns = {
-    assigns?: default_t;
-    roomData?: default_t;
-    presence?: default_t;
-};
-
-declare type IncomingJoinRoomRequest = Omit<AuthenticateRoom, 'type'>;
-
-declare class PondEndpoint {
-    /**
-     * @desc Accepts a new socket join request to the room provided using the handler function to authorise the socket
-     * @param pattern - the pattern to accept || can also be a regex
-     * @param handler - the handler function to authenticate the socket
-     *
-     * @example
-     * const room = endpoint.createRoom('room:*', ({request, accept, decline}) => {
-     *   const isAdmin = request.assigns.admin;
-     *   if (!isAdmin)
-     *      return decline('You are not an admin');
-     *
-     *   accept({assigns: {admin: true, joinedDate: new Date()}, presence: {state: online}, roomData: {private: true}});
-     * });
-     *
-     * room.on('ping', ({assigns, roomData, assign}) => {
-     *     assign({
-     *        presence: {state: online},
-     *        assigns: {lastPing: new Date()}
-     *     });
-     * })
-     */
-    createRoom: (pattern: string | RegExp, handler: ((request: NewIncomingRequest<IncomingJoinRoomRequest, JoinRoomAssigns>) => void)) => PondChannel;
-    /**
-     * @desc Broadcasts a message to all sockets connected through the endpoint
-     * @param event - the event to broadcast
-     * @param message - the message to broadcast
-     */
-    broadcast: (event: string, message: default_t) => void;
-    /**
-     * @desc Sends a message to a specific socket
-     * @param socketId - the socketId to send the message to
-     * @param event - the event to broadcast
-     * @param message - the message to broadcast
-     */
-    send: (socketId: string, event: string, message: default_t) => void;
-    /**
-     * @desc Closes a specific socket if it is connected to the endpoint
-     * @param socketId - the socketId to close
-     * @param code - the code to send to the socket
-     */
-    close: (socketId: string, code?: number) => void;
+export interface PondChannel {
+    on: (event: string | RegExp, handler: (req: IncomingChannelMessage, res: PondResponse, channel: InternalPondChannel) => void) => void;
 }
 
-declare class PondChannel {
-    /**
-     * @desc Adds an event listener to the channel
-     * @param event - the event to listen for
-     * @param callback - the callback to call when the event is triggered
-     */
-    on: (event: string | RegExp, callback: (outBound: OutBoundChannelEvent) => void) => void;
-    /**
-     * @desc Broadcasts an event to all clients in the room
-     * @param roomId - the id of the room to broadcast to
-     * @param event - the event to broadcast
-     * @param data - the data to broadcast
-     */
-    broadcast: (roomId: string, event: string, data: default_t) => void;
-    /**
-     * @desc Broadcasts an event to all clients in the room except the clientId provided
-     * @param roomId - the id of the room to broadcast to
-     * @param clientId - the clientId to exclude from the broadcast
-     * @param event - the event to broadcast
-     * @param data - the data to broadcast
-     */
-    broadcastFrom: (roomId: string, clientId: string, event: string, data: default_t) => void;
-    /**
-     * @desc Sends an event to the clientId provided
-     * @param roomId - the name of the room to broadcast to
-     * @param clientId - the clientId to send the event to
-     * @param event - the event to broadcast
-     * @param data - the data to broadcast
-     */
-    send: (roomId: string, clientId: string, event: string, data: default_t) => void;
-    /**
-     * @desc Gets the list of clients in the channel
-     * @param roomId - the id of the room to get the clients from
-     */
-    getPresenceList: <T>(roomId: string) => Presence<T>[];
-    /**
-     * @desc Gets the metadata of the channel
-     * @param roomId - the id of the room to get the metadata from
-     */
-    getRoomData: (roomId: string) => default_t;
-    /**
-     * @desc Disconnects the client from the channel
-     * @param roomId - the id of the room to disconnect from
-     * @param clientId - the clientId to disconnect
-     */
-    disconnect: (roomId: string, clientId: string) => void;
-}
-
-export declare class PondSocket {
-    constructor(server?: Server, wss?: WebSocketServer);
+export default class PondServer {
+    private readonly utils;
+    private readonly server;
+    private readonly machine;
+    private readonly socketServer;
+    constructor(server?: Server, socketServer?: WebSocketServer);
     /**
      * @desc Specifies the port to listen on
      * @param port - the port to listen on
      * @param callback - the callback to call when the server is listening
      */
-    listen(port: number, callback?: (port?: number) => void): Server;
+    listen(port: number, callback: (port?: number) => void): Server;
     /**
      * @desc Accepts a new socket upgrade request on the provided endpoint using the handler function to authenticate the socket
-     * @param pattern - the pattern to accept || can also be a regex
+     * @param path - the pattern to accept || can also be a regex
      * @param handler - the handler function to authenticate the socket
      *
      * @example
-     * const endpoint = pond.createEndpoint('/api/v1/auth', ({request, accept, decline}) => {
-     *    const { query } = parse(request.url || '');
+     * const endpoint = pond.createEndpoint('/api/v1/auth', (req, res) => {
+     *    const { query } = parse(req.url || '');
      *    const { token } = query;
      *    if (!token)
-     *        return decline('No token provided');
+     *        return res.decline('No token provided');
      *
-     *    accept({ token });
+     *    res.accept({ token });
      * })
      */
-    createEndpoint(pattern: string | RegExp, handler: ((request: NewIncomingRequest<IncomingMessage, GlobalAssigns>) => void)): PondEndpoint;
+    createEndpoint(path: string | RegExp, handler: (req: IncomingMessage, res: PondResponse) => void): PondEndpoint;
 }

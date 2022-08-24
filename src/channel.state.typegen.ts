@@ -3,19 +3,19 @@
 export interface Typegen0 {
   "@@xstate/typegen": true;
   internalEvents: {
-    "done.invoke.channels.authoriseMessage:invocation[0]": {
-      type: "done.invoke.channels.authoriseMessage:invocation[0]";
+    "done.invoke.(machine).authoriseMessage:invocation[0]": {
+      type: "done.invoke.(machine).authoriseMessage:invocation[0]";
       data: unknown;
       __tip: "See the XState TS docs to learn how to strongly type this.";
     };
-    "error.platform.channels.authoriseMessage:invocation[0]": {
-      type: "error.platform.channels.authoriseMessage:invocation[0]";
+    "error.platform.(machine).authoriseMessage:invocation[0]": {
+      type: "error.platform.(machine).authoriseMessage:invocation[0]";
       data: unknown;
     };
     "xstate.init": { type: "xstate.init" };
   };
   invokeSrcNameMap: {
-    canPerformAction: "done.invoke.channels.authoriseMessage:invocation[0]";
+    canPerformAction: "done.invoke.(machine).authoriseMessage:invocation[0]";
   };
   missingImplementations: {
     actions: never;
@@ -26,9 +26,9 @@ export interface Typegen0 {
   eventsCausingActions: {
     modifyPresence: "joinRoom" | "leaveRoom" | "updatePresence";
     sendErrorMessage:
-      | "error.platform.channels.authoriseMessage:invocation[0]"
+      | "error.platform.(machine).authoriseMessage:invocation[0]"
       | "errorMessage";
-    sendTheMessages: "done.invoke.channels.authoriseMessage:invocation[0]";
+    sendTheMessages: "done.invoke.(machine).authoriseMessage:invocation[0]";
     shutDownChannel: "leaveRoom";
   };
   eventsCausingServices: {
