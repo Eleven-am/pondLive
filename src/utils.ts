@@ -15,26 +15,6 @@ export class BaseClass {
     }
 
     /**
-     * @desc encodes an object using into a string using it's secret key
-     * @param salt - the secret key
-     * @param text - the object to encode
-     */
-    public encrypt(salt: string, text: any) {
-        const textToChars = (text: string) => text.split("").map((c) => c.charCodeAt(0));
-        const byteHex = (n: number) => ("0" + Number(n).toString(16)).substr(-2);
-        const applySaltToChar = (code: any) => textToChars(salt).reduce((a, b) => a ^ b, code);
-
-        const token = JSON.stringify(text)
-            .split("")
-            .map(textToChars)
-            .map(applySaltToChar)
-            .map(byteHex)
-            .join("");
-
-        return btoa(token).toString();
-    }
-
-    /**
      * @desc compares string to string | regex
      * @param string - the string to compare to the pattern
      * @param pattern - the pattern to compare to the string

@@ -1,5 +1,5 @@
 import {IncomingMessage, Server} from "http";
-import {assign, createMachine, interpret, Interpreter} from "xstate";
+import {assign, createMachine, interpret, Interpreter, InterpreterStatus} from "xstate";
 import {
     default_t,
     IncomingChannelMessage,
@@ -390,6 +390,7 @@ export class EndpointMachine {
     private authoriseSocketToJoinChannel(ctx: EndpointContext, evt: JoinChannelRequestEvent) {
         return BasePromise<JoinChannelRequestSubSuccessEvent, JoinChannelRequestSubErrorEvent>((resolve, reject) => {
             const {clientId, ...clientAssigns} = evt.data.assigns;
+            let channel: ChannelInterpreter | undefined;
             const authorizer = ctx.authorizers.findByKey(path => this.base.compareStringToPattern(evt.data.channelName, path));
             if (!authorizer)
                 return reject('No authorizer found', 404, {
@@ -398,9 +399,12 @@ export class EndpointMachine {
                     clientId: clientId,
                 });
 
-            const channel = ctx.channels.find(channel => channel.state.context.channelName === evt.data.channelName)?.value
-                || new ChannelMachine({
-                    channelId: this.base.uuid(),
+            channel = ctx.channels.find(channel => channel.state.context.channelName === evt.data.channelName)?.value;
+            const channelId = channel?.state.context.channelId ?? this.base.uuid();
+
+            if (!channel || channel.status === InterpreterStatus.Stopped)
+                channel = new ChannelMachine({
+                    channelId: channelId,
                     channelName: evt.data.channelName,
                     channelData: {},
                     verifiers: authorizer.value.events,
@@ -418,14 +422,14 @@ export class EndpointMachine {
 
             const response = this.base.generatePondResponse((assigns) => {
                 const internalAssigns: InternalAssigns = {...clientAssigns, ...assigns.assign, clientId};
-                const channelData = {...channel.state.context.channelData, ...assigns.channelData};
+                const channelData = {...channel!.state.context.channelData, ...assigns.channelData};
                 const internalPresence: InternalAssigns = {...assigns.presence, clientId};
                 resolve({
                     clientId: clientId,
                     assigns: internalAssigns,
                     presence: internalPresence,
                     channelName: evt.data.channelName,
-                    channelData: {...channelData, channelId: channel.state.context.channelId},
+                    channelData: {...channelData, channelId: channel!.state.context.channelId},
                 });
 
             }, reject, {
@@ -439,7 +443,7 @@ export class EndpointMachine {
             })
 
             authorizer.value.handler(request, response);
-        }, {
+        },  {
             channelName: evt.data.channelName,
             assigns: evt.data.assigns,
             clientId: evt.data.assigns.clientId,
