@@ -14,6 +14,7 @@ declare type ChannelUpdatePresenceEvent = {
     clientId: string;
     assigns: PondAssigns;
     presence: PondPresence;
+    channelData: PondAssigns;
 };
 declare type ChannelLeaveRoomEvent = {
     type: 'leaveRoom';
@@ -46,7 +47,7 @@ declare type ChannelEvents = ChannelJoinRoomEvent | ChannelUpdatePresenceEvent |
 declare type ChannelContext = {
     channelId: string;
     channelName: string;
-    channelData: default_t;
+    channelData: BaseMap<string, PondAssigns>;
     verifiers: BaseMap<string | RegExp, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>;
     observable: Subject<EndpointInternalEvents>;
     presences: BaseMap<string, PondPresence>;

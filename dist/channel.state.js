@@ -176,21 +176,24 @@ var ChannelMachine = /** @class */ (function () {
         });
         var updatedPresence = [];
         if (evt.type === "updatePresence") {
+            var newChannelData = __assign(__assign({}, ctx.channelData.get(ctx.channelId)), evt.channelData);
             updatedPresence = this.base.replaceObjectInArray(currentPresence, 'clientId', {
                 clientId: evt.clientId,
                 presence: evt.presence
             });
             (0, xstate_1.assign)({
                 presences: new utils_1.BaseMap(ctx.presences.set(evt.clientId, evt.presence)),
+                channelData: new utils_1.BaseMap(ctx.channelData.set(ctx.channelId, newChannelData)),
                 assigns: new utils_1.BaseMap(ctx.assigns.set(evt.clientId, evt.assigns))
             });
         }
         else if (evt.type === "joinRoom") {
             updatedPresence = currentPresence.concat([{ clientId: evt.clientId, presence: evt.data.presence }]);
+            var newChannelData = __assign(__assign({}, ctx.channelData.get(ctx.channelId)), evt.data.channelData);
             (0, xstate_1.assign)({
                 presences: new utils_1.BaseMap(ctx.presences.set(evt.clientId, evt.data.presence)),
                 assigns: new utils_1.BaseMap(ctx.assigns.set(evt.clientId, evt.data.assigns)),
-                channelData: __assign(__assign({}, ctx.channelData), evt.data.channelData)
+                channelData: new utils_1.BaseMap(ctx.channelData.set(ctx.channelId, newChannelData)),
             });
         }
         else if (evt.type === "leaveRoom") {
@@ -294,11 +297,13 @@ var ChannelMachine = /** @class */ (function () {
                 if (assigns) {
                     var internalAssigns = __assign(__assign({}, evt.assigns), assigns.assign);
                     var internalPresence = __assign(__assign({}, evt.presence), assigns.presence);
+                    var internalChannelData = __assign(__assign({}, ctx.channelData.get(ctx.channelId)), assigns.channelData);
                     _this.interpreter.send({
                         type: 'updatePresence',
                         clientId: clientId,
                         presence: internalPresence,
                         assigns: internalAssigns,
+                        channelData: internalChannelData,
                     });
                 }
             }, reject, {

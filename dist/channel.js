@@ -28,7 +28,7 @@ var InternalPondChannel = /** @class */ (function () {
      * @desc Gets the current channel data
      */
     InternalPondChannel.prototype.getChannelData = function () {
-        return this.endpoint.state.context.channelData;
+        return this.endpoint.state.context.channelData.get(this.channelId) || {};
     };
     /**
      * @desc Modifies the presence state of a client on the channel
@@ -38,14 +38,17 @@ var InternalPondChannel = /** @class */ (function () {
     InternalPondChannel.prototype.modifyPresence = function (clientId, assigns) {
         var clientPresence = this.endpoint.state.context.presences.get(clientId);
         var clientAssigns = this.endpoint.state.context.assigns.get(clientId);
-        if (clientPresence && clientAssigns) {
+        var channelData = this.endpoint.state.context.channelData.get(this.channelId);
+        if (clientPresence && clientAssigns && channelData) {
             var internalAssigns = __assign(__assign({}, clientAssigns), assigns.assign);
             var internalPresence = __assign(__assign({}, clientPresence), assigns.presence);
+            var internalChannelData = __assign(__assign({}, channelData), assigns.channelData);
             this.endpoint.send({
                 type: 'updatePresence',
                 clientId: clientId,
                 presence: internalPresence,
                 assigns: internalAssigns,
+                channelData: internalChannelData
             });
         }
     };
@@ -138,7 +141,7 @@ var PondChannel = /** @class */ (function () {
     PondChannel.prototype.getChannelData = function (channelId) {
         var channel = this.getPrivateChannel(channelId);
         if (channel)
-            return channel.state.context.channelData;
+            return channel.state.context.channelData.get(channelId) || {};
         return {};
     };
     /**
@@ -200,14 +203,17 @@ var PondChannel = /** @class */ (function () {
         if (channel) {
             var clientPresence = channel.state.context.presences.get(clientId);
             var clientAssigns = channel.state.context.assigns.get(clientId);
-            if (clientPresence && clientAssigns) {
+            var channelAssigns = channel.state.context.channelData.get(channelId);
+            if (clientPresence && clientAssigns && channelAssigns) {
                 var internalAssigns = __assign(__assign({}, clientAssigns), assigns.assign);
                 var internalPresence = __assign(__assign({}, clientPresence), assigns.presence);
+                var internalChannelData = __assign(__assign({}, channelAssigns), assigns.channelData);
                 channel.send({
                     type: 'updatePresence',
                     clientId: clientId,
                     presence: internalPresence,
                     assigns: internalAssigns,
+                    channelData: internalChannelData
                 });
             }
         }

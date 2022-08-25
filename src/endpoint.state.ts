@@ -406,7 +406,7 @@ export class EndpointMachine {
                 channel = new ChannelMachine({
                     channelId: channelId,
                     channelName: evt.data.channelName,
-                    channelData: {},
+                    channelData: new BaseMap<string, PondPresence>(),
                     verifiers: authorizer.value.events,
                     observable: ctx.observable,
                     presences: new BaseMap<string, PondPresence>(),

@@ -32,7 +32,7 @@ export class InternalPondChannel {
      * @desc Gets the current channel data
      */
     getChannelData(): PondChannelData {
-        return this.endpoint.state.context.channelData;
+        return this.endpoint.state.context.channelData.get(this.channelId) || {};
     }
 
     /**
@@ -43,15 +43,18 @@ export class InternalPondChannel {
     modifyPresence(clientId: string, assigns: PondResponseAssigns): void {
         const clientPresence = this.endpoint.state.context.presences.get(clientId);
         const clientAssigns = this.endpoint.state.context.assigns.get(clientId);
-        if (clientPresence && clientAssigns) {
+        const channelData = this.endpoint.state.context.channelData.get(this.channelId);
+        if (clientPresence && clientAssigns && channelData) {
             const internalAssigns: PondAssigns = {...clientAssigns, ...assigns.assign};
             const internalPresence: PondPresence = {...clientPresence, ...assigns.presence};
+            const internalChannelData: PondAssigns = {...channelData, ...assigns.channelData};
 
             this.endpoint.send({
                 type: 'updatePresence',
                 clientId: clientId,
                 presence: internalPresence,
                 assigns: internalAssigns,
+                channelData: internalChannelData
             })
         }
     }
@@ -149,7 +152,7 @@ export class PondChannel {
     getChannelData(channelId: string): PondChannelData {
         const channel = this.getPrivateChannel(channelId);
         if (channel)
-            return channel.state.context.channelData;
+            return channel.state.context.channelData.get(channelId) || {};
 
         return {};
     }
@@ -216,15 +219,18 @@ export class PondChannel {
         if (channel) {
             const clientPresence = channel.state.context.presences.get(clientId);
             const clientAssigns = channel.state.context.assigns.get(clientId);
-            if (clientPresence && clientAssigns) {
+            const channelAssigns = channel.state.context.channelData.get(channelId);
+            if (clientPresence && clientAssigns && channelAssigns) {
                 const internalAssigns: PondAssigns = {...clientAssigns, ...assigns.assign};
                 const internalPresence: PondPresence = {...clientPresence, ...assigns.presence};
+                const internalChannelData: PondAssigns = {...channelAssigns, ...assigns.channelData};
 
                 channel.send({
                     type: 'updatePresence',
                     clientId: clientId,
                     presence: internalPresence,
                     assigns: internalAssigns,
+                    channelData: internalChannelData
                 })
             }
         }

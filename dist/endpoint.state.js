@@ -243,7 +243,7 @@ var EndpointMachine = /** @class */ (function () {
                 channel = new channel_state_1.ChannelMachine({
                     channelId: channelId,
                     channelName: evt.data.channelName,
-                    channelData: {},
+                    channelData: new utils_1.BaseMap(),
                     verifiers: authorizer.value.events,
                     observable: ctx.observable,
                     presences: new utils_1.BaseMap(),

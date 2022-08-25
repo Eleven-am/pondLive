@@ -22,6 +22,7 @@ type ChannelUpdatePresenceEvent = {
     clientId: string;
     assigns: PondAssigns;
     presence: PondPresence;
+    channelData: PondAssigns;
 }
 
 type ChannelLeaveRoomEvent = {
@@ -65,7 +66,7 @@ type ChannelEvents =
 type ChannelContext = {
     channelId: string;
     channelName: string;
-    channelData: default_t;
+    channelData: BaseMap<string, PondAssigns>
     verifiers: BaseMap<string | RegExp, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>;
     observable: Subject<EndpointInternalEvents>;
     presences: BaseMap<string, PondPresence>;
@@ -220,21 +221,25 @@ export class ChannelMachine {
         let updatedPresence: InternalAssigns[] = [];
 
         if (evt.type === "updatePresence") {
+            const newChannelData = {...ctx.channelData.get(ctx.channelId), ...evt.channelData};
             updatedPresence = this.base.replaceObjectInArray(currentPresence, 'clientId', {
                 clientId: evt.clientId,
                 presence: evt.presence
             });
             assign({
                 presences: new BaseMap(ctx.presences.set(evt.clientId, evt.presence)),
+                channelData: new BaseMap(ctx.channelData.set(ctx.channelId, newChannelData)),
                 assigns: new BaseMap(ctx.assigns.set(evt.clientId, evt.assigns))
             })
         } else if (evt.type === "joinRoom") {
             updatedPresence = currentPresence.concat([{clientId: evt.clientId, presence: evt.data.presence}]);
+            const newChannelData = {...ctx.channelData.get(ctx.channelId), ...evt.data.channelData};
             assign({
                 presences: new BaseMap(ctx.presences.set(evt.clientId, evt.data.presence)),
                 assigns: new BaseMap(ctx.assigns.set(evt.clientId, evt.data.assigns)),
-                channelData: {...ctx.channelData, ...evt.data.channelData}
+                channelData: new BaseMap(ctx.channelData.set(ctx.channelId, newChannelData)),
             })
+
         } else if (evt.type === "leaveRoom") {
             updatedPresence = currentPresence.filter(({clientId}) => clientId !== evt.clientId);
             assign({
@@ -333,12 +338,14 @@ export class ChannelMachine {
                 if (assigns) {
                     const internalAssigns: PondAssigns = {...evt.assigns, ...assigns.assign};
                     const internalPresence: PondPresence = {...evt.presence, ...assigns.presence};
+                    const internalChannelData: PondAssigns = {...ctx.channelData.get(ctx.channelId), ...assigns.channelData};
 
                     this.interpreter.send({
                         type: 'updatePresence',
                         clientId: clientId,
                         presence: internalPresence,
                         assigns: internalAssigns,
+                        channelData: internalChannelData,
                     })
                 }
             }, reject, {
