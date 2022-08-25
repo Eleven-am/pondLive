@@ -1,6 +1,6 @@
 {
   "name": "pondsocket",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Pond socket is a simple socket server",
   "main": "./dist/index.js",
   "scripts": {
