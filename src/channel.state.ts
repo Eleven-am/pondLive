@@ -232,7 +232,8 @@ export class ChannelMachine {
             updatedPresence = currentPresence.concat([{clientId: evt.clientId, presence: evt.data.presence}]);
             assign({
                 presences: new BaseMap(ctx.presences.set(evt.clientId, evt.data.presence)),
-                assigns: new BaseMap(ctx.assigns.set(evt.clientId, evt.data.assigns))
+                assigns: new BaseMap(ctx.assigns.set(evt.clientId, evt.data.assigns)),
+                channelData: {...ctx.channelData, ...evt.data.channelData}
             })
         } else if (evt.type === "leaveRoom") {
             updatedPresence = currentPresence.filter(({clientId}) => clientId !== evt.clientId);

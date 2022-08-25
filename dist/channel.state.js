@@ -189,7 +189,8 @@ var ChannelMachine = /** @class */ (function () {
             updatedPresence = currentPresence.concat([{ clientId: evt.clientId, presence: evt.data.presence }]);
             (0, xstate_1.assign)({
                 presences: new utils_1.BaseMap(ctx.presences.set(evt.clientId, evt.data.presence)),
-                assigns: new utils_1.BaseMap(ctx.assigns.set(evt.clientId, evt.data.assigns))
+                assigns: new utils_1.BaseMap(ctx.assigns.set(evt.clientId, evt.data.assigns)),
+                channelData: __assign(__assign({}, ctx.channelData), evt.data.channelData)
             });
         }
         else if (evt.type === "leaveRoom") {
