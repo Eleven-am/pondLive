@@ -227,8 +227,9 @@ var EndpointMachine = /** @class */ (function () {
     EndpointMachine.prototype.authoriseSocketToJoinChannel = function (ctx, evt) {
         var _this = this;
         return (0, utils_1.BasePromise)(function (resolve, reject) {
-            var _a;
-            var _b = evt.data.assigns, clientId = _b.clientId, clientAssigns = __rest(_b, ["clientId"]);
+            var _a, _b;
+            var _c = evt.data.assigns, clientId = _c.clientId, clientAssigns = __rest(_c, ["clientId"]);
+            var channel;
             var authorizer = ctx.authorizers.findByKey(function (path) { return _this.base.compareStringToPattern(evt.data.channelName, path); });
             if (!authorizer)
                 return reject('No authorizer found', 404, {
@@ -236,9 +237,11 @@ var EndpointMachine = /** @class */ (function () {
                     assigns: evt.data.assigns,
                     clientId: clientId,
                 });
-            var channel = ((_a = ctx.channels.find(function (channel) { return channel.state.context.channelName === evt.data.channelName; })) === null || _a === void 0 ? void 0 : _a.value)
-                || new channel_state_1.ChannelMachine({
-                    channelId: _this.base.uuid(),
+            channel = (_a = ctx.channels.find(function (channel) { return channel.state.context.channelName === evt.data.channelName; })) === null || _a === void 0 ? void 0 : _a.value;
+            var channelId = (_b = channel === null || channel === void 0 ? void 0 : channel.state.context.channelId) !== null && _b !== void 0 ? _b : _this.base.uuid();
+            if (!channel || channel.status === xstate_1.InterpreterStatus.Stopped)
+                channel = new channel_state_1.ChannelMachine({
+                    channelId: channelId,
                     channelName: evt.data.channelName,
                     channelData: {},
                     verifiers: authorizer.value.events,

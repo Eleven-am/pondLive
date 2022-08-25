@@ -79,23 +79,6 @@ var BaseClass = /** @class */ (function () {
         });
     };
     /**
-     * @desc encodes an object using into a string using it's secret key
-     * @param salt - the secret key
-     * @param text - the object to encode
-     */
-    BaseClass.prototype.encrypt = function (salt, text) {
-        var textToChars = function (text) { return text.split("").map(function (c) { return c.charCodeAt(0); }); };
-        var byteHex = function (n) { return ("0" + Number(n).toString(16)).substr(-2); };
-        var applySaltToChar = function (code) { return textToChars(salt).reduce(function (a, b) { return a ^ b; }, code); };
-        var token = JSON.stringify(text)
-            .split("")
-            .map(textToChars)
-            .map(applySaltToChar)
-            .map(byteHex)
-            .join("");
-        return btoa(token).toString();
-    };
-    /**
      * @desc compares string to string | regex
      * @param string - the string to compare to the pattern
      * @param pattern - the pattern to compare to the string

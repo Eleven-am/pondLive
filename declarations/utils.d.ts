@@ -5,12 +5,6 @@ export declare class BaseClass {
      */
     uuid(): string;
     /**
-     * @desc encodes an object using into a string using it's secret key
-     * @param salt - the secret key
-     * @param text - the object to encode
-     */
-    encrypt(salt: string, text: any): string;
-    /**
      * @desc compares string to string | regex
      * @param string - the string to compare to the pattern
      * @param pattern - the pattern to compare to the string
