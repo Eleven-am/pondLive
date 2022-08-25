@@ -176,24 +176,22 @@ var ChannelMachine = /** @class */ (function () {
         });
         var updatedPresence = [];
         if (evt.type === "updatePresence") {
-            var newChannelData = __assign(__assign({}, ctx.channelData.get(ctx.channelId)), evt.channelData);
             updatedPresence = this.base.replaceObjectInArray(currentPresence, 'clientId', {
                 clientId: evt.clientId,
                 presence: evt.presence
             });
             (0, xstate_1.assign)({
-                presences: new utils_1.BaseMap(ctx.presences.set(evt.clientId, evt.presence)),
-                channelData: new utils_1.BaseMap(ctx.channelData.set(ctx.channelId, newChannelData)),
-                assigns: new utils_1.BaseMap(ctx.assigns.set(evt.clientId, evt.assigns))
+                presences: new utils_1.BaseMap(ctx.presences.upsert(evt.clientId, evt.presence)),
+                channelData: new utils_1.BaseMap(ctx.channelData.upsert(ctx.channelId, evt.channelData)),
+                assigns: new utils_1.BaseMap(ctx.assigns.upsert(evt.clientId, evt.assigns))
             });
         }
         else if (evt.type === "joinRoom") {
             updatedPresence = currentPresence.concat([{ clientId: evt.clientId, presence: evt.data.presence }]);
-            var newChannelData = __assign(__assign({}, ctx.channelData.get(ctx.channelId)), evt.data.channelData);
             (0, xstate_1.assign)({
                 presences: new utils_1.BaseMap(ctx.presences.set(evt.clientId, evt.data.presence)),
                 assigns: new utils_1.BaseMap(ctx.assigns.set(evt.clientId, evt.data.assigns)),
-                channelData: new utils_1.BaseMap(ctx.channelData.set(ctx.channelId, newChannelData)),
+                channelData: new utils_1.BaseMap(ctx.channelData.upsert(ctx.channelId, evt.data.channelData)),
             });
         }
         else if (evt.type === "leaveRoom") {

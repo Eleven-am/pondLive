@@ -1,5 +1,5 @@
 import { Interpreter } from "xstate";
-import { default_t, IncomingChannelMessage, PondAssigns, PondPresence, PondResponse } from "../index";
+import { default_t, IncomingChannelMessage, PondAssigns, PondChannelData, PondPresence, PondResponse } from "../index";
 import { BaseMap, RejectPromise } from "./utils";
 import { EndpointInternalEvents, EndpointInterpreter, JoinChannelRequestSubSuccessEvent } from "./endpoint.state";
 import { Subject } from "rxjs";
@@ -14,7 +14,7 @@ declare type ChannelUpdatePresenceEvent = {
     clientId: string;
     assigns: PondAssigns;
     presence: PondPresence;
-    channelData: PondAssigns;
+    channelData: PondChannelData;
 };
 declare type ChannelLeaveRoomEvent = {
     type: 'leaveRoom';
@@ -47,7 +47,7 @@ declare type ChannelEvents = ChannelJoinRoomEvent | ChannelUpdatePresenceEvent |
 declare type ChannelContext = {
     channelId: string;
     channelName: string;
-    channelData: BaseMap<string, PondAssigns>;
+    channelData: BaseMap<string, PondChannelData>;
     verifiers: BaseMap<string | RegExp, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>;
     observable: Subject<EndpointInternalEvents>;
     presences: BaseMap<string, PondPresence>;

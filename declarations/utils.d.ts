@@ -42,6 +42,7 @@ export declare class BaseMap<A, B> {
     constructor(entries?: [A, B][] | Map<A, B> | BaseMap<A, B>);
     set(key: A, value: B): Map<A, B>;
     get(key: A): B | undefined;
+    upsert(key: A, value: B): this;
     has(key: A): boolean;
     keys(): IterableIterator<A>;
     toArray(): Array<B & {

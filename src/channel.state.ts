@@ -1,5 +1,13 @@
 import {assign, createMachine, interpret, Interpreter} from "xstate";
-import {default_t, IncomingChannelMessage, InternalAssigns, PondAssigns, PondPresence, PondResponse} from "../index";
+import {
+    default_t,
+    IncomingChannelMessage,
+    InternalAssigns,
+    PondAssigns,
+    PondChannelData,
+    PondPresence,
+    PondResponse
+} from "../index";
 import {BaseClass, BaseMap, BasePromise, RejectPromise} from "./utils";
 import {
     EndpointInternalClientDisconnectedEvent,
@@ -22,7 +30,7 @@ type ChannelUpdatePresenceEvent = {
     clientId: string;
     assigns: PondAssigns;
     presence: PondPresence;
-    channelData: PondAssigns;
+    channelData: PondChannelData;
 }
 
 type ChannelLeaveRoomEvent = {
@@ -66,7 +74,7 @@ type ChannelEvents =
 type ChannelContext = {
     channelId: string;
     channelName: string;
-    channelData: BaseMap<string, PondAssigns>
+    channelData: BaseMap<string, PondChannelData>
     verifiers: BaseMap<string | RegExp, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>;
     observable: Subject<EndpointInternalEvents>;
     presences: BaseMap<string, PondPresence>;
@@ -221,23 +229,22 @@ export class ChannelMachine {
         let updatedPresence: InternalAssigns[] = [];
 
         if (evt.type === "updatePresence") {
-            const newChannelData = {...ctx.channelData.get(ctx.channelId), ...evt.channelData};
             updatedPresence = this.base.replaceObjectInArray(currentPresence, 'clientId', {
                 clientId: evt.clientId,
                 presence: evt.presence
             });
             assign({
-                presences: new BaseMap(ctx.presences.set(evt.clientId, evt.presence)),
-                channelData: new BaseMap(ctx.channelData.set(ctx.channelId, newChannelData)),
-                assigns: new BaseMap(ctx.assigns.set(evt.clientId, evt.assigns))
+                presences: new BaseMap(ctx.presences.upsert(evt.clientId, evt.presence)),
+                channelData: new BaseMap(ctx.channelData.upsert(ctx.channelId, evt.channelData)),
+                assigns: new BaseMap(ctx.assigns.upsert(evt.clientId, evt.assigns))
             })
+
         } else if (evt.type === "joinRoom") {
             updatedPresence = currentPresence.concat([{clientId: evt.clientId, presence: evt.data.presence}]);
-            const newChannelData = {...ctx.channelData.get(ctx.channelId), ...evt.data.channelData};
             assign({
                 presences: new BaseMap(ctx.presences.set(evt.clientId, evt.data.presence)),
                 assigns: new BaseMap(ctx.assigns.set(evt.clientId, evt.data.assigns)),
-                channelData: new BaseMap(ctx.channelData.set(ctx.channelId, newChannelData)),
+                channelData: new BaseMap(ctx.channelData.upsert(ctx.channelId, evt.data.channelData)),
             })
 
         } else if (evt.type === "leaveRoom") {
@@ -338,7 +345,7 @@ export class ChannelMachine {
                 if (assigns) {
                     const internalAssigns: PondAssigns = {...evt.assigns, ...assigns.assign};
                     const internalPresence: PondPresence = {...evt.presence, ...assigns.presence};
-                    const internalChannelData: PondAssigns = {...ctx.channelData.get(ctx.channelId), ...assigns.channelData};
+                    const internalChannelData: PondChannelData = {...ctx.channelData.get(ctx.channelId), ...assigns.channelData};
 
                     this.interpreter.send({
                         type: 'updatePresence',

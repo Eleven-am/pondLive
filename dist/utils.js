@@ -194,6 +194,14 @@ var BaseMap = /** @class */ (function () {
     BaseMap.prototype.get = function (key) {
         return this.map.get(key);
     };
+    BaseMap.prototype.upsert = function (key, value) {
+        var oldValue = this.map.get(key);
+        if (oldValue)
+            this.map.set(key, __assign(__assign({}, oldValue), value));
+        else
+            this.map.set(key, value);
+        return this;
+    };
     BaseMap.prototype.has = function (key) {
         return this.map.has(key);
     };

@@ -216,23 +216,13 @@ export class PondChannel {
      */
     modifyPresence(channelId: string, clientId: string, assigns: PondResponseAssigns): void {
         const channel = this.getPrivateChannel(channelId);
-        if (channel) {
-            const clientPresence = channel.state.context.presences.get(clientId);
-            const clientAssigns = channel.state.context.assigns.get(clientId);
-            const channelAssigns = channel.state.context.channelData.get(channelId);
-            if (clientPresence && clientAssigns && channelAssigns) {
-                const internalAssigns: PondAssigns = {...clientAssigns, ...assigns.assign};
-                const internalPresence: PondPresence = {...clientPresence, ...assigns.presence};
-                const internalChannelData: PondAssigns = {...channelAssigns, ...assigns.channelData};
-
-                channel.send({
-                    type: 'updatePresence',
-                    clientId: clientId,
-                    presence: internalPresence,
-                    assigns: internalAssigns,
-                    channelData: internalChannelData
-                })
-            }
-        }
+        if (channel)
+            channel.send({
+                type: 'updatePresence',
+                clientId: clientId,
+                presence: assigns.presence || {},
+                assigns: assigns.assign || {},
+                channelData: assigns.channelData || {}
+            })
     }
 }

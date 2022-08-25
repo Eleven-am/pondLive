@@ -200,23 +200,14 @@ var PondChannel = /** @class */ (function () {
      */
     PondChannel.prototype.modifyPresence = function (channelId, clientId, assigns) {
         var channel = this.getPrivateChannel(channelId);
-        if (channel) {
-            var clientPresence = channel.state.context.presences.get(clientId);
-            var clientAssigns = channel.state.context.assigns.get(clientId);
-            var channelAssigns = channel.state.context.channelData.get(channelId);
-            if (clientPresence && clientAssigns && channelAssigns) {
-                var internalAssigns = __assign(__assign({}, clientAssigns), assigns.assign);
-                var internalPresence = __assign(__assign({}, clientPresence), assigns.presence);
-                var internalChannelData = __assign(__assign({}, channelAssigns), assigns.channelData);
-                channel.send({
-                    type: 'updatePresence',
-                    clientId: clientId,
-                    presence: internalPresence,
-                    assigns: internalAssigns,
-                    channelData: internalChannelData
-                });
-            }
-        }
+        if (channel)
+            channel.send({
+                type: 'updatePresence',
+                clientId: clientId,
+                presence: assigns.presence || {},
+                assigns: assigns.assign || {},
+                channelData: assigns.channelData || {}
+            });
     };
     return PondChannel;
 }());

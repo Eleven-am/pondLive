@@ -137,6 +137,16 @@ export class BaseMap<A, B> {
         return this.map.get(key);
     }
 
+    public upsert(key: A, value: B) {
+        const oldValue = this.map.get(key);
+        if (oldValue)
+            this.map.set(key, {...oldValue, ...value});
+        else
+            this.map.set(key, value);
+
+        return this;
+    }
+
     public has(key: A) {
         return this.map.has(key);
     }
