@@ -3,10 +3,9 @@ import {BaseClass, BaseMap, BasePromise, PondError, RejectPromise} from "./utils
 import {IncomingMessage, Server} from "http";
 import internal from "stream";
 import {parse} from "url";
-import {InternalPondChannel, PondEndpoint, ServerMessage} from "./channel";
+import {InternalPondChannel, PondChanelInfo, PondEndpoint, ServerMessage} from "./channel";
 import {Subject} from "rxjs";
 import {filter} from 'rxjs/operators';
-import {InternalPondPresence} from "../index";
 
 type default_t = {
     [key: string]: any;
@@ -15,6 +14,8 @@ type default_t = {
 type PondAssigns = default_t;
 type PondPresence = default_t;
 type PondChannelData = default_t;
+
+type InternalPondPresence = PondPresence & { id: string };
 
 type ClientActions =
     'JOIN_CHANNEL'
@@ -166,6 +167,18 @@ export class Channel {
      */
     public get clientIds() {
         return Array.from(this.presence.keys());
+    }
+
+    /**
+     * @desc Gets the information of the channel
+     */
+    public get info(): PondChanelInfo {
+        return {
+            channelId: this.channelId,
+            channelName: this.channelName,
+            presence: this.presenceList,
+            channelData: this.channelData
+        }
     }
 
     /**
@@ -819,6 +832,6 @@ export class PondSocket {
 
         PondSocket.sendMessage(socket, newMessage);
         if (message.action === 'CLOSED_FROM_SERVER')
-            socket.close();
+            setTimeout(socket.close, 500);
     }
 }

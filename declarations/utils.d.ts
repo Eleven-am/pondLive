@@ -1,4 +1,4 @@
-import { PondResponse, PondResponseAssigns } from "../index";
+import { PondResponse, PondResponseAssigns } from "./channel";
 export declare class BaseClass {
     /**
      * @desc creates an uuid v4 string

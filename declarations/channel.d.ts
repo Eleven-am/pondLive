@@ -1,7 +1,51 @@
 import { BaseMap } from "./utils";
-import { default_t, IncomingChannelMessage, IncomingJoinMessage, InternalPondPresence, PondChannelData, PondResponse, PondResponseAssigns } from "../index";
 import { Channel, EndpointCache, PondPath } from "./server";
+declare type default_t = {
+    [key: string]: any;
+};
+declare type InternalPondPresence = PondPresence & {
+    id: string;
+};
+declare type InternalAssigns = default_t & {
+    clientId: string;
+};
+declare type RemoveClientId<T> = Omit<T, "clientId">;
+declare type PondAssigns = RemoveClientId<InternalAssigns>;
+declare type PondPresence = RemoveClientId<InternalAssigns>;
+declare type PondChannelData = RemoveClientId<InternalAssigns>;
+export interface PondResponseAssigns {
+    assign?: PondAssigns;
+    presence?: PondPresence;
+    channelData?: PondChannelData;
+}
+interface IncomingJoinMessage {
+    clientId: string;
+    channelId: string;
+    channelName: string;
+    clientAssigns: PondAssigns;
+}
+interface IncomingChannelMessage {
+    event: string;
+    channelId: string;
+    channelName: string;
+    message: default_t;
+    client: {
+        clientId: string;
+        clientAssigns: PondAssigns;
+        clientPresence: PondPresence;
+    };
+}
+export interface PondResponse {
+    accept: (assigns?: PondResponseAssigns) => void;
+    reject: (message?: string, statusCode?: number) => void;
+}
 declare type ServerActions = 'PRESENCE_BRIEF' | 'MESSAGE' | 'CHANNEL_ERROR' | 'KICKED_FROM_CHANNEL' | 'CLOSED_FROM_SERVER' | 'CHANNEL_DESTROY' | 'CLIENT_DISCONNECTED';
+export declare type PondChanelInfo = {
+    channelId: string;
+    channelName: string;
+    channelData: PondChannelData;
+    presence: InternalPondPresence[];
+};
 export declare type ServerMessage = {
     action: ServerActions;
     channelName: string;
@@ -144,6 +188,10 @@ export declare class PondEndpoint {
      * @param clientId - The id of the client to close the connection to.
      */
     closeConnection(clientId: string): void;
+    /**
+     * @desc lists all the channels in the endpoint
+     */
+    listChannels(): PondChanelInfo[];
     /**
      * @desc Gets a channel by id from the endpoint.
      * @param channelId - The id of the channel to get.

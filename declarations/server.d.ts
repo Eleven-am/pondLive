@@ -2,15 +2,17 @@
 import { WebSocket, WebSocketServer } from "ws";
 import { BaseMap, RejectPromise } from "./utils";
 import { IncomingMessage, Server } from "http";
-import { InternalPondChannel, PondEndpoint, ServerMessage } from "./channel";
+import { InternalPondChannel, PondChanelInfo, PondEndpoint, ServerMessage } from "./channel";
 import { Subject } from "rxjs";
-import { InternalPondPresence } from "../index";
 declare type default_t = {
     [key: string]: any;
 };
 declare type PondAssigns = default_t;
 declare type PondPresence = default_t;
 declare type PondChannelData = default_t;
+declare type InternalPondPresence = PondPresence & {
+    id: string;
+};
 declare type MessageType = 'BROADCAST' | 'BROADCAST_FROM' | 'SEND_MESSAGE_TO_USER';
 interface PondResponseAssigns {
     assign?: PondAssigns;
@@ -90,6 +92,10 @@ export declare class Channel {
      * @private
      */
     get clientIds(): string[];
+    /**
+     * @desc Gets the information of the channel
+     */
+    get info(): PondChanelInfo;
     /**
      * @desc Sends a message to the clients addressed in the channel
      * @param message - The message to send

@@ -1,4 +1,4 @@
-import {PondResponse, PondResponseAssigns} from "../index";
+import {PondResponse, PondResponseAssigns} from "./channel";
 
 export class BaseClass {
 

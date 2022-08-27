@@ -1,14 +1,49 @@
 import {BaseMap} from "./utils";
-import {
-    default_t,
-    IncomingChannelMessage,
-    IncomingJoinMessage,
-    InternalPondPresence,
-    PondChannelData,
-    PondResponse,
-    PondResponseAssigns
-} from "../index";
 import {Channel, EndpointCache, PondPath} from "./server";
+
+type default_t = {
+    [key: string]: any;
+}
+
+type InternalPondPresence = PondPresence & { id: string };
+
+type InternalAssigns = default_t & { clientId: string };
+
+type RemoveClientId<T> = Omit<T, "clientId">;
+
+type PondAssigns = RemoveClientId<InternalAssigns>;
+type PondPresence = RemoveClientId<InternalAssigns>;
+type PondChannelData = RemoveClientId<InternalAssigns>;
+
+export interface PondResponseAssigns {
+    assign?: PondAssigns;
+    presence?: PondPresence;
+    channelData?: PondChannelData;
+}
+
+interface IncomingJoinMessage {
+    clientId: string;
+    channelId: string;
+    channelName: string;
+    clientAssigns: PondAssigns;
+}
+
+interface IncomingChannelMessage {
+    event: string;
+    channelId: string;
+    channelName: string;
+    message: default_t;
+    client: {
+        clientId: string;
+        clientAssigns: PondAssigns;
+        clientPresence: PondPresence;
+    }
+}
+
+export interface PondResponse {
+    accept: (assigns?: PondResponseAssigns) => void;
+    reject: (message?: string, statusCode?: number) => void;
+}
 
 type ServerActions =
     'PRESENCE_BRIEF'
@@ -18,6 +53,13 @@ type ServerActions =
     | 'CLOSED_FROM_SERVER'
     | 'CHANNEL_DESTROY'
     | 'CLIENT_DISCONNECTED';
+
+export type PondChanelInfo = {
+    channelId: string;
+    channelName: string;
+    channelData: PondChannelData;
+    presence: InternalPondPresence[];
+}
 
 export type ServerMessage = {
     action: ServerActions;
@@ -215,7 +257,7 @@ export class PondEndpoint {
      * @param event - The event to broadcast.
      * @param message - The message to broadcast.
      */
-    broadcast(event: string, message: default_t): void {
+    public broadcast(event: string, message: default_t): void {
         const sockets = this.endpoint.socketCache.keys();
         const newMessage: ServerMessage = {
             action: 'MESSAGE', clientId: 'SERVER',
@@ -229,7 +271,7 @@ export class PondEndpoint {
      * @desc Disconnects a client from the endpoint.
      * @param clientId - The id of the client to disconnect.
      */
-    close(clientId: string): void {
+    public close(clientId: string): void {
         const client = this.endpoint.socketCache.get(clientId);
         if (client)
             client.socket.close();
@@ -254,7 +296,7 @@ export class PondEndpoint {
      *     res.assign({pingDate: new Date(), users: users.length});
      * })
      */
-    createChannel(path: PondPath, handler: (req: IncomingJoinMessage, res: PondResponse) => void): PondChannel {
+    public createChannel(path: PondPath, handler: (req: IncomingJoinMessage, res: PondResponse) => void): PondChannel {
         const events = new BaseMap<string | RegExp, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>();
 
         this.endpoint.authorizers.set(path, {
@@ -269,7 +311,7 @@ export class PondEndpoint {
      * @desc Gets a channel by id from the endpoint.
      * @param channelId - The id of the channel to get.
      */
-    getChannel(channelId: string): InternalPondChannel | null {
+    public getChannel(channelId: string): InternalPondChannel | null {
         const channel = this.getPrivateChannel(channelId);
         if (channel)
             return new InternalPondChannel(channel);
@@ -283,7 +325,7 @@ export class PondEndpoint {
      * @param event - The event to send the message with.
      * @param message - The message to send.
      */
-    send(clientId: string | string[], event: string, message: default_t): void {
+    public send(clientId: string | string[], event: string, message: default_t): void {
         const newMessage: ServerMessage = {
             action: 'MESSAGE', clientId: 'SERVER',
             channelName: 'SERVER', event, payload: message,
@@ -305,6 +347,13 @@ export class PondEndpoint {
         }
 
         this.endpoint.subject.next(message);
+    }
+
+    /**
+     * @desc lists all the channels in the endpoint
+     */
+    public listChannels(): PondChanelInfo[] {
+        return this.endpoint.channels.toArrayMap(([_, channel]) => channel.info);
     }
 
     /**

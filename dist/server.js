@@ -122,6 +122,21 @@ var Channel = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    Object.defineProperty(Channel.prototype, "info", {
+        /**
+         * @desc Gets the information of the channel
+         */
+        get: function () {
+            return {
+                channelId: this.channelId,
+                channelName: this.channelName,
+                presence: this.presenceList,
+                channelData: this.channelData
+            };
+        },
+        enumerable: false,
+        configurable: true
+    });
     /**
      * @desc Sends a message to the clients addressed in the channel
      * @param message - The message to send
@@ -783,7 +798,7 @@ var PondSocket = /** @class */ (function () {
         }
         PondSocket.sendMessage(socket, newMessage);
         if (message.action === 'CLOSED_FROM_SERVER')
-            socket.close();
+            setTimeout(socket.close, 500);
     };
     return PondSocket;
 }());
