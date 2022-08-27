@@ -53,9 +53,11 @@ export class BaseClass {
         const accept = (data?: PondResponseAssigns) => {
             const assigns = data?.assign || {};
             const presence = data?.presence || {};
+            const channelData = data?.channelData || {};
             resolve({
                 assign: assigns,
                 presence: presence,
+                channelData: channelData
             });
         }
 
@@ -69,6 +71,13 @@ export class BaseClass {
         }
     }
 
+    /**
+     * @desc Checks if the given object is empty
+     * @param obj - the object to check
+     */
+    public isObjectEmpty(obj: object) {
+        return Object.keys(obj).length === 0;
+    }
 }
 
 export interface RejectPromise<T> {
@@ -137,22 +146,16 @@ export class BaseMap<A, B> {
         return this.map.get(key);
     }
 
-    public upsert(key: A, value: B) {
-        const oldValue = this.map.get(key);
-        if (oldValue)
-            this.map.set(key, {...oldValue, ...value});
-        else
-            this.map.set(key, value);
-
-        return this;
-    }
-
     public has(key: A) {
         return this.map.has(key);
     }
 
     public keys() {
         return this.map.keys();
+    }
+
+    public values() {
+        return this.map.values();
     }
 
     public toArray(): Array<B & { id: A }> {

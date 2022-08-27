@@ -1,38 +1,52 @@
+import {BaseMap} from "./utils";
 import {
     default_t,
     IncomingChannelMessage,
-    PondAssigns,
+    IncomingJoinMessage,
+    InternalPondPresence,
     PondChannelData,
-    PondPresence, PondResponse,
+    PondResponse,
     PondResponseAssigns
 } from "../index";
-import {ChannelInterpreter} from "./channel.state";
-import {EndpointContext, EndpointInterpreter} from "./endpoint.state";
-import {BaseMap} from "./utils";
+import {Channel, EndpointCache, PondPath} from "./server";
+
+type ServerActions =
+    'PRESENCE_BRIEF'
+    | 'MESSAGE'
+    | 'CHANNEL_ERROR'
+    | 'KICKED_FROM_CHANNEL'
+    | 'CLOSED_FROM_SERVER'
+    | 'CHANNEL_DESTROY'
+    | 'CLIENT_DISCONNECTED';
+
+export type ServerMessage = {
+    action: ServerActions;
+    channelName: string;
+    event: string;
+    clientId: string;
+    payload: default_t;
+    addresses: string[];
+}
 
 export class InternalPondChannel {
-    private readonly channelName: string
-    private readonly endpoint: ChannelInterpreter;
-    private readonly channelId: string
+    private readonly channel: Channel;
 
-    constructor(channelName: string, channelId: string, endpoint: ChannelInterpreter) {
-        this.channelName = channelName;
-        this.channelId = channelId;
-        this.endpoint = endpoint;
+    constructor(channel: Channel) {
+        this.channel = channel;
     }
 
     /**
      * @desc Gets the current presence of the channel
      */
-    getPresence(): PondPresence[] {
-        return this.endpoint.state.context.presences.toKeyValueArray().map(x => x.value);
+    get presence(): InternalPondPresence[] {
+        return this.channel.presenceList;
     }
 
     /**
      * @desc Gets the current channel data
      */
-    getChannelData(): PondChannelData {
-        return this.endpoint.state.context.channelData.get(this.channelId) || {};
+    get channelData(): PondChannelData {
+        return this.channel.channelData;
     }
 
     /**
@@ -40,38 +54,26 @@ export class InternalPondChannel {
      * @param clientId - The clientId to modify the presence of
      * @param assigns - The assigns to modify the presence with
      */
-    modifyPresence(clientId: string, assigns: PondResponseAssigns): void {
-        const clientPresence = this.endpoint.state.context.presences.get(clientId);
-        const clientAssigns = this.endpoint.state.context.assigns.get(clientId);
-        const channelData = this.endpoint.state.context.channelData.get(this.channelId);
-        if (clientPresence && clientAssigns && channelData) {
-            const internalAssigns: PondAssigns = {...clientAssigns, ...assigns.assign};
-            const internalPresence: PondPresence = {...clientPresence, ...assigns.presence};
-            const internalChannelData: PondAssigns = {...channelData, ...assigns.channelData};
-
-            this.endpoint.send({
-                type: 'updatePresence',
-                clientId: clientId,
-                presence: internalPresence,
-                assigns: internalAssigns,
-                channelData: internalChannelData
-            })
-        }
+    public modifyPresence(clientId: string, assigns: PondResponseAssigns): void {
+        this.channel.updateUser(clientId, assigns.presence || {}, assigns.assign || {});
     }
 
     /**
      * @desc Closes the channel from the given clientId
      * @param clientId - The clientId to close the channel from, can be an array of clientIds
      */
-    closeFromChannel(clientId: string | string[]): void {
-        this.endpoint.state.context.observable.next({
-            type: 'SERVER',
-            channelId: this.channelId,
-            channelName: this.channelName,
-            event: 'DISCONNECT_CLIENT_FROM_CHANNEL',
-            addresses: Array.isArray(clientId) ? clientId : [clientId],
-            payload: {}
-        })
+    public closeFromChannel(clientId: string | string[]): void {
+        const clientIds = Array.isArray(clientId) ? clientId : [clientId];
+        clientIds.forEach(id => this.channel.removeUser(id));
+        const newMessage: ServerMessage = {
+            action: 'KICKED_FROM_CHANNEL',
+            channelName: this.channel.channelName,
+            event: '', payload: {},
+            addresses: clientIds,
+            clientId: this.channel.channelId,
+        }
+
+        this.channel.sendToClients(newMessage);
     }
 
     /**
@@ -79,16 +81,16 @@ export class InternalPondChannel {
      * @param event - The event to send the message to
      * @param message - The message to send
      */
-    broadcast(event: string, message: default_t): void {
-        this.endpoint.state.context.observable.next({
-            type: 'SERVER',
-            channelId: this.channelId,
-            subEvent: event,
-            channelName: this.channelName,
-            event: 'BROADCAST_MESSAGE_TO_CHANNEL',
-            addresses: this.endpoint.state.context.presences.toKeyValueArray().map(x => x.key),
-            payload: message
-        })
+    public broadcast(event: string, message: default_t): void {
+        const clients = this.channel.clientIds;
+
+        const newMessage: ServerMessage = {
+            action: 'MESSAGE', clientId: 'SERVER',
+            channelName: this.channel.channelName,
+            event, payload: message, addresses: clients
+        }
+
+        this.channel.sendToClients(newMessage);
     }
 
     /**
@@ -97,25 +99,25 @@ export class InternalPondChannel {
      * @param event - The event to send the message to
      * @param message - The message to send
      */
-    send(clientId: string | string[], event: string, message: default_t): void {
-        this.endpoint.state.context.observable.next({
-            type: 'SERVER',
-            channelId: this.channelId,
-            subEvent: event,
-            channelName: this.channelName,
-            event: 'BROADCAST_MESSAGE_TO_CHANNEL',
-            addresses: Array.isArray(clientId) ? clientId : [clientId],
-            payload: message
-        })
+    public send(clientId: string | string[], event: string, message: default_t): void {
+        const clients = Array.isArray(clientId) ? clientId : [clientId];
+
+        const newMessage: ServerMessage = {
+            action: 'MESSAGE', clientId: 'SERVER',
+            channelName: this.channel.channelName,
+            event, payload: message, addresses: clients
+        }
+
+        this.channel.sendToClients(newMessage);
     }
 }
 
 export class PondChannel {
-    private readonly endpoint: EndpointInterpreter;
-    private readonly events: BaseMap<string | RegExp, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>
+    private channels: BaseMap<string, Channel>;
+    private readonly events: BaseMap<PondPath, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>
 
-    constructor(endpoint: EndpointInterpreter, events: BaseMap<string | RegExp, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>) {
-        this.endpoint = endpoint;
+    constructor(channels: BaseMap<string, Channel>, events: BaseMap<PondPath, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>) {
+        this.channels = channels;
         this.events = events;
     }
 
@@ -124,35 +126,18 @@ export class PondChannel {
      * @param event - The event to listen for, can be a regex
      * @param callback - The callback to call when the event is received
      */
-    on(event: string | RegExp, callback: (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void): void {
+    public on(event: PondPath, callback: (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void): void {
         this.events.set(event, callback);
-    }
-
-    /**
-     * @desc Gets the context of the endpoint machine.
-     * @private
-     */
-    private get context(): EndpointContext{
-        return this.endpoint.state.context;
-    }
-
-    /**
-     * @desc Gets a channel by id from the endpoint.
-     * @param channelId - The id of the channel to get.
-     * @private
-     */
-    private getPrivateChannel(channelId: string): ChannelInterpreter | null {
-        return this.context.channels.get(channelId) || null;
     }
 
     /**
      * @desc Gets a channel's data by id from the endpoint.
      * @param channelId - The id of the channel to get the data of.
      */
-    getChannelData(channelId: string): PondChannelData {
+    public getChannelData(channelId: string): PondChannelData {
         const channel = this.getPrivateChannel(channelId);
         if (channel)
-            return channel.state.context.channelData.get(channelId) || {};
+            return channel.channelData;
 
         return {};
     }
@@ -161,10 +146,10 @@ export class PondChannel {
      * @desc Gets a channel's presence by id from the endpoint.
      * @param channelId - The id of the channel to get the presence of.
      */
-    getPresence(channelId: string): PondPresence[] {
+    public getPresence(channelId: string): InternalPondPresence[] {
         const channel = this.getPrivateChannel(channelId);
         if (channel)
-            return channel.state.context.presences.toArray();
+            return channel.presence;
         return [];
     }
 
@@ -174,19 +159,10 @@ export class PondChannel {
      * @param event - The event to send the message with.
      * @param message - The message to send.
      */
-    broadcastToChannel(channelId: string, event: string, message: default_t): void {
-        const {observable} = this.context;
+    public broadcastToChannel(channelId: string, event: string, message: default_t): void {
         const channel = this.getPrivateChannel(channelId);
-        if(channel)
-            observable.next({
-                type: 'SERVER',
-                channelId: channelId,
-                subEvent: event,
-                channelName: channel.state.context.channelName,
-                event: 'BROADCAST_MESSAGE_TO_CHANNEL',
-                addresses: Array.from(channel.state.context.presences.keys()),
-                payload: message
-            })
+        if (channel)
+            channel.broadcast(event, message);
     }
 
     /**
@@ -194,18 +170,10 @@ export class PondChannel {
      * @param channelId - The id of the channel to close the connection to.
      * @param clientId - The id of the client to close the connection to.
      */
-    closeFromChannel(channelId: string, clientId: string): void {
-        const {observable} = this.context;
+    public closeFromChannel(channelId: string, clientId: string): void {
         const channel = this.getPrivateChannel(channelId);
         if (channel)
-            observable.next({
-                type: 'SERVER',
-                channelId: channelId,
-                channelName: channel.state.context.channelName,
-                event: 'DISCONNECT_CLIENT_FROM_CHANNEL',
-                addresses: [clientId],
-                payload: {}
-            })
+            channel.closeFromChannel(clientId);
     }
 
     /**
@@ -214,15 +182,151 @@ export class PondChannel {
      * @param clientId - The id of the client to modify the presence of.
      * @param assigns - The assigns to modify the presence with.
      */
-    modifyPresence(channelId: string, clientId: string, assigns: PondResponseAssigns): void {
+    public modifyPresence(channelId: string, clientId: string, assigns: PondResponseAssigns): void {
         const channel = this.getPrivateChannel(channelId);
         if (channel)
-            channel.send({
-                type: 'updatePresence',
-                clientId: clientId,
-                presence: assigns.presence || {},
-                assigns: assigns.assign || {},
-                channelData: assigns.channelData || {}
-            })
+            channel.modifyPresence(clientId, assigns);
+    }
+
+    /**
+     * @desc Gets a channel by id from the endpoint.
+     * @param channelId - The id of the channel to get.
+     * @private
+     */
+    private getPrivateChannel(channelId: string): InternalPondChannel | null {
+        const channel = this.channels.get(channelId) || null;
+        if (!channel)
+            return null;
+
+        return new InternalPondChannel(channel);
+    }
+}
+
+export class PondEndpoint {
+    private readonly endpoint: EndpointCache;
+
+    constructor(endpoint: EndpointCache) {
+        this.endpoint = endpoint;
+        this.listen();
+    }
+
+    /**
+     * @desc Broadcasts a message to all clients in the endpoint.
+     * @param event - The event to broadcast.
+     * @param message - The message to broadcast.
+     */
+    broadcast(event: string, message: default_t): void {
+        const sockets = this.endpoint.socketCache.keys();
+        const newMessage: ServerMessage = {
+            action: 'MESSAGE', clientId: 'SERVER',
+            channelName: 'SERVER', event, payload: message,
+            addresses: Array.from(sockets)
+        }
+        this.endpoint.subject.next(newMessage);
+    }
+
+    /**
+     * @desc Disconnects a client from the endpoint.
+     * @param clientId - The id of the client to disconnect.
+     */
+    close(clientId: string): void {
+        const client = this.endpoint.socketCache.get(clientId);
+        if (client)
+            client.socket.close();
+    }
+
+    /**
+     * @desc Accepts a new socket join request to the room provided using the handler function to authorise the socket
+     * @param path - the pattern to accept || can also be a regex
+     * @param handler - the handler function to authenticate the socket
+     *
+     * @example
+     * const channel = endpoint.createChannel('channel:*', (req, res) => {
+     *   const isAdmin = req.assigns.admin;
+     *   if (!isAdmin)
+     *      return res.decline('You are not an admin');
+     *
+     *   res.accept({assigns: {admin: true, joinedDate: new Date()}, presence: {state: online}, channelData: {private: true}});
+     * });
+     *
+     * channel.on('ping', (req, res, channel) => {
+     *     const users = channel.getPresence();
+     *     res.assign({pingDate: new Date(), users: users.length});
+     * })
+     */
+    createChannel(path: PondPath, handler: (req: IncomingJoinMessage, res: PondResponse) => void): PondChannel {
+        const events = new BaseMap<string | RegExp, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>();
+
+        this.endpoint.authorizers.set(path, {
+            handler: handler,
+            events: events
+        });
+
+        return new PondChannel(this.endpoint.channels, events);
+    }
+
+    /**
+     * @desc Gets a channel by id from the endpoint.
+     * @param channelId - The id of the channel to get.
+     */
+    getChannel(channelId: string): InternalPondChannel | null {
+        const channel = this.getPrivateChannel(channelId);
+        if (channel)
+            return new InternalPondChannel(channel);
+
+        return null;
+    }
+
+    /**
+     * @desc Sends a message to a client on the endpoint.
+     * @param clientId - The id of the client to send the message to.
+     * @param event - The event to send the message with.
+     * @param message - The message to send.
+     */
+    send(clientId: string | string[], event: string, message: default_t): void {
+        const newMessage: ServerMessage = {
+            action: 'MESSAGE', clientId: 'SERVER',
+            channelName: 'SERVER', event, payload: message,
+            addresses: Array.isArray(clientId) ? clientId : [clientId]
+        }
+
+        this.endpoint.subject.next(newMessage);
+    }
+
+    /**
+     * @desc Closes a client connection to the endpoint.
+     * @param clientId - The id of the client to close the connection to.
+     */
+    public closeConnection(clientId: string): void {
+        const message: ServerMessage = {
+            action: 'CLOSED_FROM_SERVER', clientId: 'SERVER',
+            channelName: 'SERVER', event: 'CLOSED_FROM_SERVER', payload: {},
+            addresses: [clientId]
+        }
+
+        this.endpoint.subject.next(message);
+    }
+
+    /**
+     * @desc Gets a channel by id from the endpoint.
+     * @param channelId - The id of the channel to get.
+     * @private
+     */
+    private getPrivateChannel(channelId: string): Channel | null {
+        return this.endpoint.channels.get(channelId) || null;
+    }
+
+    /**
+     * @desc Listen for a message on the subject.
+     * @private
+     */
+    private listen(): void {
+        this.endpoint.subject
+            .subscribe(message => {
+                if (message.action === 'CHANNEL_DESTROY') {
+                    this.endpoint.channels.deleteKey(message.clientId);
+                    return;
+                }
+            });
     }
 }

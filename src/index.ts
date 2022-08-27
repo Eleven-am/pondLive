@@ -1,3 +1,3 @@
-import PondServer from "./server";
+import {PondSocket} from "./server";
 
-export default PondServer;
+export default PondSocket;

@@ -24,6 +24,11 @@ export declare class BaseClass {
      * @param rejected - the reject function to call when the response is rejected
      */
     generatePondResponse<T>(resolve: (value: PondResponseAssigns) => void, rejected: (errorMessage: string, errorCode: number, data: T) => void, data: T): PondResponse;
+    /**
+     * @desc Checks if the given object is empty
+     * @param obj - the object to check
+     */
+    isObjectEmpty(obj: object): boolean;
 }
 export interface RejectPromise<T> {
     errorMessage: string;
@@ -42,9 +47,9 @@ export declare class BaseMap<A, B> {
     constructor(entries?: [A, B][] | Map<A, B> | BaseMap<A, B>);
     set(key: A, value: B): Map<A, B>;
     get(key: A): B | undefined;
-    upsert(key: A, value: B): this;
     has(key: A): boolean;
     keys(): IterableIterator<A>;
+    values(): IterableIterator<B>;
     toArray(): Array<B & {
         id: A;
     }>;

@@ -116,9 +116,11 @@ var BaseClass = /** @class */ (function () {
         var accept = function (data) {
             var assigns = (data === null || data === void 0 ? void 0 : data.assign) || {};
             var presence = (data === null || data === void 0 ? void 0 : data.presence) || {};
+            var channelData = (data === null || data === void 0 ? void 0 : data.channelData) || {};
             resolve({
                 assign: assigns,
                 presence: presence,
+                channelData: channelData
             });
         };
         var reject = function (message, statusCode) {
@@ -128,6 +130,13 @@ var BaseClass = /** @class */ (function () {
             accept: accept,
             reject: reject,
         };
+    };
+    /**
+     * @desc Checks if the given object is empty
+     * @param obj - the object to check
+     */
+    BaseClass.prototype.isObjectEmpty = function (obj) {
+        return Object.keys(obj).length === 0;
     };
     return BaseClass;
 }());
@@ -194,19 +203,14 @@ var BaseMap = /** @class */ (function () {
     BaseMap.prototype.get = function (key) {
         return this.map.get(key);
     };
-    BaseMap.prototype.upsert = function (key, value) {
-        var oldValue = this.map.get(key);
-        if (oldValue)
-            this.map.set(key, __assign(__assign({}, oldValue), value));
-        else
-            this.map.set(key, value);
-        return this;
-    };
     BaseMap.prototype.has = function (key) {
         return this.map.has(key);
     };
     BaseMap.prototype.keys = function () {
         return this.map.keys();
+    };
+    BaseMap.prototype.values = function () {
+        return this.map.values();
     };
     BaseMap.prototype.toArray = function () {
         return Array.from(this.map.entries(), function (_a) {

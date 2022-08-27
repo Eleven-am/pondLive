@@ -5,6 +5,8 @@ export type default_t = {
     [key: string]: any;
 }
 
+export type InternalPondPresence = PondPresence & {id: string};
+
 export type InternalAssigns = default_t & { clientId: string };
 
 export type RemoveClientId<T> = Omit<T, "clientId">;
