@@ -1,5 +1,7 @@
 import {IncomingMessage, Server} from "http";
 import {WebSocketServer} from "ws";
+import {Channel, EndpointCache, PondPath} from "./declarations/server";
+import {BaseMap} from "./declarations/utils";
 
 export type default_t = {
     [key: string]: any;
@@ -49,33 +51,28 @@ declare class InternalPondChannel {
     /**
      * @desc Gets the current presence of the channel
      */
-    getPresence(): PondPresence[];
-
+    get presence(): InternalPondPresence[];
     /**
      * @desc Gets the current channel data
      */
-    getChannelData(): PondChannelData;
-
+    get channelData(): PondChannelData;
     /**
      * @desc Modifies the presence state of a client on the channel
      * @param clientId - The clientId to modify the presence of
      * @param assigns - The assigns to modify the presence with
      */
     modifyPresence(clientId: string, assigns: PondResponseAssigns): void;
-
     /**
      * @desc Closes the channel from the given clientId
      * @param clientId - The clientId to close the channel from, can be an array of clientIds
      */
     closeFromChannel(clientId: string | string[]): void;
-
     /**
      * @desc Broadcasts a message to the channel
      * @param event - The event to send the message to
      * @param message - The message to send
      */
     broadcast(event: string, message: default_t): void;
-
     /**
      * @desc Sends a message to the channel
      * @param clientId - The clientId to send the message to, can be an array of clientIds
@@ -86,26 +83,22 @@ declare class InternalPondChannel {
 }
 
 declare class PondChannel {
-
     /**
      * @desc A listener for a channel event
      * @param event - The event to listen for, can be a regex
      * @param callback - The callback to call when the event is received
      */
-    on(event: string | RegExp, callback: (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void): void;
-
+    on(event: PondPath, callback: (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void): void;
     /**
      * @desc Gets a channel's data by id from the endpoint.
      * @param channelId - The id of the channel to get the data of.
      */
     getChannelData(channelId: string): PondChannelData;
-
     /**
      * @desc Gets a channel's presence by id from the endpoint.
      * @param channelId - The id of the channel to get the presence of.
      */
-    getPresence(channelId: string): PondPresence[];
-
+    getPresence(channelId: string): InternalPondPresence[];
     /**
      * @desc Sends a message to a channel in the endpoint.
      * @param channelId - The id of the channel to send the message to.
@@ -113,14 +106,12 @@ declare class PondChannel {
      * @param message - The message to send.
      */
     broadcastToChannel(channelId: string, event: string, message: default_t): void;
-
     /**
      * @desc Closes a client connection to a channel in the endpoint.
      * @param channelId - The id of the channel to close the connection to.
      * @param clientId - The id of the client to close the connection to.
      */
     closeFromChannel(channelId: string, clientId: string): void;
-
     /**
      * @desc Modify the presence of a client in a channel on the endpoint.
      * @param channelId - The id of the channel to modify the presence of.
@@ -137,13 +128,11 @@ declare class PondEndpoint {
      * @param message - The message to broadcast.
      */
     broadcast(event: string, message: default_t): void;
-
     /**
      * @desc Disconnects a client from the endpoint.
      * @param clientId - The id of the client to disconnect.
      */
     close(clientId: string): void;
-
     /**
      * @desc Accepts a new socket join request to the room provided using the handler function to authorise the socket
      * @param path - the pattern to accept || can also be a regex
@@ -163,14 +152,12 @@ declare class PondEndpoint {
      *     res.assign({pingDate: new Date(), users: users.length});
      * })
      */
-    createChannel(path: string | RegExp, handler: (req: IncomingJoinMessage, res: PondResponse) => void): PondChannel;
-
+    createChannel(path: PondPath, handler: (req: IncomingJoinMessage, res: PondResponse) => void): PondChannel;
     /**
      * @desc Gets a channel by id from the endpoint.
      * @param channelId - The id of the channel to get.
      */
     getChannel(channelId: string): InternalPondChannel | null;
-
     /**
      * @desc Sends a message to a client on the endpoint.
      * @param clientId - The id of the client to send the message to.
@@ -178,6 +165,11 @@ declare class PondEndpoint {
      * @param message - The message to send.
      */
     send(clientId: string | string[], event: string, message: default_t): void;
+    /**
+     * @desc Closes a client connection to the endpoint.
+     * @param clientId - The id of the client to close the connection to.
+     */
+    closeConnection(clientId: string): void;
 }
 
 export default class PondServer {
