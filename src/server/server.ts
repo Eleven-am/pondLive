@@ -27,7 +27,7 @@ type ClientActions =
 
 type MessageType = 'BROADCAST' | 'BROADCAST_FROM' | 'SEND_MESSAGE_TO_USER';
 
-type ClientMessage = {
+export type ClientMessage = {
     action: ClientActions;
     channelName: string;
     event: string;
@@ -35,9 +35,9 @@ type ClientMessage = {
     addresses?: string[];
 }
 
-type ServerEmittedAction = 'ERROR' | 'MESSAGE' | 'JOINED' | 'LEFT' | 'PRESENCE' | 'ACTION';
+type ServerEmittedAction = 'ERROR' | 'MESSAGE' | 'PRESENCE' | 'ACTION';
 
-type ServerEmittedMessage = {
+export type ServerEmittedMessage = {
     action: ServerEmittedAction;
     channelName: string;
     event: string;
@@ -227,6 +227,14 @@ export class Channel {
 
             this.sendToClients(message);
         }
+    }
+
+    /**
+     * @desc Checks if a user is in the channel
+     * @param clientId - The clientId of the user to check
+     */
+    public hasUser(clientId: string) {
+        return this.presence.has(clientId) || this.assigns.has(clientId);
     }
 
     /**
@@ -633,6 +641,9 @@ export class PondSocket {
 
                 endpoint.channels.set(channelId, channel);
             }
+
+            if (channel.hasUser(clientId))
+                return reject('Client already in channel', 403, {channelName, clientId});
 
             const request: IncomingJoinMessage = {
                 clientId, channelName, channelId,

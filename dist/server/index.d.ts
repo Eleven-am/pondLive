@@ -1,6 +1,6 @@
 import {IncomingMessage, Server} from "http";
 import {WebSocketServer} from "ws";
-import {Channel} from "./declarations/server";
+import {Channel} from "../../declarations/server";
 
 declare type PondPath = string | RegExp;
 

@@ -180,6 +180,13 @@ var Channel = /** @class */ (function () {
         }
     };
     /**
+     * @desc Checks if a user is in the channel
+     * @param clientId - The clientId of the user to check
+     */
+    Channel.prototype.hasUser = function (clientId) {
+        return this.presence.has(clientId) || this.assigns.has(clientId);
+    };
+    /**
      * @desc Updates the state of a user in the channel
      * @param clientId - The clientId of the user to update
      * @param presence - The new presence of the user
@@ -550,6 +557,8 @@ var PondSocket = /** @class */ (function () {
                 channelId = channel.channelId;
                 endpoint.channels.set(channelId, channel);
             }
+            if (channel.hasUser(clientId))
+                return reject('Client already in channel', 403, { channelName: channelName, clientId: clientId });
             var request = {
                 clientId: clientId,
                 channelName: channelName,

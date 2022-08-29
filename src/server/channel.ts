@@ -12,7 +12,7 @@ type InternalAssigns = default_t & { clientId: string };
 type RemoveClientId<T> = Omit<T, "clientId">;
 
 type PondAssigns = RemoveClientId<InternalAssigns>;
-type PondPresence = RemoveClientId<InternalAssigns>;
+export type PondPresence = RemoveClientId<InternalAssigns>;
 type PondChannelData = RemoveClientId<InternalAssigns>;
 
 export interface PondResponseAssigns {
