@@ -83,16 +83,33 @@ type SocketCache = {
     assigns: PondAssigns;
 }
 
+type PresenceEvent = {
+    action: 'JOIN' | 'LEAVE';
+    clientId: string;
+    assigns: PondAssigns;
+    presence: PondPresence;
+    channel: InternalPondChannel;
+    channelData: PondChannelData;
+}
+
+export type JoinEvent = Omit<PresenceEvent, 'action'> & { action: 'JOIN' };
+
+export type LeaveEvent = Omit<PresenceEvent, 'action'> & { action: 'LEAVE' };
+
 export type EndpointCache = {
     path: PondPath;
     channels: BaseMap<string, Channel>;
     subject: Subject<ServerMessage>;
     handler: (req: IncomingMessage, res: PondResponse) => void;
     socketCache: BaseMap<string, SocketCache>;
-    authorizers: BaseMap<PondPath, {
-        handler: (req: IncomingJoinMessage, res: PondResponse) => void
-        events: BaseMap<string | RegExp, (req: IncomingChannelMessage, res: PondResponse, channel: InternalPondChannel) => void>;
-    }>;
+    authorizers: BaseMap<PondPath, ChannelAuthorizer>;
+}
+
+export type ChannelAuthorizer = {
+    handler: (req: IncomingJoinMessage, res: PondResponse, channel: InternalPondChannel) => void
+    events: BaseMap<string | RegExp, (req: IncomingChannelMessage, res: PondResponse, channel: InternalPondChannel) => void>;
+    onJoin?: (event: JoinEvent) => void;
+    onLeave?: (event: LeaveEvent) => void;
 }
 
 type NewUser = {
@@ -107,12 +124,20 @@ export class Channel {
     public readonly channelName: string;
     private data: PondChannelData;
     private readonly base: BaseClass;
+    private readonly onJoin: ((event: JoinEvent) => void) | undefined;
+    private readonly onLeave: ((event: LeaveEvent) => void) | undefined;
     private readonly subject: Subject<ServerMessage>;
     private readonly assigns: BaseMap<string, PondAssigns>;
     private readonly presence: BaseMap<string, PondPresence>;
     private verifiers: BaseMap<PondPath, (req: IncomingChannelMessage, res: PondResponse, channel: InternalPondChannel) => void>;
 
-    constructor(channelName: string, subject: Subject<ServerMessage>, verifiers: BaseMap<PondPath, (req: IncomingChannelMessage, res: PondResponse, channel: InternalPondChannel) => void>) {
+    constructor(
+        channelName: string,
+        subject: Subject<ServerMessage>,
+        verifiers: BaseMap<PondPath, (req: IncomingChannelMessage, res: PondResponse, channel: InternalPondChannel) => void>,
+        onJoin: ((event: JoinEvent) => void) | undefined,
+        onLeave: ((event: LeaveEvent) => void) | undefined
+    ) {
         this.channelName = channelName;
         this.base = new BaseClass();
         this.subject = subject;
@@ -121,6 +146,8 @@ export class Channel {
         this.data = {};
         this.presence = new BaseMap();
         this.assigns = new BaseMap();
+        this.onJoin = onJoin;
+        this.onLeave = onLeave;
         this.listenToClientDisconnected();
     }
 
@@ -145,6 +172,16 @@ export class Channel {
         }
 
         this.sendToClients(message);
+        const joinEvent: JoinEvent = {
+            action: 'JOIN',
+            clientId: user.clientId,
+            assigns: user.assigns,
+            presence: user.presence,
+            channelData: this.data,
+            channel: new InternalPondChannel(this)
+        }
+
+        if (this.onJoin) this.onJoin(joinEvent);
     }
 
     /**
@@ -201,6 +238,14 @@ export class Channel {
             return this.sendError(error);
         }
 
+        const leaveEvent: LeaveEvent = {
+            action: 'LEAVE', clientId,
+            assigns: client.clientAssigns,
+            presence: client.clientPresence,
+            channelData: this.data,
+            channel: new InternalPondChannel(this)
+        }
+
         this.presence.deleteKey(clientId);
         this.assigns.deleteKey(clientId);
 
@@ -227,6 +272,8 @@ export class Channel {
 
             this.sendToClients(message);
         }
+
+        if (this.onLeave) this.onLeave(leaveEvent);
     }
 
     /**
@@ -279,7 +326,7 @@ export class Channel {
      * @param addresses - The addresses of the message
      */
     public authorise(event: string, message: default_t, clientId: string, type: MessageType, addresses?: string[]) {
-        return BasePromise<void, string>((resolve, reject) => {
+        return BasePromise<void, string>(async (resolve, reject) => {
             const client = this.getUser(clientId);
             if (!client)
                 return reject("Client not found", 404, clientId);
@@ -335,7 +382,7 @@ export class Channel {
                 return resolve();
             }
 
-            verifier(request, response, newChannel);
+            await verifier(request, response, newChannel);
         }, clientId);
     }
 
@@ -535,7 +582,7 @@ export class PondSocket {
      * @param head - Incoming head
      */
     private authenticateClient(request: IncomingMessage, socket: internal.Duplex, head: Buffer) {
-        return BasePromise<SocketCache, internal.Duplex>((resolve, reject) => {
+        return BasePromise<SocketCache, internal.Duplex>(async (resolve, reject) => {
             const {pathname} = parse(request.url || '');
 
             if (!pathname)
@@ -562,7 +609,7 @@ export class PondSocket {
 
             }, reject, socket);
 
-            endpoint.value.handler(request, response);
+            await endpoint.value.handler(request, response);
         }, socket);
     }
 
@@ -616,7 +663,7 @@ export class PondSocket {
      * @param endpointId - The id of the endpoint the client is connected to
      */
     private authoriseClient(clientId: string, channelName: string, endpointId: string) {
-        return BasePromise<void, { channelName: string, clientId: string }>((resolve, reject) => {
+        return BasePromise<void, { channelName: string, clientId: string }>(async (resolve, reject) => {
             const endpoint = this.endpoints.get(endpointId);
 
             if (!endpoint)
@@ -636,7 +683,7 @@ export class PondSocket {
                 channelId = presentChannel.key;
                 channel = presentChannel.value;
             } else {
-                channel = new Channel(channelName, endpoint.subject, authorizer.events);
+                channel = new Channel(channelName, endpoint.subject, authorizer.events, authorizer.onJoin, authorizer.onLeave);
                 channelId = channel.channelId;
 
                 endpoint.channels.set(channelId, channel);
@@ -650,6 +697,7 @@ export class PondSocket {
                 clientAssigns: socketCache.assigns,
             }
 
+            const internal = new InternalPondChannel(channel);
             const response = this.base.generatePondResponse((assigns: PondResponseAssigns) => {
                 const intAssigns = {...socketCache.assigns, ...assigns.assign};
                 const intPresence = {...assigns.presence};
@@ -662,7 +710,7 @@ export class PondSocket {
                 return resolve();
 
             }, reject, {channelName, clientId});
-            authorizer.handler(request, response);
+            await authorizer.handler(request, response, internal);
         }, {channelName, clientId});
     }
 

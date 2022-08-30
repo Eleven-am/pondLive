@@ -1,6 +1,5 @@
 import {IncomingMessage, Server} from "http";
 import {WebSocketServer} from "ws";
-import {Channel} from "../../declarations/server";
 
 declare type PondPath = string | RegExp;
 
@@ -20,6 +19,23 @@ declare type InternalPondPresence = PondPresence & { id: string };
 declare type InternalAssigns = default_t & { clientId: string };
 
 declare type RemoveClientId<T> = Omit<T, "clientId">;
+
+declare type PresenceEvent = {
+    action: 'JOIN' | 'LEAVE';
+    clientId: string;
+    assigns: PondAssigns;
+    presence: PondPresence;
+    channel: InternalPondChannel;
+    channelData: PondChannelData;
+};
+
+export declare type JoinEvent = Omit<PresenceEvent, 'action'> & {
+    action: 'JOIN';
+};
+
+export declare type LeaveEvent = Omit<PresenceEvent, 'action'> & {
+    action: 'LEAVE';
+};
 
 declare type PondAssigns = RemoveClientId<InternalAssigns>;
 declare type PondPresence = RemoveClientId<InternalAssigns>;
@@ -55,7 +71,7 @@ interface PondResponse {
     reject: (message?: string, statusCode?: number) => void;
 }
 
-declare class InternalPondChannel {
+export declare class InternalPondChannel {
 
     /**
      * @desc Gets the current presence of the channel
@@ -96,7 +112,7 @@ declare class InternalPondChannel {
     public send(clientId: string | string[], event: string, message: default_t): void;
 }
 
-declare class PondChannel {
+export declare class PondChannel {
 
     /**
      * @desc A listener for a channel event
@@ -104,6 +120,18 @@ declare class PondChannel {
      * @param callback - The callback to call when the event is received
      */
     public public on(event: PondPath, callback: (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void): void;
+
+    /**
+     * @desc Adds am event listener for the join event
+     * @param callback - The callback to call when the event is received
+     */
+    public onJoin(callback: (event: JoinEvent) => void): void;
+
+    /**
+     * @desc Adds am event listener for the leave event
+     * @param callback - The callback to call when the event is received
+     */
+    public onLeave(callback: (event: LeaveEvent) => void): void;
 
     /**
      * @desc Gets a channel's data by id from the endpoint.
@@ -141,7 +169,7 @@ declare class PondChannel {
     public public modifyPresence(channelId: string, clientId: string, assigns: PondResponseAssigns): void;
 }
 
-declare class PondEndpoint {
+export declare class PondEndpoint {
 
     /**
      * @desc Broadcasts a message to all clients in the endpoint.
@@ -175,13 +203,19 @@ declare class PondEndpoint {
      *     res.assign({pingDate: new Date(), users: users.length});
      * })
      */
-    public createChannel(path: PondPath, handler: (req: IncomingJoinMessage, res: PondResponse) => void): PondChannel;
+    public createChannel(path: PondPath, handler: (req: IncomingJoinMessage, res: PondResponse, channel: InternalPondChannel) => void): PondChannel;
 
     /**
      * @desc Gets a channel by id from the endpoint.
      * @param channelId - The id of the channel to get.
      */
-    public getChannel(channelId: string): InternalPondChannel | null;
+    public getChannelById(channelId: string): InternalPondChannel | null;
+
+    /**
+     * @desc Gets a channel by name from the endpoint.
+     * @param channelName - The name of the channel to get.
+     */
+    public getChannelByName(channelName: string): InternalPondChannel | null;
 
     /**
      * @desc lists all the channels in the endpoint
@@ -229,5 +263,5 @@ export default class PondServer {
      *    res.accept({ token });
      * })
      */
-    public createEndpoint(path: string | RegExp, handler: (req: IncomingMessage, res: PondResponse) => void): PondEndpoint;
+    public createEndpoint(path: PondPath, handler: (req: IncomingMessage, res: PondResponse) => void): PondEndpoint;
 }

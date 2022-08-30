@@ -1,5 +1,5 @@
 import {BaseMap} from "./utils";
-import {Channel, EndpointCache, PondPath} from "./server";
+import {Channel, ChannelAuthorizer, EndpointCache, JoinEvent, LeaveEvent, PondPath} from "./server";
 
 type default_t = {
     [key: string]: any;
@@ -156,11 +156,11 @@ export class InternalPondChannel {
 
 export class PondChannel {
     private channels: BaseMap<string, Channel>;
-    private readonly events: BaseMap<PondPath, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>
+    private readonly authorizer: ChannelAuthorizer;
 
-    constructor(channels: BaseMap<string, Channel>, events: BaseMap<PondPath, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>) {
+    constructor(authorizer: ChannelAuthorizer, channels: BaseMap<string, Channel>) {
         this.channels = channels;
-        this.events = events;
+        this.authorizer = authorizer;
     }
 
     /**
@@ -169,7 +169,23 @@ export class PondChannel {
      * @param callback - The callback to call when the event is received
      */
     public on(event: PondPath, callback: (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void): void {
-        this.events.set(event, callback);
+        this.authorizer.events.set(event, callback);
+    }
+
+    /**
+     * @desc Adds am event listener for the join event
+     * @param callback - The callback to call when the event is received
+     */
+    public onJoin(callback: (event: JoinEvent) => void): void {
+        this.authorizer.onJoin = callback;
+    }
+
+    /**
+     * @desc Adds am event listener for the leave event
+     * @param callback - The callback to call when the event is received
+     */
+    public onLeave(callback: (event: LeaveEvent) => void): void {
+        this.authorizer.onLeave = callback;
     }
 
     /**
@@ -296,23 +312,35 @@ export class PondEndpoint {
      *     res.assign({pingDate: new Date(), users: users.length});
      * })
      */
-    public createChannel(path: PondPath, handler: (req: IncomingJoinMessage, res: PondResponse) => void): PondChannel {
+    public createChannel(path: PondPath, handler: (req: IncomingJoinMessage, res: PondResponse, channel: InternalPondChannel) => void): PondChannel {
         const events = new BaseMap<string | RegExp, (req: IncomingChannelMessage, res: PondResponse, room: InternalPondChannel) => void>();
 
-        this.endpoint.authorizers.set(path, {
+        const authorizer: ChannelAuthorizer = {
             handler: handler,
             events: events
-        });
-
-        return new PondChannel(this.endpoint.channels, events);
+        }
+        this.endpoint.authorizers.set(path, authorizer);
+        return new PondChannel(authorizer, this.endpoint.channels);
     }
 
     /**
      * @desc Gets a channel by id from the endpoint.
      * @param channelId - The id of the channel to get.
      */
-    public getChannel(channelId: string): InternalPondChannel | null {
+    public getChannelById(channelId: string): InternalPondChannel | null {
         const channel = this.getPrivateChannel(channelId);
+        if (channel)
+            return new InternalPondChannel(channel);
+
+        return null;
+    }
+
+    /**
+     * @desc Gets a channel by name from the endpoint.
+     * @param channelName - The name of the channel to get.
+     */
+    public getChannelByName(channelName: string): InternalPondChannel | null {
+        const channel = this.endpoint.channels.find(c => c.channelName === channelName)?.value;
         if (channel)
             return new InternalPondChannel(channel);
 

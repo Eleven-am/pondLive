@@ -27,9 +27,22 @@ export class PondClientSocket {
     private socket: WebSocketSubject<ServerEmittedMessage | ClientMessage> | undefined;
 
     constructor(endpoint: string, params: PondParams) {
-        const address = new URL(endpoint);
+        let address: URL;
+
+        try {
+            address = new URL(endpoint);
+        } catch (e) {
+            address = new URL(window.location.toString());
+            address.pathname = endpoint;
+        }
+
         const query = new URLSearchParams(params);
         address.search = query.toString();
+        const protocol = address.protocol === 'https:' ? 'wss:' : 'ws:';
+
+        if (address.protocol !== 'wss:' && address.protocol !== 'ws:')
+            address.protocol = protocol;
+
         this.address = address;
         this.channels = new BaseMap();
 
@@ -169,7 +182,7 @@ class Channel {
      * @param callback - The callback to call when the presence state changes.
      */
     onPresenceUpdate(callback: (presence: PondPresence[]) => void) {
-        this.presenceSubject.subscribe(callback);
+        return this.presenceSubject.subscribe(callback);
     }
 
     /**
@@ -177,7 +190,7 @@ class Channel {
      * @param callback - The callback to call when a message is received.
      */
     onMessage(callback: (event: string, message: any) => void) {
-        this.subject
+        return this.subject
             .pipe(
                 filter((message: ServerEmittedMessage) => message.action === 'MESSAGE'),
             )

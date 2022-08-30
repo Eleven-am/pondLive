@@ -9,9 +9,19 @@ var PondClientSocket = /** @class */ (function () {
     function PondClientSocket(endpoint, params) {
         var _a, _b;
         this.socketState = 'CLOSED';
-        var address = new URL(endpoint);
+        var address;
+        try {
+            address = new URL(endpoint);
+        }
+        catch (e) {
+            address = new URL(window.location.toString());
+            address.pathname = endpoint;
+        }
         var query = new URLSearchParams(params);
         address.search = query.toString();
+        var protocol = address.protocol === 'https:' ? 'wss:' : 'ws:';
+        if (address.protocol !== 'wss:' && address.protocol !== 'ws:')
+            address.protocol = protocol;
         this.address = address;
         this.channels = new utils_1.BaseMap();
         if ((_a = window.pond) === null || _a === void 0 ? void 0 : _a.has(this.address.toString())) {
@@ -140,14 +150,14 @@ var Channel = /** @class */ (function () {
      * @param callback - The callback to call when the presence state changes.
      */
     Channel.prototype.onPresenceUpdate = function (callback) {
-        this.presenceSubject.subscribe(callback);
+        return this.presenceSubject.subscribe(callback);
     };
     /**
      * @desc Monitors the channel for messages.
      * @param callback - The callback to call when a message is received.
      */
     Channel.prototype.onMessage = function (callback) {
-        this.subject
+        return this.subject
             .pipe((0, operators_1.filter)(function (message) { return message.action === 'MESSAGE'; }))
             .subscribe(function (message) { return callback(message.event, message.payload); });
     };

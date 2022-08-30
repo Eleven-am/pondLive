@@ -56,7 +56,7 @@ var channel_1 = require("./channel");
 var rxjs_1 = require("rxjs");
 var operators_1 = require("rxjs/operators");
 var Channel = /** @class */ (function () {
-    function Channel(channelName, subject, verifiers) {
+    function Channel(channelName, subject, verifiers, onJoin, onLeave) {
         this.channelName = channelName;
         this.base = new utils_1.BaseClass();
         this.subject = subject;
@@ -65,6 +65,8 @@ var Channel = /** @class */ (function () {
         this.data = {};
         this.presence = new utils_1.BaseMap();
         this.assigns = new utils_1.BaseMap();
+        this.onJoin = onJoin;
+        this.onLeave = onLeave;
         this.listenToClientDisconnected();
     }
     Object.defineProperty(Channel.prototype, "newUser", {
@@ -87,6 +89,16 @@ var Channel = /** @class */ (function () {
                 }
             };
             this.sendToClients(message);
+            var joinEvent = {
+                action: 'JOIN',
+                clientId: user.clientId,
+                assigns: user.assigns,
+                presence: user.presence,
+                channelData: this.data,
+                channel: new channel_1.InternalPondChannel(this)
+            };
+            if (this.onJoin)
+                this.onJoin(joinEvent);
         },
         enumerable: false,
         configurable: true
@@ -154,6 +166,14 @@ var Channel = /** @class */ (function () {
             var error = new utils_1.PondError("Client " + clientId + " does not exist in channel " + this.channelName, 301, clientId);
             return this.sendError(error);
         }
+        var leaveEvent = {
+            action: 'LEAVE',
+            clientId: clientId,
+            assigns: client.clientAssigns,
+            presence: client.clientPresence,
+            channelData: this.data,
+            channel: new channel_1.InternalPondChannel(this)
+        };
         this.presence.deleteKey(clientId);
         this.assigns.deleteKey(clientId);
         if (this.clientIds.length === 0) {
@@ -178,6 +198,8 @@ var Channel = /** @class */ (function () {
             };
             this.sendToClients(message);
         }
+        if (this.onLeave)
+            this.onLeave(leaveEvent);
     };
     /**
      * @desc Checks if a user is in the channel
@@ -224,54 +246,64 @@ var Channel = /** @class */ (function () {
      */
     Channel.prototype.authorise = function (event, message, clientId, type, addresses) {
         var _this = this;
-        return (0, utils_1.BasePromise)(function (resolve, reject) {
+        return (0, utils_1.BasePromise)(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+            var client, request, newAddresses, newMessage, response, newChannel, verifier;
+            var _this = this;
             var _a;
-            var client = _this.getUser(clientId);
-            if (!client)
-                return reject("Client not found", 404, clientId);
-            var request = {
-                event: event,
-                channelId: _this.channelId,
-                channelName: _this.channelName,
-                message: message,
-                client: client,
-            };
-            var newAddresses = [];
-            switch (type) {
-                case 'BROADCAST_FROM':
-                    newAddresses = _this.clientIds.filter(function (e) { return e !== clientId; });
-                    break;
-                case 'BROADCAST':
-                    newAddresses = _this.clientIds;
-                    break;
-                case 'SEND_MESSAGE_TO_USER':
-                    newAddresses = addresses ? addresses : [];
-                    break;
-            }
-            var newMessage = {
-                action: 'MESSAGE', payload: message,
-                event: event, clientId: clientId,
-                channelName: _this.channelName,
-                addresses: newAddresses
-            };
-            var response = _this.base.generatePondResponse(function (assigns) {
-                if (assigns) {
-                    if (assigns.channelData)
-                        _this.data = __assign(__assign({}, _this.data), assigns.channelData);
-                    if (!_this.base.isObjectEmpty(assigns.presence) || !_this.base.isObjectEmpty(assigns.assign))
-                        _this.updateUser(clientId, assigns.presence, assigns.assign);
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        client = this.getUser(clientId);
+                        if (!client)
+                            return [2 /*return*/, reject("Client not found", 404, clientId)];
+                        request = {
+                            event: event,
+                            channelId: this.channelId,
+                            channelName: this.channelName,
+                            message: message,
+                            client: client,
+                        };
+                        newAddresses = [];
+                        switch (type) {
+                            case 'BROADCAST_FROM':
+                                newAddresses = this.clientIds.filter(function (e) { return e !== clientId; });
+                                break;
+                            case 'BROADCAST':
+                                newAddresses = this.clientIds;
+                                break;
+                            case 'SEND_MESSAGE_TO_USER':
+                                newAddresses = addresses ? addresses : [];
+                                break;
+                        }
+                        newMessage = {
+                            action: 'MESSAGE', payload: message,
+                            event: event, clientId: clientId,
+                            channelName: this.channelName,
+                            addresses: newAddresses
+                        };
+                        response = this.base.generatePondResponse(function (assigns) {
+                            if (assigns) {
+                                if (assigns.channelData)
+                                    _this.data = __assign(__assign({}, _this.data), assigns.channelData);
+                                if (!_this.base.isObjectEmpty(assigns.presence) || !_this.base.isObjectEmpty(assigns.assign))
+                                    _this.updateUser(clientId, assigns.presence, assigns.assign);
+                            }
+                            _this.sendToClients(newMessage);
+                            resolve();
+                        }, reject, clientId);
+                        newChannel = new channel_1.InternalPondChannel(this);
+                        verifier = (_a = this.verifiers.findByKey(function (e) { return _this.base.compareStringToPattern(event, e); })) === null || _a === void 0 ? void 0 : _a.value;
+                        if (!verifier) {
+                            this.sendToClients(newMessage);
+                            return [2 /*return*/, resolve()];
+                        }
+                        return [4 /*yield*/, verifier(request, response, newChannel)];
+                    case 1:
+                        _b.sent();
+                        return [2 /*return*/];
                 }
-                _this.sendToClients(newMessage);
-                resolve();
-            }, reject, clientId);
-            var newChannel = new channel_1.InternalPondChannel(_this);
-            var verifier = (_a = _this.verifiers.findByKey(function (e) { return _this.base.compareStringToPattern(event, e); })) === null || _a === void 0 ? void 0 : _a.value;
-            if (!verifier) {
-                _this.sendToClients(newMessage);
-                return resolve();
-            }
-            verifier(request, response, newChannel);
-        }, clientId);
+            });
+        }); }, clientId);
     };
     /**
      * @desc Sends an error to the client
@@ -470,29 +502,39 @@ var PondSocket = /** @class */ (function () {
      */
     PondSocket.prototype.authenticateClient = function (request, socket, head) {
         var _this = this;
-        return (0, utils_1.BasePromise)(function (resolve, reject) {
-            var pathname = (0, url_1.parse)(request.url || '').pathname;
-            if (!pathname)
-                return reject('No pathname found', 404, socket);
-            var endpoint = _this.endpoints.find(function (endpoint) { return _this.base.compareStringToPattern(pathname, endpoint.path); });
-            if (!endpoint)
-                return reject('No endpoint found', 404, socket);
-            var response = _this.base.generatePondResponse(function (assigns) {
-                var clientId = _this.base.uuid();
-                var intAssigns = assigns.assign || {};
-                _this.socketServer.handleUpgrade(request, socket, head, function (ws) {
-                    var socketCache = {
-                        clientId: clientId,
-                        assigns: intAssigns,
-                        socket: ws, endpointId: endpoint.key,
-                    };
-                    _this.socketServer.emit('connection', ws);
-                    endpoint.value.socketCache.set(clientId, socketCache);
-                    resolve(socketCache);
-                });
-            }, reject, socket);
-            endpoint.value.handler(request, response);
-        }, socket);
+        return (0, utils_1.BasePromise)(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+            var pathname, endpoint, response;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        pathname = (0, url_1.parse)(request.url || '').pathname;
+                        if (!pathname)
+                            return [2 /*return*/, reject('No pathname found', 404, socket)];
+                        endpoint = this.endpoints.find(function (endpoint) { return _this.base.compareStringToPattern(pathname, endpoint.path); });
+                        if (!endpoint)
+                            return [2 /*return*/, reject('No endpoint found', 404, socket)];
+                        response = this.base.generatePondResponse(function (assigns) {
+                            var clientId = _this.base.uuid();
+                            var intAssigns = assigns.assign || {};
+                            _this.socketServer.handleUpgrade(request, socket, head, function (ws) {
+                                var socketCache = {
+                                    clientId: clientId,
+                                    assigns: intAssigns,
+                                    socket: ws, endpointId: endpoint.key,
+                                };
+                                _this.socketServer.emit('connection', ws);
+                                endpoint.value.socketCache.set(clientId, socketCache);
+                                resolve(socketCache);
+                            });
+                        }, reject, socket);
+                        return [4 /*yield*/, endpoint.value.handler(request, response)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        }); }, socket);
     };
     /**
      * @desc Receives as socketCache and adds listeners to it
@@ -536,48 +578,57 @@ var PondSocket = /** @class */ (function () {
      */
     PondSocket.prototype.authoriseClient = function (clientId, channelName, endpointId) {
         var _this = this;
-        return (0, utils_1.BasePromise)(function (resolve, reject) {
+        return (0, utils_1.BasePromise)(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+            var endpoint, authorizer, socketCache, channelId, channel, presentChannel, request, internal, response;
+            var _this = this;
             var _a;
-            var endpoint = _this.endpoints.get(endpointId);
-            if (!endpoint)
-                return reject('No endpoint found', 404, { channelName: channelName, clientId: clientId });
-            var authorizer = (_a = endpoint.authorizers.findByKey(function (authorizer) { return _this.base.compareStringToPattern(channelName, authorizer); })) === null || _a === void 0 ? void 0 : _a.value;
-            if (!authorizer)
-                return reject('No authorizer found', 404, { channelName: channelName, clientId: clientId });
-            var socketCache = endpoint.socketCache.get(clientId);
-            var channelId;
-            var channel;
-            var presentChannel = endpoint.channels.find(function (channel) { return channel.channelName === channelName; });
-            if (presentChannel) {
-                channelId = presentChannel.key;
-                channel = presentChannel.value;
-            }
-            else {
-                channel = new Channel(channelName, endpoint.subject, authorizer.events);
-                channelId = channel.channelId;
-                endpoint.channels.set(channelId, channel);
-            }
-            if (channel.hasUser(clientId))
-                return reject('Client already in channel', 403, { channelName: channelName, clientId: clientId });
-            var request = {
-                clientId: clientId,
-                channelName: channelName,
-                channelId: channelId,
-                clientAssigns: socketCache.assigns,
-            };
-            var response = _this.base.generatePondResponse(function (assigns) {
-                var intAssigns = __assign(__assign({}, socketCache.assigns), assigns.assign);
-                var intPresence = __assign({}, assigns.presence);
-                channel.newUser = {
-                    presence: intPresence,
-                    clientId: clientId,
-                    assigns: intAssigns,
-                    channelData: assigns.channelData || {}
-                };
-                return resolve();
-            }, reject, { channelName: channelName, clientId: clientId });
-            authorizer.handler(request, response);
-        }, { channelName: channelName, clientId: clientId });
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        endpoint = this.endpoints.get(endpointId);
+                        if (!endpoint)
+                            return [2 /*return*/, reject('No endpoint found', 404, { channelName: channelName, clientId: clientId })];
+                        authorizer = (_a = endpoint.authorizers.findByKey(function (authorizer) { return _this.base.compareStringToPattern(channelName, authorizer); })) === null || _a === void 0 ? void 0 : _a.value;
+                        if (!authorizer)
+                            return [2 /*return*/, reject('No authorizer found', 404, { channelName: channelName, clientId: clientId })];
+                        socketCache = endpoint.socketCache.get(clientId);
+                        presentChannel = endpoint.channels.find(function (channel) { return channel.channelName === channelName; });
+                        if (presentChannel) {
+                            channelId = presentChannel.key;
+                            channel = presentChannel.value;
+                        }
+                        else {
+                            channel = new Channel(channelName, endpoint.subject, authorizer.events, authorizer.onJoin, authorizer.onLeave);
+                            channelId = channel.channelId;
+                            endpoint.channels.set(channelId, channel);
+                        }
+                        if (channel.hasUser(clientId))
+                            return [2 /*return*/, reject('Client already in channel', 403, { channelName: channelName, clientId: clientId })];
+                        request = {
+                            clientId: clientId,
+                            channelName: channelName,
+                            channelId: channelId,
+                            clientAssigns: socketCache.assigns,
+                        };
+                        internal = new channel_1.InternalPondChannel(channel);
+                        response = this.base.generatePondResponse(function (assigns) {
+                            var intAssigns = __assign(__assign({}, socketCache.assigns), assigns.assign);
+                            var intPresence = __assign({}, assigns.presence);
+                            channel.newUser = {
+                                presence: intPresence,
+                                clientId: clientId,
+                                assigns: intAssigns,
+                                channelData: assigns.channelData || {}
+                            };
+                            return resolve();
+                        }, reject, { channelName: channelName, clientId: clientId });
+                        return [4 /*yield*/, authorizer.handler(request, response, internal)];
+                    case 1:
+                        _b.sent();
+                        return [2 /*return*/];
+                }
+            });
+        }); }, { channelName: channelName, clientId: clientId });
     };
     /**
      * @desc Handles a message sent from a client

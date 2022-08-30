@@ -102,9 +102,9 @@ var InternalPondChannel = /** @class */ (function () {
 }());
 exports.InternalPondChannel = InternalPondChannel;
 var PondChannel = /** @class */ (function () {
-    function PondChannel(channels, events) {
+    function PondChannel(authorizer, channels) {
         this.channels = channels;
-        this.events = events;
+        this.authorizer = authorizer;
     }
     /**
      * @desc A listener for a channel event
@@ -112,7 +112,21 @@ var PondChannel = /** @class */ (function () {
      * @param callback - The callback to call when the event is received
      */
     PondChannel.prototype.on = function (event, callback) {
-        this.events.set(event, callback);
+        this.authorizer.events.set(event, callback);
+    };
+    /**
+     * @desc Adds am event listener for the join event
+     * @param callback - The callback to call when the event is received
+     */
+    PondChannel.prototype.onJoin = function (callback) {
+        this.authorizer.onJoin = callback;
+    };
+    /**
+     * @desc Adds am event listener for the leave event
+     * @param callback - The callback to call when the event is received
+     */
+    PondChannel.prototype.onLeave = function (callback) {
+        this.authorizer.onLeave = callback;
     };
     /**
      * @desc Gets a channel's data by id from the endpoint.
@@ -231,18 +245,30 @@ var PondEndpoint = /** @class */ (function () {
      */
     PondEndpoint.prototype.createChannel = function (path, handler) {
         var events = new utils_1.BaseMap();
-        this.endpoint.authorizers.set(path, {
+        var authorizer = {
             handler: handler,
             events: events
-        });
-        return new PondChannel(this.endpoint.channels, events);
+        };
+        this.endpoint.authorizers.set(path, authorizer);
+        return new PondChannel(authorizer, this.endpoint.channels);
     };
     /**
      * @desc Gets a channel by id from the endpoint.
      * @param channelId - The id of the channel to get.
      */
-    PondEndpoint.prototype.getChannel = function (channelId) {
+    PondEndpoint.prototype.getChannelById = function (channelId) {
         var channel = this.getPrivateChannel(channelId);
+        if (channel)
+            return new InternalPondChannel(channel);
+        return null;
+    };
+    /**
+     * @desc Gets a channel by name from the endpoint.
+     * @param channelName - The name of the channel to get.
+     */
+    PondEndpoint.prototype.getChannelByName = function (channelName) {
+        var _a;
+        var channel = (_a = this.endpoint.channels.find(function (c) { return c.channelName === channelName; })) === null || _a === void 0 ? void 0 : _a.value;
         if (channel)
             return new InternalPondChannel(channel);
         return null;
