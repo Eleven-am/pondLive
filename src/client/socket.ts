@@ -125,7 +125,7 @@ export class PondClientSocket {
 
 class Channel {
     private readonly channel: string;
-    private subscription: Subscription | undefined;
+    private subscriptions: Subscription[] = [];
     private readonly socket: WebSocketSubject<ServerEmittedMessage | ClientMessage>;
     private readonly params: ChannelParams;
     private connectedSubject: BehaviorSubject<boolean>;
@@ -152,7 +152,7 @@ class Channel {
             return;
         this.connectedSubject.next(true);
         const observable = this.init();
-        this.subscription = observable
+        const subscription = observable
             .subscribe(message => {
                 if (message.action === 'PRESENCE')
                     this.presenceSubject.next(message.payload.presence);
@@ -163,6 +163,8 @@ class Channel {
                 else if (message.event === 'KICKED_FROM_CHANNEL')
                     this.leave();
             });
+
+        this.subscriptions.push(subscription);
     }
 
     /**
@@ -172,8 +174,8 @@ class Channel {
         this.connectedSubject.next(false);
         this.connectedSubject.complete();
         this.presenceSubject.complete();
-        this.subscription?.unsubscribe();
-        this.subscription = undefined;
+        this.subscriptions.forEach(subscription => subscription.unsubscribe());
+        this.subscriptions = [];
         this.subject.complete();
     }
 
@@ -182,7 +184,9 @@ class Channel {
      * @param callback - The callback to call when the presence state changes.
      */
     onPresenceUpdate(callback: (presence: PondPresence[]) => void) {
-        return this.presenceSubject.subscribe(callback);
+        const sub = this.presenceSubject.subscribe(callback);
+        this.subscriptions.push(sub);
+        return sub;
     }
 
     /**
@@ -190,11 +194,13 @@ class Channel {
      * @param callback - The callback to call when a message is received.
      */
     onMessage(callback: (event: string, message: any) => void) {
-        return this.subject
+        const sub = this.subject
             .pipe(
                 filter((message: ServerEmittedMessage) => message.action === 'MESSAGE'),
             )
             .subscribe(message => callback(message.event, message.payload));
+        this.subscriptions.push(sub);
+        return sub;
     }
 
     /**
@@ -256,7 +262,9 @@ class Channel {
      * @param callback - The callback to call when the connection state changes.
      */
     onConnectionChange(callback: (connected: boolean) => void) {
-        this.connectedSubject.subscribe(callback);
+        const sub = this.connectedSubject.subscribe(callback);
+        this.subscriptions.push(sub);
+        return sub;
     }
 
     /**

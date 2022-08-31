@@ -575,8 +575,9 @@ var PondSocket = /** @class */ (function () {
      * @param clientId - The id of the client making the request
      * @param channelName - The name of the channel the client wishes to join
      * @param endpointId - The id of the endpoint the client is connected to
+     * @param joinParams - The parameters to join the channel with
      */
-    PondSocket.prototype.authoriseClient = function (clientId, channelName, endpointId) {
+    PondSocket.prototype.authoriseClient = function (clientId, channelName, endpointId, joinParams) {
         var _this = this;
         return (0, utils_1.BasePromise)(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
             var endpoint, authorizer, socketCache, channelId, channel, presentChannel, request, internal, response;
@@ -605,6 +606,7 @@ var PondSocket = /** @class */ (function () {
                         if (channel.hasUser(clientId))
                             return [2 /*return*/, reject('Client already in channel', 403, { channelName: channelName, clientId: clientId })];
                         request = {
+                            joinParams: joinParams,
                             clientId: clientId,
                             channelName: channelName,
                             channelId: channelId,
@@ -731,7 +733,7 @@ var PondSocket = /** @class */ (function () {
                             case 'UPDATE_PRESENCE': return [3 /*break*/, 11];
                         }
                         return [3 /*break*/, 13];
-                    case 1: return [4 /*yield*/, this.authoriseClient(cache.clientId, message.channelName, cache.endpointId)];
+                    case 1: return [4 /*yield*/, this.authoriseClient(cache.clientId, message.channelName, cache.endpointId, message.payload)];
                     case 2:
                         _b.sent();
                         return [3 /*break*/, 13];

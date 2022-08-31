@@ -55,6 +55,7 @@ interface IncomingJoinMessage {
     channelId: string;
     channelName: string;
     clientAssigns: PondAssigns;
+    joinParams: default_t;
 }
 
 interface IncomingChannelMessage {
@@ -661,8 +662,9 @@ export class PondSocket {
      * @param clientId - The id of the client making the request
      * @param channelName - The name of the channel the client wishes to join
      * @param endpointId - The id of the endpoint the client is connected to
+     * @param joinParams - The parameters to join the channel with
      */
-    private authoriseClient(clientId: string, channelName: string, endpointId: string) {
+    private authoriseClient(clientId: string, channelName: string, endpointId: string, joinParams: default_t) {
         return BasePromise<void, { channelName: string, clientId: string }>(async (resolve, reject) => {
             const endpoint = this.endpoints.get(endpointId);
 
@@ -693,6 +695,7 @@ export class PondSocket {
                 return reject('Client already in channel', 403, {channelName, clientId});
 
             const request: IncomingJoinMessage = {
+                joinParams,
                 clientId, channelName, channelId,
                 clientAssigns: socketCache.assigns,
             }
@@ -788,7 +791,7 @@ export class PondSocket {
     private async handleMessage(cache: SocketCache, message: ClientMessage) {
         switch (message.action) {
             case 'JOIN_CHANNEL':
-                await this.authoriseClient(cache.clientId, message.channelName, cache.endpointId);
+                await this.authoriseClient(cache.clientId, message.channelName, cache.endpointId, message.payload);
                 break;
 
             case 'LEAVE_CHANNEL':

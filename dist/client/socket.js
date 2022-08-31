@@ -100,6 +100,7 @@ var PondClientSocket = /** @class */ (function () {
 exports.PondClientSocket = PondClientSocket;
 var Channel = /** @class */ (function () {
     function Channel(channel, params, socket) {
+        this.subscriptions = [];
         this.presenceSubject = new rxjs_1.Subject();
         this.channel = channel;
         this.params = params;
@@ -123,7 +124,7 @@ var Channel = /** @class */ (function () {
             return;
         this.connectedSubject.next(true);
         var observable = this.init();
-        this.subscription = observable
+        var subscription = observable
             .subscribe(function (message) {
             if (message.action === 'PRESENCE')
                 _this.presenceSubject.next(message.payload.presence);
@@ -132,17 +133,17 @@ var Channel = /** @class */ (function () {
             else if (message.event === 'KICKED_FROM_CHANNEL')
                 _this.leave();
         });
+        this.subscriptions.push(subscription);
     };
     /**
      * @desc Disconnects from the channel.
      */
     Channel.prototype.leave = function () {
-        var _a;
         this.connectedSubject.next(false);
         this.connectedSubject.complete();
         this.presenceSubject.complete();
-        (_a = this.subscription) === null || _a === void 0 ? void 0 : _a.unsubscribe();
-        this.subscription = undefined;
+        this.subscriptions.forEach(function (subscription) { return subscription.unsubscribe(); });
+        this.subscriptions = [];
         this.subject.complete();
     };
     /**
@@ -150,16 +151,20 @@ var Channel = /** @class */ (function () {
      * @param callback - The callback to call when the presence state changes.
      */
     Channel.prototype.onPresenceUpdate = function (callback) {
-        return this.presenceSubject.subscribe(callback);
+        var sub = this.presenceSubject.subscribe(callback);
+        this.subscriptions.push(sub);
+        return sub;
     };
     /**
      * @desc Monitors the channel for messages.
      * @param callback - The callback to call when a message is received.
      */
     Channel.prototype.onMessage = function (callback) {
-        return this.subject
+        var sub = this.subject
             .pipe((0, operators_1.filter)(function (message) { return message.action === 'MESSAGE'; }))
             .subscribe(function (message) { return callback(message.event, message.payload); });
+        this.subscriptions.push(sub);
+        return sub;
     };
     /**
      * @desc Broadcasts a message to the channel, including yourself.
@@ -219,7 +224,9 @@ var Channel = /** @class */ (function () {
      * @param callback - The callback to call when the connection state changes.
      */
     Channel.prototype.onConnectionChange = function (callback) {
-        this.connectedSubject.subscribe(callback);
+        var sub = this.connectedSubject.subscribe(callback);
+        this.subscriptions.push(sub);
+        return sub;
     };
     /**
      * @desc Initializes the channel.
