@@ -1,6 +1,6 @@
 {
   "name": "pondsocket",
-  "version": "0.1.47",
+  "version": "0.1.49",
   "description": "PondSocket is a fast simple socket server",
   "main": "./dist/server/index.js",
   "types": "./dist/server/index.d.ts",
@@ -19,7 +19,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Roy OSSAI",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Eleven-am/pondSocket.git"
