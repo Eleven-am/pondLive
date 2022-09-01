@@ -27,7 +27,7 @@ Multiple endpoints can be created but every endpoint is independent from the oth
        const { query } = parse(req.url || '');     
        const { token } = query;     
        if (!token)         
-            return res.decline('No token provided');      
+            return res.reject('No token provided');      
         res.accept({ token });  
   })
 ```
@@ -39,7 +39,7 @@ between themselves.
   const channel = endpoint.createChannel(/^channel(.*?)/, (req, res, channel) => {
        const isAdmin = req.assigns.admin;
        if (!isAdmin)       
-            return res.decline('You are not an admin');
+            return res.reject('You are not an admin');
 
        res.accept({
            assigns: {
