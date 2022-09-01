@@ -1,14 +1,29 @@
 {
   "name": "pondsocket",
-  "version": "0.1.46",
-  "description": "Pond socket is a simple socket server",
+  "version": "0.1.47",
+  "description": "PondSocket is a fast simple socket server",
   "main": "./dist/server/index.js",
   "types": "./dist/server/index.d.ts",
+  "keywords": [
+    "socket",
+    "server",
+    "ws",
+    "websocket",
+    "PUB/SUB",
+    "pubsub",
+    "presence",
+    "realtime",
+    "realtime server"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Roy OSSAI",
-  "license": "ISC",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Eleven-am/pondSocket.git"
+  },
   "exports": {
     ".": "./dist/server/index.js",
     "./client": "./dist/client/index.js"

@@ -1,7 +1,7 @@
 
 # PondSocket
 
-PondSocket is a fast, minimalist and bidirectional socket framework for NodeJS.
+PondSocket is a fast, minimalist and bidirectional socket framework for NodeJS. Pond allows you to think of each action during a sockets lifetime as a request instead of a huge callback that exists inside the connection event.
 ## Documentation
 
 This is a Node.js module available through the npm registry.
