@@ -28,7 +28,11 @@ Multiple endpoints can be created but every endpoint is independent from the oth
        const { token } = query;     
        if (!token)         
             return res.reject('No token provided');      
-        res.accept({ token });  
+        res.accept({
+            assigns: {
+                token
+            }
+        });  
   })
 ```
 
