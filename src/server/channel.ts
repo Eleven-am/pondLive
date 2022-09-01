@@ -300,16 +300,28 @@ export class PondEndpoint {
      *
      * @example
      * const channel = endpoint.createChannel('channel:*', (req, res) => {
-     *   const isAdmin = req.assigns.admin;
+     *   const isAdmin = req.clientAssigns.admin;
      *   if (!isAdmin)
-     *      return res.decline('You are not an admin');
+     *      return res.reject('You are not an admin');
      *
-     *   res.accept({assigns: {admin: true, joinedDate: new Date()}, presence: {state: online}, channelData: {private: true}});
+     *   res.accept({
+     *      assign: {
+     *         admin: true,
+     *         joinedDate: new Date()
+     *      },
+     *      presence: {state: 'online'},
+     *      channelData: {private: true}
+     *   });
      * });
      *
      * channel.on('ping', (req, res, channel) => {
      *     const users = channel.getPresence();
-     *     res.assign({pingDate: new Date(), users: users.length});
+     *     res.assign({
+     *        assign: {
+     *           pingDate: new Date(),
+     *           users: users.length
+     *        }
+     *    });
      * })
      */
     public createChannel(path: PondPath, handler: (req: IncomingJoinMessage, res: PondResponse, channel: InternalPondChannel) => void): PondChannel {

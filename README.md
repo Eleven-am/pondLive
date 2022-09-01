@@ -28,11 +28,11 @@ Multiple endpoints can be created but every endpoint is independent from the oth
        const { token } = query;     
        if (!token)         
             return res.reject('No token provided');      
-        res.accept({
-            assigns: {
+       res.accept({
+            assign: {
                 token
             }
-        });  
+       });  
   })
 ```
 
@@ -41,12 +41,12 @@ between themselves.
 
 ```js
   const channel = endpoint.createChannel(/^channel(.*?)/, (req, res, channel) => {
-       const isAdmin = req.assigns.admin;
+       const isAdmin = req.clientAssigns.admin;
        if (!isAdmin)       
             return res.reject('You are not an admin');
 
        res.accept({
-           assigns: {
+           assign: {
                admin: true, 
                joinedDate: new Date()
             }, 
@@ -71,8 +71,10 @@ It can be anything from a boolean to an instance of a class. This data cannot be
     channel.on('hello', (req, res, channel) => {      
        const users = channel.getPresence();      
        res.assign({
-           pingDate: new Date(), 
-           users: users.length
+           assign: {
+               pingDate: new Date(),
+               users: users.length
+           }
         }); 
 
         // res.reject('curse words are not allowed on a child friendly channel') 

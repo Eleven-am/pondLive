@@ -191,16 +191,28 @@ export declare class PondEndpoint {
      *
      * @example
      * const channel = endpoint.createChannel('channel:*', (req, res) => {
-     *   const isAdmin = req.assigns.admin;
+     *   const isAdmin = req.clientAssigns.admin;
      *   if (!isAdmin)
-     *      return res.decline('You are not an admin');
+     *      return res.reject('You are not an admin');
      *
-     *   res.accept({assigns: {admin: true, joinedDate: new Date()}, presence: {state: online}, channelData: {private: true}});
+     *   res.accept({
+     *      assign: {
+     *         admin: true,
+     *         joinedDate: new Date()
+     *      },
+     *      presence: {state: 'online'},
+     *      channelData: {private: true}
+     *   });
      * });
      *
      * channel.on('ping', (req, res, channel) => {
      *     const users = channel.getPresence();
-     *     res.assign({pingDate: new Date(), users: users.length});
+     *     res.assign({
+     *        assign: {
+     *           pingDate: new Date(),
+     *           users: users.length
+     *        }
+     *    });
      * })
      */
     public createChannel(path: PondPath, handler: (req: IncomingJoinMessage, res: PondResponse, channel: InternalPondChannel) => void): PondChannel;
@@ -254,13 +266,16 @@ export default class PondServer {
      * @param handler - the handler function to authenticate the socket
      *
      * @example
-     * const endpoint = pond.createEndpoint('/api/v1/auth', (req, res) => {
+     * const endpoint = pond.createEndpoint('/api/socket', (req, res) => {
      *    const { query } = parse(req.url || '');
      *    const { token } = query;
      *    if (!token)
-     *        return res.decline('No token provided');
-     *
-     *    res.accept({ token });
+     *       return res.reject('No token provided');
+     *    res.accept({
+     *       assign: {
+     *           token
+     *       }
+     *    });
      * })
      */
     public createEndpoint(path: PondPath, handler: (req: IncomingMessage, res: PondResponse) => void): PondEndpoint;

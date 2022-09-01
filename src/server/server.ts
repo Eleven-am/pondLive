@@ -472,13 +472,16 @@ export class PondSocket {
      * @param handler - the handler function to authenticate the socket
      *
      * @example
-     * const endpoint = pond.createEndpoint('/api/v1/auth', (req, res) => {
+     * const endpoint = pond.createEndpoint('/api/socket', (req, res) => {
      *    const { query } = parse(req.url || '');
      *    const { token } = query;
      *    if (!token)
-     *        return res.decline('No token provided');
-     *
-     *    res.accept({ token });
+     *       return res.reject('No token provided');
+     *    res.accept({
+     *       assign: {
+     *           token
+     *       }
+     *    });
      * })
      */
     public createEndpoint(path: PondPath, handler: (req: IncomingMessage, res: PondResponse) => void) {
