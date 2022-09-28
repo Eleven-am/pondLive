@@ -2,8 +2,8 @@
   "name": "pondsocket",
   "version": "0.1.51",
   "description": "PondSocket is a fast simple socket server",
-  "main": "index.js",
-  "types": "./index.d.ts",
+  "main": "./server/index.js",
+  "types": "./declarations/index.d.ts",
   "keywords": [
     "socket",
     "server",
@@ -23,6 +23,16 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Eleven-am/pondSocket.git"
+  },
+  "exports": {
+    ".": "./server/index.js",
+    "./client": "./client/index.js"
+  },
+  "typesVersions": {
+    "*": {
+      "*": ["./declarations/server/index.d.ts"],
+      "client": ["./client/index.d.ts"]
+    }
   },
   "dependencies": {
     "rxjs": "^7.5.6",

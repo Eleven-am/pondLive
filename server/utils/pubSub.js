@@ -1,4 +1,19 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __values = (this && this.__values) || function(o) {
     var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
@@ -11,7 +26,7 @@ var __values = (this && this.__values) || function(o) {
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Broadcast = void 0;
+exports.Subject = exports.Broadcast = void 0;
 var Broadcast = /** @class */ (function () {
     function Broadcast() {
         this._subscribers = new Set();
@@ -59,3 +74,39 @@ var Broadcast = /** @class */ (function () {
     return Broadcast;
 }());
 exports.Broadcast = Broadcast;
+var Subject = /** @class */ (function (_super) {
+    __extends(Subject, _super);
+    function Subject(value) {
+        var _this = _super.call(this) || this;
+        _this._value = value;
+        return _this;
+    }
+    Object.defineProperty(Subject.prototype, "value", {
+        /**
+         * @desc Get the current value of the subject
+         */
+        get: function () {
+            return this._value;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    /**
+     * @desc Subscribe to the subject
+     */
+    Subject.prototype.subscribe = function (handler) {
+        handler(this._value);
+        return _super.prototype.subscribe.call(this, handler);
+    };
+    /**
+     * @desc Publish to the subject
+     */
+    Subject.prototype.publish = function (data) {
+        if (this._value !== data) {
+            this._value = data;
+            return _super.prototype.publish.call(this, data);
+        }
+    };
+    return Subject;
+}(Broadcast));
+exports.Subject = Subject;

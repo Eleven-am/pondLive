@@ -57,7 +57,7 @@ var PondDocument = /** @class */ (function () {
      */
     PondDocument.prototype.removeDoc = function () {
         this._removeDoc();
-        this._doc = undefined;
+        return this._doc;
     };
     /**
      * @desc Updates the document in the collection
@@ -111,8 +111,8 @@ var PondBase = /** @class */ (function () {
      */
     PondBase.prototype.set = function (value) {
         var key = this._nanoid();
-        this._broadcast.publish({ oldValue: null, currentValue: value });
         this._db[key] = value;
+        this._broadcast.publish({ oldValue: null, currentValue: value });
         return this._createPondDocument(key, value);
     };
     /**
@@ -122,8 +122,8 @@ var PondBase = /** @class */ (function () {
      */
     PondBase.prototype.update = function (key, value) {
         if (this._db[key]) {
-            this._broadcast.publish({ oldValue: this._db[key], currentValue: value });
             this._db[key] = value;
+            this._broadcast.publish({ oldValue: this._db[key], currentValue: value });
             return this._createPondDocument(key, value);
         }
         else
@@ -136,10 +136,20 @@ var PondBase = /** @class */ (function () {
     PondBase.prototype.createDocument = function (creator) {
         var scaffold = this._createPondDocument(this._nanoid(), undefined);
         var doc = creator(scaffold);
-        this._broadcast.publish({ oldValue: null, currentValue: doc });
         this._db[scaffold.id] = doc;
         scaffold.updateDoc(doc);
+        this._broadcast.publish({ oldValue: null, currentValue: doc });
         return scaffold;
+    };
+    /**
+     * @desc Merge the pond with another pond
+     * @param pond - The pond to merge with
+     */
+    PondBase.prototype.merge = function (pond) {
+        for (var key in pond._db) {
+            this._db[key] = pond._db[key];
+        }
+        return this;
     };
     /**
      * @desc Generate a generator of all documents
@@ -178,6 +188,18 @@ var PondBase = /** @class */ (function () {
             var doc = this._db[key];
             if (query(doc))
                 result.push(this._createPondDocument(key, doc));
+        }
+        return result;
+    };
+    /**
+     * @desc Query documents by a query function on the document's key
+     * @param query - The query function
+     */
+    PondBase.prototype.queryById = function (query) {
+        var result = [];
+        for (var key in this._db) {
+            if (query(key))
+                result.push(this._createPondDocument(key, this._db[key]));
         }
         return result;
     };
@@ -259,8 +281,8 @@ var PondBase = /** @class */ (function () {
      * @desc Delete a document by key
      */
     PondBase.prototype._delete = function (key) {
-        this._broadcast.publish({ oldValue: this._db[key], currentValue: null });
         delete this._db[key];
+        this._broadcast.publish({ oldValue: this._db[key], currentValue: null });
     };
     /**
      * @desc Create a pond document

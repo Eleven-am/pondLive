@@ -74,3 +74,58 @@ describe('Broadcast', function () {
         expect(subscriber3).not.toHaveBeenCalled();
     });
 });
+describe('Subject', function () {
+    it('should be defined', function () {
+        expect(pubSub_1.Subject).toBeDefined();
+    });
+    it('should be a class', function () {
+        expect(pubSub_1.Subject).toBeInstanceOf(Function);
+    });
+    it('should have a method called next', function () {
+        expect(new pubSub_1.Subject('hello').publish).toBeDefined();
+    });
+    it('should have a method called subscribe', function () {
+        expect(new pubSub_1.Subject('hello').subscribe).toBeDefined();
+    });
+    // Functionality tests
+    it('should publish a message to all subscribers', function () {
+        var subject = new pubSub_1.Subject('hi');
+        var subscriber = jest.fn();
+        subject.subscribe(subscriber); // test with one subscriber
+        subject.publish('Hello');
+        expect(subscriber).toHaveBeenCalledWith('Hello');
+    });
+    it('should publish a message to all subscribers', function () {
+        var subject = new pubSub_1.Subject('hi');
+        var subscriber1 = jest.fn();
+        var subscriber2 = jest.fn();
+        subject.subscribe(subscriber1); // test with two subscribers
+        subject.subscribe(subscriber2);
+        subject.publish('Hello');
+        expect(subscriber1).toHaveBeenCalledWith('Hello');
+        expect(subscriber2).toHaveBeenCalledWith('Hello');
+    });
+    it('should prvoide the initial value to new subscribers', function () {
+        var subject = new pubSub_1.Subject('hi');
+        var subscriber = jest.fn();
+        subject.subscribe(subscriber); // test with one subscriber
+        expect(subscriber).toHaveBeenCalledWith('hi');
+    });
+    it('should publish a message to all subscribers', function () {
+        // including subscribers that subscribe after the first message is published
+        var subject = new pubSub_1.Subject('hi');
+        var subscriber1 = jest.fn();
+        var subscriber2 = jest.fn();
+        subject.subscribe(subscriber1);
+        subject.publish('Hello');
+        subject.subscribe(subscriber2);
+        subject.publish('Hello Again');
+        expect(subscriber1).toHaveBeenCalledWith('Hello');
+        expect(subscriber1).toHaveBeenCalledWith('Hello Again');
+        expect(subscriber2).toHaveBeenCalledWith('Hello Again');
+    });
+    it('should return the current value when the getter is called', function () {
+        var subject = new pubSub_1.Subject('hi');
+        expect(subject.value).toEqual('hi');
+    });
+});

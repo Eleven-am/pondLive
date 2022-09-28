@@ -122,7 +122,7 @@ describe('PondBase', function () {
         pond.set('chips');
         function subscriber(data, data2, action) {
             try {
-                expect(data).toEqual(["bar", "chips"]);
+                expect(data).toEqual(["bar", "chips", "dog"]);
                 expect(data2).toEqual('dog');
                 expect(action).toEqual(enums_1.PondBaseActions.ADD_TO_POND);
                 done();
@@ -140,7 +140,7 @@ describe('PondBase', function () {
         pond.set('chips');
         function subscriber(data, data2, action) {
             try {
-                expect(data).toEqual(["bar", "chips"]);
+                expect(data).toEqual(["chips"]);
                 expect(data2).toEqual(null);
                 expect(action).toEqual(enums_1.PondBaseActions.REMOVE_FROM_POND);
                 done();
@@ -158,7 +158,7 @@ describe('PondBase', function () {
         var val = pond.set('chips');
         function subscriber(data, data2, action) {
             try {
-                expect(data).toEqual(["bar", "chips"]);
+                expect(data).toEqual(["bar", "dog"]);
                 expect(data2).toEqual('dog');
                 expect(action).toEqual(enums_1.PondBaseActions.UPDATE_IN_POND);
                 done();
@@ -238,5 +238,40 @@ describe('PondBase', function () {
         expect((_b = pond.get(chips.id)) === null || _b === void 0 ? void 0 : _b.doc).toEqual('chips2');
         expect((_c = pond.get(temp.id)) === null || _c === void 0 ? void 0 : _c.doc).toEqual('temp2');
         expect(function () { return pond.update('not-a-real-id', 'temp2'); }).toThrowError(basePromise_1.PondError);
+    });
+    it('should be capable of merging one pond base into another', function () {
+        var pond1 = new pondBase_1.PondBase();
+        pond1.set('bar');
+        pond1.set('chips');
+        pond1.set('dog');
+        var pond2 = new pondBase_1.PondBase();
+        pond2.set('bar');
+        pond2.set('chips');
+        pond2.set('dog');
+        pond1.merge(pond2);
+        expect(pond1.size).toEqual(6);
+        expect(pond2.size).toEqual(3);
+        expect(pond1.toArray().map(function (c) { return c.doc; })).toEqual(['bar', 'chips', 'dog', 'bar', 'chips', 'dog']);
+    });
+    it('should be capable of querying the data by id', function () {
+        var _a;
+        var pond = new pondBase_1.PondBase();
+        pond.set('bar');
+        var doc = pond.set('chips');
+        pond.set('dog');
+        expect((_a = pond.get(doc.id)) === null || _a === void 0 ? void 0 : _a.doc).toEqual('chips');
+        expect(pond.get('not-a-real-id')).toBeNull();
+        // Used JSON.stringify to compare the arrays because the order of the array is not guaranteed
+        // Also each doc contains bound functions that could be different
+        expect(JSON.parse(JSON.stringify(pond.queryById(function (c) { return c === doc.id; })))).toStrictEqual(JSON.parse(JSON.stringify([doc])));
+        expect(pond.queryById(function (c) { return c === 'not-a-real-id'; })).toEqual([]);
+    });
+    it('should be able to reduce the pond to a single value', function () {
+        var pond = new pondBase_1.PondBase();
+        pond.set('bar');
+        pond.set('chips');
+        pond.set('dog');
+        var reduced = pond.reduce(function (acc, doc) { return acc + doc; }, '');
+        expect(reduced).toEqual('barchipsdog');
     });
 });
