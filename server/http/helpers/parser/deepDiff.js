@@ -1,23 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeepDiffMapper = void 0;
-var DeepDiffMapper = function (obj1, obj2) {
-    var isFunction = function (x) {
+const DeepDiffMapper = (obj1, obj2) => {
+    const isFunction = (x) => {
         return Object.prototype.toString.call(x) === '[object Function]';
     };
-    var isArray = function (x) {
+    const isArray = (x) => {
         return Object.prototype.toString.call(x) === '[object Array]';
     };
-    var isDate = function (x) {
+    const isDate = (x) => {
         return Object.prototype.toString.call(x) === '[object Date]';
     };
-    var isObject = function (x) {
+    const isObject = (x) => {
         return Object.prototype.toString.call(x) === '[object Object]';
     };
-    var isValue = function (x) {
+    const isValue = (x) => {
         return !isObject(x) && !isArray(x);
     };
-    var compareValues = function (value1, value2) {
+    const compareValues = (value1, value2) => {
         if (value1 === value2) {
             return 'unchanged';
         }
@@ -32,12 +32,12 @@ var DeepDiffMapper = function (obj1, obj2) {
         }
         return 'updated';
     };
-    var map = function (obj1, obj2) {
+    const map = (obj1, obj2) => {
         if (isFunction(obj1) || isFunction(obj2)) {
             throw 'Invalid argument. Function given, object expected.';
         }
         if (isValue(obj1) || isValue(obj2)) {
-            var newType = compareValues(obj1, obj2);
+            const newType = compareValues(obj1, obj2);
             if (newType === 'updated') {
                 return {
                     type: newType,
@@ -49,18 +49,18 @@ var DeepDiffMapper = function (obj1, obj2) {
                 data: obj1 === undefined ? obj2 : obj1
             };
         }
-        var diff = {};
-        for (var key in obj1) {
+        const diff = {};
+        for (const key in obj1) {
             if (isFunction(obj1[key])) {
                 continue;
             }
-            var value2 = undefined;
+            let value2 = undefined;
             if (obj2[key] !== undefined) {
                 value2 = obj2[key];
             }
             diff[key] = map(obj1[key], value2);
         }
-        for (var key in obj2) {
+        for (const key in obj2) {
             if (isFunction(obj2[key]) || diff[key] !== undefined) {
                 continue;
             }

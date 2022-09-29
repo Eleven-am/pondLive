@@ -1,11 +1,14 @@
 /// <reference types="node" />
 import { IncomingMessage, ServerResponse } from "http";
-import { NextFunction } from "./helpers/middlewares/middleWare";
-import { PondPath } from "../../../client";
+import { PondPath } from "../types";
 import { EndpointHandler } from "../socket/endpoint";
+import { PondDeleteRequest, PondGetRequest, PondPatchRequest, PondPostRequest, PondPutRequest } from "./verbs";
+import { NextFunction } from "./helpers";
 import { Route } from "../live/component/liveComponent";
-import { PondDeleteRequest, PondGetRequest, PondPatchRequest, PondPostRequest, PondPutRequest } from "./verbs/types";
 export declare class PondServer {
+    private readonly _server;
+    private readonly _middlewareChain;
+    private readonly _pondSocket;
     constructor();
     listen(port: number, callback: () => void): void;
     use(middleware: (req: IncomingMessage, res: ServerResponse, next: NextFunction) => void): void;

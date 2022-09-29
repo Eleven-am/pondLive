@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -23,9 +27,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FileRouter = void 0;
-var path_1 = __importDefault(require("path"));
-var fs = __importStar(require("fs"));
-var getContentType = function (extension) {
+const path_1 = __importDefault(require("path"));
+const fs = __importStar(require("fs"));
+const getContentType = (extension) => {
     switch (extension) {
         case '.html':
             return 'text/html';
@@ -45,22 +49,22 @@ var getContentType = function (extension) {
             return 'text/plain';
     }
 };
-var modifyUrl = function (url) {
+const modifyUrl = (url) => {
     if (url === '/') {
         return '/index.html';
     }
     return url || '';
 };
-var FileRouter = function (absolutePath) { return function (request, response, next) {
+const FileRouter = (absolutePath) => (request, response, next) => {
     if (request.method !== "GET")
         return next();
-    var modifiedUrl = modifyUrl(request.url);
-    var filePath = path_1.default.join(absolutePath, modifiedUrl);
+    const modifiedUrl = modifyUrl(request.url);
+    const filePath = path_1.default.join(absolutePath, modifiedUrl);
     if (!fs.existsSync(filePath))
         return next();
-    var extension = path_1.default.extname(modifiedUrl);
-    var contentType = getContentType(extension);
-    fs.readFile(filePath, function (error, content) {
+    const extension = path_1.default.extname(modifiedUrl);
+    const contentType = getContentType(extension);
+    fs.readFile(filePath, (error, content) => {
         if (error) {
             response.writeHead(500);
             response.end();
@@ -76,5 +80,5 @@ var FileRouter = function (absolutePath) { return function (request, response, n
             }
         }
     });
-}; };
+};
 exports.FileRouter = FileRouter;

@@ -1,4 +1,4 @@
-import { RejectPromise } from "../../../client";
+import { RejectPromise } from "../types";
 export declare class PondError<T> implements RejectPromise<T> {
     errorMessage: string;
     errorCode: number;

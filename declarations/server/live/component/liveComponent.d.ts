@@ -1,7 +1,7 @@
 import { LiveSocket } from "./liveSocket";
 import { HtmlSafeString } from "../../http/helpers/parser/parser";
 import { LiveRouter } from "./liveRouter";
-import { Constructor } from "../../../../client";
+import { Constructor } from "../../types";
 export interface Route {
     path: string;
     Component: Constructor<LiveComponent>;

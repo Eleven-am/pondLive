@@ -1,101 +1,101 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var middleWare_1 = require("../helpers/middlewares/middleWare");
-var verbHandler_1 = require("./verbHandler");
-describe('VerbHandler /verbs', function () {
-    it('should be able to add a handler to middleware', function () {
-        var server = {
+const middleWare_1 = require("../helpers/middlewares/middleWare");
+const verbHandler_1 = require("./verbHandler");
+describe('VerbHandler /verbs', () => {
+    it('should be able to add a handler to middleware', () => {
+        const server = {
             on: jest.fn()
         };
-        var middleware = new middleWare_1.MiddleWare(server);
-        var handler = jest.fn();
+        const middleware = new middleWare_1.MiddleWare(server);
+        const handler = jest.fn();
         (0, verbHandler_1.VerbHandler)(middleware, '/test', 'GET', handler);
         expect(middleware.stack.length).toBe(1);
     });
-    it('should call a handler when a request is made that matches', function () {
-        var req = {
+    it('should call a handler when a request is made that matches', () => {
+        const req = {
             url: '/test',
             method: 'GET'
         };
-        var server = {
+        const server = {
             callback: {},
-            on: function (_event, callback) {
+            on: (_event, callback) => {
                 server.callback = callback;
             },
-            emit: function (req, res) {
+            emit: (req, res) => {
                 server.callback(req, res);
             }
         };
-        var middleware = new middleWare_1.MiddleWare(server);
-        var handler = jest.fn();
+        const middleware = new middleWare_1.MiddleWare(server);
+        const handler = jest.fn();
         (0, verbHandler_1.VerbHandler)(middleware, '/test', 'GET', handler);
         server.emit(req, {});
         expect(handler).toBeCalled();
-        var handler2 = jest.fn();
+        const handler2 = jest.fn();
         (0, verbHandler_1.VerbHandler)(middleware, '/test2', 'GET', handler2);
         server.emit(req, {});
         expect(handler2).not.toBeCalled();
     });
-    it('should call a handler when a request is made that matches', function () {
+    it('should call a handler when a request is made that matches', () => {
         // post request
-        var req = {
+        const req = {
             url: '/test',
             method: 'POST'
         };
-        var server = {
+        const server = {
             callback: {},
-            on: function (_event, callback) {
+            on: (_event, callback) => {
                 server.callback = callback;
             },
-            emit: function (req, res) {
+            emit: (req, res) => {
                 server.callback(req, res);
             }
         };
-        var middleware = new middleWare_1.MiddleWare(server);
-        var handler = jest.fn();
+        const middleware = new middleWare_1.MiddleWare(server);
+        const handler = jest.fn();
         (0, verbHandler_1.VerbHandler)(middleware, '/test', 'POST', handler);
         server.emit(req, {});
         expect(handler).toBeCalled();
-        var handler2 = jest.fn();
+        const handler2 = jest.fn();
         (0, verbHandler_1.VerbHandler)(middleware, '/test', 'GET', handler2);
         server.emit(req, {});
         expect(handler2).not.toBeCalled();
         // delete request
-        var req2 = {
+        const req2 = {
             url: '/test',
             method: 'DELETE'
         };
-        var server2 = {
+        const server2 = {
             callback: {},
-            on: function (_event, callback) {
+            on: (_event, callback) => {
                 server.callback = callback;
             },
-            emit: function (req, res) {
+            emit: (req, res) => {
                 server.callback(req, res);
             }
         };
-        var middleware2 = new middleWare_1.MiddleWare(server2);
-        var handler3 = jest.fn();
+        const middleware2 = new middleWare_1.MiddleWare(server2);
+        const handler3 = jest.fn();
         (0, verbHandler_1.VerbHandler)(middleware2, '/test', 'DELETE', handler3);
         server2.emit(req2, {});
         expect(handler3).toBeCalled();
-        var handler4 = jest.fn();
+        const handler4 = jest.fn();
         (0, verbHandler_1.VerbHandler)(middleware2, '/test', 'GET', handler4);
         server2.emit(req2, {});
         expect(handler4).not.toBeCalled();
         // and so on...
     });
-    it('should call the next function when a request is made that does not match', function () {
-        var middleware = {
+    it('should call the next function when a request is made that does not match', () => {
+        const middleware = {
             callback: {},
-            generateEventRequest: function (path, url) { return path === url ? { params: {} } : null; },
-            use: function (callback) {
+            generateEventRequest: (path, url) => path === url ? { params: {} } : null,
+            use: (callback) => {
                 middleware.callback = callback;
             }
         };
-        var handler = jest.fn();
+        const handler = jest.fn();
         (0, verbHandler_1.VerbHandler)(middleware, '/test', 'GET', handler);
-        var next = jest.fn();
+        const next = jest.fn();
         middleware.callback({
             url: '/test',
             method: 'POST'

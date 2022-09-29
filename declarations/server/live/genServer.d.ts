@@ -1,13 +1,13 @@
 import { Server } from "http";
-import { Chain } from "../http/helpers/middlewares/middleWare";
-import { Server as PondServer } from "../socket/server";
-import { Route } from "./component/liveComponent";
+import { Chain } from "../http";
+import { Route } from "./component";
+import { PondSocket } from "../socket";
 interface ServerProps {
     secret?: string;
     cookie?: string;
     pondPath?: string;
-    pondSocket?: PondServer;
+    pondSocket?: PondSocket;
     htmlPath?: string;
 }
-export declare const GenerateLiveServer: (routes: Route[], server: Server, chain: Chain, props?: ServerProps | undefined) => PondServer;
+export declare const GenerateLiverServer: (routes: Route[], server: Server, chain: Chain, props?: ServerProps) => PondSocket;
 export {};

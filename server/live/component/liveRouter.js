@@ -1,11 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LiveRouter = void 0;
-var basePromise_1 = require("../../utils/basePromise");
-var pondResponse_1 = require("../../utils/pondResponse");
-var LiveRouter = /** @class */ (function () {
-    function LiveRouter(response, routerType) {
-        if (routerType === void 0) { routerType = 'http'; }
+const basePromise_1 = require("../../utils/basePromise");
+const pondResponse_1 = require("../../utils/pondResponse");
+class LiveRouter {
+    _response;
+    _responseSent;
+    _routerType;
+    _headers;
+    constructor(response, routerType = 'http') {
         this._response = response;
         this._responseSent = false;
         this._headers = {
@@ -17,30 +20,18 @@ var LiveRouter = /** @class */ (function () {
         else
             this._routerType = routerType;
     }
-    Object.defineProperty(LiveRouter.prototype, "pageTitle", {
-        set: function (title) {
-            this._headers.pageTitle = title;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(LiveRouter.prototype, "flashMessage", {
-        set: function (message) {
-            this._headers.flashMessage = message;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(LiveRouter.prototype, "headers", {
-        get: function () {
-            return this._headers;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    LiveRouter.prototype.push = function (path) {
+    set pageTitle(title) {
+        this._headers.pageTitle = title;
+    }
+    set flashMessage(message) {
+        this._headers.flashMessage = message;
+    }
+    get headers() {
+        return this._headers;
+    }
+    push(path) {
         if (this._response instanceof pondResponse_1.PondResponse) {
-            var message = {
+            const message = {
                 action: 'push',
                 path: path,
             };
@@ -51,10 +42,10 @@ var LiveRouter = /** @class */ (function () {
                 this._sendClientRouterResponse('push', path, this._response) :
                 this._sendResponse(path, this._response);
         }
-    };
-    LiveRouter.prototype.redirect = function (path) {
+    }
+    redirect(path) {
         if (this._response instanceof pondResponse_1.PondResponse) {
-            var message = {
+            const message = {
                 action: 'redirect',
                 path: path,
             };
@@ -65,10 +56,10 @@ var LiveRouter = /** @class */ (function () {
                 this._sendClientRouterResponse('redirect', path, this._response) :
                 this._sendResponse(path, this._response);
         }
-    };
-    LiveRouter.prototype.replace = function (path) {
+    }
+    replace(path) {
         if (this._response instanceof pondResponse_1.PondResponse) {
-            var message = {
+            const message = {
                 action: 'replace',
                 path: path,
             };
@@ -79,15 +70,11 @@ var LiveRouter = /** @class */ (function () {
                 this._sendClientRouterResponse('replace', path, this._response) :
                 this._sendResponse(path, this._response);
         }
-    };
-    Object.defineProperty(LiveRouter.prototype, "sentResponse", {
-        get: function () {
-            return this._responseSent;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    LiveRouter.prototype._sendResponse = function (path, response) {
+    }
+    get sentResponse() {
+        return this._responseSent;
+    }
+    _sendResponse(path, response) {
         if (this._responseSent) {
             throw new basePromise_1.PondError('Response already sent', 500, 'PondLive');
         }
@@ -96,15 +83,15 @@ var LiveRouter = /** @class */ (function () {
             Location: path
         });
         response.end();
-    };
-    LiveRouter.prototype._sendPondResponse = function (message, response) {
+    }
+    _sendPondResponse(message, response) {
         if (this._responseSent) {
             throw new basePromise_1.PondError('Response already sent', 500, 'PondLive');
         }
         this._responseSent = true;
         response.send('router', message);
-    };
-    LiveRouter.prototype._sendClientRouterResponse = function (action, path, response) {
+    }
+    _sendClientRouterResponse(action, path, response) {
         if (this._responseSent) {
             throw new basePromise_1.PondError('Response already sent', 500, 'PondLive');
         }
@@ -112,7 +99,6 @@ var LiveRouter = /** @class */ (function () {
         response.setHeader('x-router-action', action);
         response.setHeader('x-router-path', path);
         response.end();
-    };
-    return LiveRouter;
-}());
+    }
+}
 exports.LiveRouter = LiveRouter;

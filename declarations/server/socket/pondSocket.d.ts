@@ -1,13 +1,24 @@
 /// <reference types="node" />
-import { BaseClass } from "../utils/baseClass";
+/// <reference types="node" />
+/// <reference types="node" />
 import { IncomingMessage, Server as HTTPServer } from "http";
 import { WebSocketServer } from "ws";
-import { PondPath } from "../../../client";
+import { PondPath } from "../types";
 import { Endpoint, EndpointHandler } from "./endpoint";
 import internal from "stream";
-import { NextFunction } from "../http/helpers/middlewares/middleWare";
-export declare class Server extends BaseClass {
+import { BaseClass } from "../utils";
+import { NextFunction } from "../http";
+export declare class PondSocket extends BaseClass {
+    private readonly _server;
+    private readonly _socketServer;
+    private readonly _endpoints;
+    private readonly _socketChain;
     constructor(server?: HTTPServer, socketServer?: WebSocketServer);
+    /**
+     * @desc Rejects the client's connection
+     * @param error - Reason for rejection
+     */
+    private static _rejectClient;
     /**
      * @desc Specifies the port to listen on
      * @param port - the port to listen on
@@ -38,4 +49,18 @@ export declare class Server extends BaseClass {
      * })
      */
     createEndpoint(path: PondPath, handler: EndpointHandler): Endpoint;
+    /**
+     * @desc Makes sure that every client is still connected to the pond
+     * @param server - WebSocket server
+     */
+    private _pingClients;
+    /**
+     * @desc Initializes the server
+     */
+    private _init;
+    /**
+     * @desc Shuts down the server
+     * @private
+     */
+    private _close;
 }

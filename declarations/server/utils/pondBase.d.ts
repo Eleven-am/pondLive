@@ -1,6 +1,10 @@
 import { Subscription } from "./pubSub";
 import { PondBaseActions } from "../enums";
 export declare class PondDocument<T> {
+    private readonly _id;
+    private _doc;
+    private readonly _removeDoc;
+    private readonly _updateDoc;
     constructor(id: string, doc: T | undefined, removeDoc: () => void, updateDoc: (value: T) => PondDocument<T>);
     get id(): string;
     get doc(): T;
@@ -15,6 +19,8 @@ export declare class PondDocument<T> {
     updateDoc(value: T): void;
 }
 export declare class PondBase<T> {
+    private readonly _db;
+    private readonly _broadcast;
     constructor();
     /**
      * @desc Get the number of documents
@@ -94,4 +100,19 @@ export declare class PondBase<T> {
      * @desc Get all the documents in an array
      */
     toArray(): PondDocument<T>[];
+    /**
+     * @desc Delete a document by key
+     */
+    private _delete;
+    /**
+     * @des Generate a key for a new document
+     */
+    private _nanoid;
+    /**
+     * @desc Create a pond document
+     * @param id - The id of the document
+     * @param doc - The document
+     * @private
+     */
+    private _createPondDocument;
 }

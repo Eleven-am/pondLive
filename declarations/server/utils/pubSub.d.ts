@@ -3,6 +3,7 @@ export declare type Subscription = {
     unsubscribe: () => void;
 };
 export declare class Broadcast<T, A> {
+    private _subscribers;
     /**
      * @desc Subscribe to the broadcast
      * @param handler - The handler to call when the broadcast is published
@@ -15,6 +16,7 @@ export declare class Broadcast<T, A> {
     publish(data: T): Anything<A>;
 }
 export declare class Subject<T, A> extends Broadcast<T, A> {
+    private _value;
     constructor(value: T);
     /**
      * @desc Get the current value of the subject

@@ -4,6 +4,11 @@ declare type PondParams = {
 };
 declare type PondState = 'CONNECTING' | 'OPEN' | 'CLOSING' | 'CLOSED';
 export declare class PondClientSocket {
+    private readonly address;
+    private socketState;
+    private channels;
+    private subscription;
+    private socket;
     constructor(endpoint: string, params?: PondParams);
     /**
      * @desc Connects to the server and returns the socket.
@@ -23,4 +28,11 @@ export declare class PondClientSocket {
      * @desc Disconnects the socket from the server.
      */
     disconnect(): void;
+    /**
+     * @desc A retry strategy for the socket.
+     * @param maxTries - The maximum number of retries.
+     * @param ms - The number of milliseconds to wait before retrying.
+     */
+    private _retryStrategy;
 }
+export {};

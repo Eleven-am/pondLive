@@ -8,6 +8,10 @@ export declare type RouterHeaders = {
     flashMessage: string | undefined;
 };
 export declare class LiveRouter {
+    private readonly _response;
+    private _responseSent;
+    private readonly _routerType;
+    private readonly _headers;
     constructor(response: Response, routerType?: RouterType);
     set pageTitle(title: string);
     set flashMessage(message: string);
@@ -16,5 +20,8 @@ export declare class LiveRouter {
     redirect(path: string): Promise<void> | void;
     replace(path: string): Promise<void> | void;
     get sentResponse(): boolean;
+    private _sendResponse;
+    private _sendPondResponse;
+    private _sendClientRouterResponse;
 }
 export {};

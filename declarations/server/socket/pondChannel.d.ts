@@ -1,5 +1,5 @@
 import { BaseClass } from "../utils/baseClass";
-import { default_t, IncomingChannelMessage, IncomingJoinMessage, PondMessage, PondPath, PondResponseAssigns, RejectPromise, SocketCache } from "../../../client";
+import { default_t, IncomingChannelMessage, IncomingJoinMessage, PondMessage, PondPath, PondResponseAssigns, RejectPromise, SocketCache } from "../types";
 import { PondResponse } from "../utils/pondResponse";
 import { Channel, ChannelEvent, ChannelInfo } from "./channel";
 import { Anything, Subscription } from "../utils/pubSub";
@@ -10,6 +10,10 @@ export declare type Subscriber = (event: ChannelEvent) => Anything<RejectPromise
 }> | boolean>;
 export declare class PondChannel extends BaseClass {
     readonly path: PondPath;
+    private readonly _handler;
+    private readonly _channels;
+    private readonly _subscriptions;
+    private readonly _subscribers;
     constructor(path: PondPath, handler: ChannelHandler);
     /**
      * @desc A listener for a channel event
@@ -77,4 +81,37 @@ export declare class PondChannel extends BaseClass {
      * @param clientId - The id of the client to remove
      */
     removeUser(clientId: string): void;
+    /**
+     * @desc Executes a function on a channel in the endpoint.
+     * @param channelName - The name of the channel to execute the function on.
+     * @param handler - The function to execute on the channel.
+     * @private
+     */
+    private _execute;
+    /**
+     * @desc Creates a new channel in the endpoint.
+     * @param channelName - The name of the channel to create.
+     * @private
+     */
+    private _createChannel;
+    /**
+     * @desc Sends a message to a client
+     * @param socket - The socket to send the message to
+     * @param message - The message to send
+     */
+    private static _sendMessage;
+    /**
+     * @desc Removes a subscription from a user
+     * @param clientId - The id of the client to remove the subscription from
+     * @param channelName - The name of the channel to remove the subscription from
+     * @private
+     */
+    private _removeSubscriptions;
+    /**
+     * @desc Builds an event handler for a channel
+     * @param event - The event to build the handler for
+     * @param callback - The callback to build the handler for
+     * @private
+     */
+    private _buildHandler;
 }

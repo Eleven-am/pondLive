@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { MiddleWareFunction } from "../middlewares/middleWare";
+import { MiddleWareFunction } from "../middlewares";
 import { IncomingMessage } from "http";
 export declare type BodyParserRequest = IncomingMessage & {
     body?: any;

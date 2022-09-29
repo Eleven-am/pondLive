@@ -1,9 +1,6 @@
-import { PondDocument } from "../utils/pondBase";
-import { NewUser, PondAssigns, PondChannelData, PondMessage, PondPresence, RejectPromise, ServerMessage } from "../../../client";
+import { NewUser, PondAssigns, PondChannelData, PondMessage, PondPresence, RejectPromise, ServerMessage } from "../types";
 import { PondSenders } from "../enums";
-import { Anything, Subscription } from "../utils/pubSub";
-import { BaseClass } from "../utils/baseClass";
-import { PondResponse } from "../utils/pondResponse";
+import { Anything, BaseClass, PondDocument, PondResponse, Subscription } from "../utils";
 export interface ChannelInfo {
     name: string;
     channelData: PondChannelData;
@@ -21,6 +18,12 @@ export interface PondUser {
     assigns: PondAssigns;
 }
 export declare class Channel extends BaseClass {
+    private readonly _broadcast;
+    private readonly _messages;
+    private readonly _channelAssigns;
+    private readonly _channelPresence;
+    private readonly removeChannel;
+    private _channelData;
     readonly name: string;
     constructor(name: string, removeChannel: () => void);
     /**
@@ -114,4 +117,17 @@ export declare class Channel extends BaseClass {
      * @param clientId - The client id of the user to send the message to
      */
     createPondResponse(clientId: string): PondResponse;
+    /**
+     * @desc Sends a message to a specific user or group of users except the sender
+     * @param clients - The client id of the user to send the message to
+     * @param message - The message to send
+     * @private
+     */
+    private _sendToClients;
+    /**
+     * @desc Retrieves a user from the channel
+     * @param clientId - The client id of the user to retrieve
+     * @private
+     */
+    private _retrieveUser;
 }

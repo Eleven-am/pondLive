@@ -1,8 +1,15 @@
 import { Subscription } from "rxjs";
 import { WebSocketSubject } from "rxjs/webSocket";
-import { ClientMessage, PondAssigns, PondMessage, PondPresence, ServerMessage } from "./index";
+import { ClientMessage, PondAssigns, PondMessage, PondPresence, ServerMessage } from "../server/types";
 export declare type ChannelParams = PondAssigns;
 export declare class Channel {
+    readonly channel: string;
+    private subscriptions;
+    private readonly socket;
+    private readonly params;
+    private readonly subject;
+    private readonly connectedSubject;
+    private readonly presenceSubject;
     constructor(channel: string, params: ChannelParams, socket: WebSocketSubject<ServerMessage | ClientMessage>);
     get isActive(): boolean | undefined;
     /**
@@ -52,4 +59,9 @@ export declare class Channel {
      * @param callback - The callback to call when the connection state changes.
      */
     onConnectionChange(callback: (connected: boolean) => void): any;
+    /**
+     * @desc Initializes the channel.
+     * @private
+     */
+    private init;
 }
