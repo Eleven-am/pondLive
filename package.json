@@ -1,6 +1,6 @@
 {
   "name": "pondsocket",
-  "version": "0.1.54",
+  "version": "0.1.57",
   "description": "PondSocket is a fast simple socket server",
   "keywords": [
     "socket",
@@ -18,6 +18,8 @@
   },
   "author": "Roy OSSAI",
   "license": "GPL-3.0",
+  "main": "./server/index.js",
+  "types": "./server/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Eleven-am/pondSocket.git"
@@ -28,7 +30,7 @@
   },
   "typesVersions": {
     "*": {
-      "*": ["./declarations/server/index.d.ts"],
+      "*": ["./server/index.d.ts"],
       "client": ["./client/index.d.ts"]
     }
   },

@@ -1,21 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Endpoint = void 0;
-const pondResponse_1 = require("../utils/pondResponse");
-const pondBase_1 = require("../utils/pondBase");
-const baseClass_1 = require("../utils/baseClass");
 const enums_1 = require("../enums");
+const utils_1 = require("../utils");
 const pondChannel_1 = require("./pondChannel");
-const basePromise_1 = require("../utils/basePromise");
-class Endpoint extends baseClass_1.BaseClass {
+class Endpoint extends utils_1.BaseClass {
     _handler;
     _server;
     _channels;
     _sockets;
     constructor(server, handler) {
         super();
-        this._channels = new pondBase_1.PondBase();
-        this._sockets = new pondBase_1.PondBase();
+        this._channels = new utils_1.PondBase();
+        this._sockets = new utils_1.PondBase();
         this._handler = handler;
         this._server = server;
     }
@@ -71,7 +68,7 @@ class Endpoint extends baseClass_1.BaseClass {
      * @param data - Incoming the data resolved from the handler
      */
     authoriseConnection(request, socket, head, data) {
-        return (0, basePromise_1.BasePromise)(socket, async (resolve, reject) => {
+        return (0, utils_1.BasePromise)(socket, async (resolve, reject) => {
             const assign = {
                 assigns: {},
                 presence: {},
@@ -107,7 +104,7 @@ class Endpoint extends baseClass_1.BaseClass {
                     resolve();
                 });
             };
-            const res = new pondResponse_1.PondResponse(socket, assign, resolver, false);
+            const res = new utils_1.PondResponse(socket, assign, resolver, false);
             await this._handler(req, res, this);
         });
     }
@@ -256,7 +253,7 @@ class Endpoint extends baseClass_1.BaseClass {
                 };
                 Endpoint._sendMessage(cache.doc.socket, message);
             }
-            else if (e instanceof basePromise_1.PondError) {
+            else if (e instanceof utils_1.PondError) {
                 const message = {
                     action: enums_1.ServerActions.ERROR,
                     event: e.data?.event || 'INVALID_MESSAGE',
@@ -289,7 +286,7 @@ class Endpoint extends baseClass_1.BaseClass {
                     await pond.doc.addUser(user, message.channelName, message.payload);
                 }
                 else
-                    throw new basePromise_1.PondError('The channel was not found', 4004, {
+                    throw new utils_1.PondError('The channel was not found', 4004, {
                         channelName: message.channelName,
                         event: 'JOIN_CHANNEL'
                     });
@@ -312,7 +309,7 @@ class Endpoint extends baseClass_1.BaseClass {
             case 'SEND_MESSAGE_TO_USER':
                 await this._channelAction(message.channelName, message.event, async (channel) => {
                     if (!message.addresses || message.addresses.length === 0)
-                        throw new basePromise_1.PondError('No addresses provided', 400, {
+                        throw new utils_1.PondError('No addresses provided', 400, {
                             event: message.event,
                             channelName: message.channelName,
                         });
@@ -336,7 +333,7 @@ class Endpoint extends baseClass_1.BaseClass {
     _channelAction(channelName, event, action) {
         const channel = this._findChannel(channelName);
         if (!channel)
-            throw new basePromise_1.PondError('Channel not found', 404, { channelName, event });
+            throw new utils_1.PondError('Channel not found', 404, { channelName, event });
         return action(channel);
     }
     /**

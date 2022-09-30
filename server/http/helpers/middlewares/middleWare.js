@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MiddleWare = void 0;
-const utils_1 = require("../../../utils");
-class MiddleWare extends utils_1.BaseClass {
+const baseClass_1 = require("../../../utils/baseClass");
+class MiddleWare extends baseClass_1.BaseClass {
     _server;
     _stack = [];
     constructor(server) {

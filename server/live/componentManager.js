@@ -24,11 +24,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ComponentManager = void 0;
-const fs = __importStar(require("fs"));
-const http_1 = require("../http");
-const utils_1 = require("../utils");
-const component_1 = require("./component");
+const baseClass_1 = require("../utils/baseClass");
+const parser_1 = require("../http/helpers/parser/parser");
+const clientRouter_1 = require("./component/clientRouter");
+const pondBase_1 = require("../utils/pondBase");
+const liveSocket_1 = require("./component/liveSocket");
+const liveRouter_1 = require("./component/liveRouter");
 const enums_1 = require("../enums");
+const cssGenerator_1 = require("../http/helpers/parser/cssGenerator");
+const fs = __importStar(require("fs"));
 class ComponentManager {
     _path;
     _base;
@@ -41,14 +45,14 @@ class ComponentManager {
     _chain;
     _htmlPath;
     constructor(path, component, props) {
-        this._base = new utils_1.BaseClass();
+        this._base = new baseClass_1.BaseClass();
         this._path = path;
         this._parentId = props.parentId;
         this._componentId = this._base.nanoId();
         this._component = component;
         this._pond = props.pond;
         this._chain = props.chain;
-        this._sockets = new utils_1.PondBase();
+        this._sockets = new pondBase_1.PondBase();
         this._initialiseManager();
         this._htmlPath = props.htmlPath;
         this._innerManagers = component.routes.map(route => new ComponentManager(`${path}${route.path}`, new route.Component(), {
@@ -70,13 +74,13 @@ class ComponentManager {
         }, Promise.resolve(null));
         if (router.sentResponse)
             return null;
-        const renderRoutes = () => (0, component_1.clientRouter)(this._componentId, innerHtml?.path || '', innerHtml?.rendered || (0, http_1.html) ``);
+        const renderRoutes = () => (0, clientRouter_1.clientRouter)(this._componentId, innerHtml?.path || '', innerHtml?.rendered || (0, parser_1.html) ``);
         let document = this._sockets.find(c => c.socket.clientId === clientId);
         if (!document)
             document = this._sockets.createDocument(() => {
                 return {
-                    socket: new component_1.LiveSocket(clientId, this._pond, this),
-                    rendered: (0, http_1.html) ``,
+                    socket: new liveSocket_1.LiveSocket(clientId, this._pond, this),
+                    rendered: (0, parser_1.html) ``,
                     classes: {}
                 };
             });
@@ -160,8 +164,8 @@ class ComponentManager {
             console.log('No document found', this._path);
             document = this._sockets.createDocument(() => {
                 return {
-                    socket: new component_1.LiveSocket(clientId, this._pond, this),
-                    rendered: (0, http_1.html) ``,
+                    socket: new liveSocket_1.LiveSocket(clientId, this._pond, this),
+                    rendered: (0, parser_1.html) ``,
                     classes: {}
                 };
             });
@@ -172,27 +176,32 @@ class ComponentManager {
     _pushToClient(router, document, responseEvent, res) {
         if (router.sentResponse)
             return;
-        const renderRoutes = () => (0, component_1.clientRouter)(this._componentId, 'BREAK', (0, http_1.html) ``);
+        const renderRoutes = () => (0, clientRouter_1.clientRouter)(this._componentId, 'BREAK', (0, parser_1.html) ``);
         const previousRender = document.doc.rendered;
         const renderContext = this._renderComponent(document, renderRoutes);
-        const htmlData = (0, component_1.clientRouter)(this._parentId, this._componentId, renderContext);
-        const previous = (0, component_1.clientRouter)(this._parentId, this._componentId, previousRender);
-        const difference = previous.differentiate(htmlData);
-        const toSend = responseEvent === 'updated' ? difference : htmlData.getParts();
-        res.send(responseEvent, { rendered: toSend, path: this._componentId, headers: router.headers });
+        const htmlData = (0, clientRouter_1.clientRouter)(this._parentId, this._componentId, renderContext);
+        if (responseEvent === 'updated') {
+            const previous = (0, clientRouter_1.clientRouter)(this._parentId, this._componentId, previousRender);
+            const difference = previous.differentiate(htmlData);
+            if (this._base.isObjectEmpty(difference))
+                return;
+            res.send(responseEvent, { rendered: difference, path: this._componentId, headers: router.headers });
+        }
+        else
+            res.send(responseEvent, { rendered: htmlData.getParts(), path: this._componentId, headers: router.headers });
     }
     _renderComponent(document, renderRoutes) {
         const renderContext = {
             context: document.doc.socket.context,
             renderRoutes
         };
-        const css = (0, http_1.CssGenerator)(this._parentId);
+        const css = (0, cssGenerator_1.CssGenerator)(this._parentId);
         const styleObject = this._component.manageStyles ? this._component.manageStyles(document.doc.socket.context, css) : {
-            string: (0, http_1.html) ``,
+            string: (0, parser_1.html) ``,
             classes: {}
         };
         const rendered = this._component.render(renderContext, styleObject.classes);
-        const finalHtml = (0, http_1.html) `${styleObject.string}${rendered}`;
+        const finalHtml = (0, parser_1.html) `${styleObject.string}${rendered}`;
         document.updateDoc({
             socket: document.doc.socket,
             rendered: finalHtml,
@@ -207,7 +216,7 @@ class ComponentManager {
                 const eventRequest = this._base.getLiveRequest(this._path, req.url);
                 const resolver = this._base.generateEventRequest(this._path, req.url);
                 let htmlData = null;
-                const router = new component_1.LiveRouter(res);
+                const router = new liveRouter_1.LiveRouter(res);
                 if (resolver && csrfToken === req.token) {
                     htmlData = await this.render(req.url, req.clientId, router);
                     if (router.sentResponse)
@@ -235,13 +244,13 @@ class ComponentManager {
                             res.setHeader('x-flash-message', headers.flashMessage);
                         res.setHeader('Content-Type', 'text/html');
                         res.setHeader('x-router-container', '#' + this._parentId);
-                        const html = (0, component_1.clientRouter)(this._parentId, htmlData.path, htmlData.rendered);
+                        const html = (0, clientRouter_1.clientRouter)(this._parentId, htmlData.path, htmlData.rendered);
                         return res.end(html.toString());
                     }
                     else {
                         const headers = router.headers;
                         res.setHeader('Content-Type', 'text/html');
-                        const html = (0, component_1.clientRouter)(this._parentId, htmlData.path, htmlData.rendered);
+                        const html = (0, clientRouter_1.clientRouter)(this._parentId, htmlData.path, htmlData.rendered);
                         const htmlString = await this._renderHtml(html, req.token, headers);
                         return res.end(htmlString);
                     }
@@ -252,7 +261,7 @@ class ComponentManager {
     }
     _initialiseSocketManager() {
         this._pond.on(`mount/${this._componentId}`, async (req, res, channel) => {
-            const router = new component_1.LiveRouter(res);
+            const router = new liveRouter_1.LiveRouter(res);
             await this.handleRendered(req.client.clientAssigns.clientId, router, res, channel);
             channel.subscribe(data => {
                 if (data.action === enums_1.ServerActions.PRESENCE && data.event === 'LEAVE_CHANNEL')
@@ -260,11 +269,11 @@ class ComponentManager {
             });
         });
         this._pond.on(`update/${this._componentId}`, async (req, res, channel) => {
-            const router = new component_1.LiveRouter(res);
+            const router = new liveRouter_1.LiveRouter(res);
             await this.handleRendered(req.client.clientAssigns.clientId, router, res, channel);
         });
         this._pond.on(`event/${this._componentId}`, async (req, res) => {
-            const router = new component_1.LiveRouter(res);
+            const router = new liveRouter_1.LiveRouter(res);
             await this.handleEvent(req.message, req.client.clientAssigns.clientId, router, res);
         });
         this._pond.on(`unmount/${this._componentId}`, async (req) => {

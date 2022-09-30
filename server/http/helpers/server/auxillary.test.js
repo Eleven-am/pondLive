@@ -50,5 +50,3 @@ describe('JsonBodyParserMiddleware', () => {
         expect(next).toBeCalled();
     });
 });
-describe('FileRouter', () => {
-});

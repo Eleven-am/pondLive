@@ -3,14 +3,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GenerateLiverServer = void 0;
-const path_1 = __importDefault(require("path"));
+exports.GenerateLiveServer = void 0;
 const http_1 = require("../http");
+const pondSocket_1 = require("../socket/pondSocket");
 const utils_1 = require("../utils");
 const componentManager_1 = require("./componentManager");
-const socket_1 = require("../socket");
-const GenerateLiverServer = (routes, server, chain, props) => {
-    const pondServer = props?.pondSocket ?? new socket_1.PondSocket(server);
+const path_1 = __importDefault(require("path"));
+const GenerateLiveServer = (routes, server, chain, props) => {
+    const pondServer = props?.pondSocket ?? new pondSocket_1.PondSocket(server);
     const base = new utils_1.BaseClass();
     const secret = props?.secret || base.uuid();
     const cookieName = props?.cookie || 'pondLive';
@@ -48,4 +48,4 @@ const GenerateLiverServer = (routes, server, chain, props) => {
     });
     return pondServer;
 };
-exports.GenerateLiverServer = GenerateLiverServer;
+exports.GenerateLiveServer = GenerateLiveServer;

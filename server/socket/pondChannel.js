@@ -1,13 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PondChannel = void 0;
-const baseClass_1 = require("../utils/baseClass");
-const pondResponse_1 = require("../utils/pondResponse");
-const pondBase_1 = require("../utils/pondBase");
+const utils_1 = require("../utils");
 const channel_1 = require("./channel");
-const basePromise_1 = require("../utils/basePromise");
 const enums_1 = require("../enums");
-class PondChannel extends baseClass_1.BaseClass {
+class PondChannel extends utils_1.BaseClass {
     path;
     _handler;
     _channels;
@@ -15,11 +12,25 @@ class PondChannel extends baseClass_1.BaseClass {
     _subscribers;
     constructor(path, handler) {
         super();
-        this._channels = new pondBase_1.PondBase();
+        this._channels = new utils_1.PondBase();
         this._handler = handler;
         this.path = path;
         this._subscribers = new Set();
         this._subscriptions = {};
+    }
+    /**
+     * @desc Gets a list of all the channels in the endpoint.
+     */
+    get info() {
+        return this._channels.map(channel => channel.info);
+    }
+    /**
+     * @desc Sends a message to a client
+     * @param socket - The socket to send the message to
+     * @param message - The message to send
+     */
+    static _sendMessage(socket, message) {
+        socket.send(JSON.stringify(message));
     }
     /**
      * @desc A listener for a channel event
@@ -42,7 +53,7 @@ class PondChannel extends baseClass_1.BaseClass {
      * @param joinParams - The params to join the channel with
      */
     addUser(user, channelName, joinParams) {
-        return (0, basePromise_1.BasePromise)({ channelName }, async (resolve, reject) => {
+        return (0, utils_1.BasePromise)({ channelName }, async (resolve, reject) => {
             let channel;
             channel = this._channels.query(c => c.name === channelName)[0]?.doc;
             const resolved = this.generateEventRequest(this.path, channelName);
@@ -79,7 +90,7 @@ class PondChannel extends baseClass_1.BaseClass {
                     channel.sendTo(data.message.event, data.message.payload, enums_1.PondSenders.POND_CHANNEL, [user.clientId]);
                 resolve();
             };
-            const response = new pondResponse_1.PondResponse({ channelName }, assigns, resolver);
+            const response = new utils_1.PondResponse({ channelName }, assigns, resolver);
             await this._handler(request, response, channel);
         });
     }
@@ -139,12 +150,6 @@ class PondChannel extends baseClass_1.BaseClass {
         });
     }
     /**
-     * @desc Gets a list of all the channels in the endpoint.
-     */
-    get info() {
-        return this._channels.map(channel => channel.info);
-    }
-    /**
      * @desc Searches for a channel in the endpoint.
      * @param query - The query to search for.
      */
@@ -186,7 +191,7 @@ class PondChannel extends baseClass_1.BaseClass {
         const newChannel = this.findChannel(c => c.name === channelName) || null;
         if (newChannel)
             return handler(newChannel);
-        throw new basePromise_1.PondError('Channel does not exist', 404, channelName);
+        throw new utils_1.PondError('Channel does not exist', 404, channelName);
     }
     /**
      * @desc Creates a new channel in the endpoint.
@@ -201,14 +206,6 @@ class PondChannel extends baseClass_1.BaseClass {
             newChannel.doc.subscribe(subscriber);
         });
         return newChannel.doc;
-    }
-    /**
-     * @desc Sends a message to a client
-     * @param socket - The socket to send the message to
-     * @param message - The message to send
-     */
-    static _sendMessage(socket, message) {
-        socket.send(JSON.stringify(message));
     }
     /**
      * @desc Removes a subscription from a user
@@ -260,7 +257,7 @@ class PondChannel extends baseClass_1.BaseClass {
                 const resolver = (innerData) => {
                     const { presence, assigns, channelData } = innerData.assigns;
                     if (innerData.error)
-                        returnVal = new basePromise_1.PondError(innerData.error.errorMessage, innerData.error.errorCode, {
+                        returnVal = new utils_1.PondError(innerData.error.errorMessage, innerData.error.errorCode, {
                             event: data.event,
                             channelName: data.channelName,
                         });
@@ -274,7 +271,7 @@ class PondChannel extends baseClass_1.BaseClass {
                         }
                     }
                 };
-                const response = new pondResponse_1.PondResponse(data.clientId, assigns, resolver);
+                const response = new utils_1.PondResponse(data.clientId, assigns, resolver);
                 callback(request, response, data.channel);
             }
             return returnVal || !!info;

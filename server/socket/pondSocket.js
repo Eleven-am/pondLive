@@ -1,12 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PondSocket = void 0;
+const baseClass_1 = require("../utils/baseClass");
 const http_1 = require("http");
 const ws_1 = require("ws");
+const pondBase_1 = require("../utils/pondBase");
 const endpoint_1 = require("./endpoint");
-const utils_1 = require("../utils");
+const basePromise_1 = require("../utils/basePromise");
 const http_2 = require("../http");
-class PondSocket extends utils_1.BaseClass {
+class PondSocket extends baseClass_1.BaseClass {
     _server;
     _socketServer;
     _endpoints;
@@ -15,7 +17,7 @@ class PondSocket extends utils_1.BaseClass {
         super();
         this._server = server || new http_1.Server();
         this._socketServer = socketServer || new ws_1.WebSocketServer({ noServer: true });
-        this._endpoints = new utils_1.PondBase();
+        this._endpoints = new pondBase_1.PondBase();
         this._socketChain = new http_2.SocketMiddleWare(this._server);
         this._init();
     }
@@ -100,7 +102,7 @@ class PondSocket extends utils_1.BaseClass {
     _init() {
         this._server.on('error', (error) => {
             this._close();
-            throw new utils_1.PondError('Server error', 500, { error });
+            throw new basePromise_1.PondError('Server error', 500, { error });
         });
         this._server.on('listening', () => {
             this._pingClients(this._socketServer);

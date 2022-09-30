@@ -475,7 +475,7 @@
 <a name='L410'></a><a href='#L410'>410</a>
 <a name='L411'></a><a href='#L411'>411</a>
 <a name='L412'></a><a href='#L412'>412</a>
-<a name='L413'></a><a href='#L413'>413</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L413'></a><a href='#L413'>413</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -485,7 +485,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -563,21 +563,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-yes">40x</span>
+<span class="cline-any cline-yes">40x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">42x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">30x</span>
-<span class="cline-any cline-yes">30x</span>
-<span class="cline-any cline-yes">40x</span>
-<span class="cline-any cline-yes">40x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">30x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -887,7 +887,8 @@
 <span class="cline-any cline-yes">21x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import {
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import {Anything, BaseClass, Broadcast, PondBase, PondDocument, PondError, PondResponse, Subscription} from "../utils";
+import {
     NewUser,
     PondAssigns,
     PondChannelData,
@@ -898,7 +899,6 @@
     ServerMessage
 } from "../types";
 import {PondSenders, ServerActions} from "../enums";
-import {Anything, BaseClass, Broadcast, PondBase, PondDocument, PondError, PondResponse, Subscription} from "../utils";
 &nbsp;
 export interface ChannelInfo {
     name: string;
@@ -920,13 +920,13 @@ export interface PondUser {
 }
 &nbsp;
 export class Channel extends BaseClass {
+    public readonly name: string;
     private readonly _broadcast: Broadcast&lt;ChannelEvent, RejectPromise&lt;{ event: string; channelName: string; }&gt; | boolean&gt;;
     private readonly _messages: Broadcast&lt;{ clients: string [], message: ServerMessage }, void&gt;;
     private readonly _channelAssigns: Record&lt;string, PondAssigns &amp; { presenceId: string }&gt;;
     private readonly _channelPresence: PondBase&lt;PondPresence&gt;;
     private readonly removeChannel: () =&gt; void;
     private _channelData: PondChannelData
-    public readonly name: string;
 &nbsp;
     constructor(name: string, removeChannel: () =&gt; void) {
         super();
@@ -972,14 +972,6 @@ export class Channel extends BaseClass {
     }
 &nbsp;
     /**
-     * @desc Checks if a user exists in the channel
-     * @param clientId - The clientId of the user
-     */
-    public hasUser(clientId: string): boolean {
-        return !!this._channelAssigns[clientId];
-    }
-&nbsp;
-    /**
      * @desc Gets the channel's assigns
      */
     public get assigns(): Record&lt;string, PondAssigns&gt; {
@@ -990,6 +982,14 @@ export class Channel extends BaseClass {
         })
 &nbsp;
         return assigns;
+    }
+&nbsp;
+    /**
+     * @desc Checks if a user exists in the channel
+     * @param clientId - The clientId of the user
+     */
+    public hasUser(clientId: string): boolean {
+        return !!this._channelAssigns[clientId];
     }
 &nbsp;
     /**
@@ -1246,7 +1246,7 @@ export class Channel extends BaseClass {
             const {presence, assigns, channelData} = innerData.assigns;
 &nbsp;
             if (innerData.error)
-                 throw new PondError(innerData.error.errorMessage, innerData.error.errorCode, {
+                throw new PondError(innerData.error.errorMessage, innerData.error.errorCode, {
                     event: 'artificial',
                     channelName: this.name,
                 });
@@ -1306,7 +1306,7 @@ export class Channel extends BaseClass {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2022-09-29T17:56:45.349Z
+                at 2022-09-29T21:18:33.427Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

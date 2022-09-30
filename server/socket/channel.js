@@ -1,16 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Channel = void 0;
-const enums_1 = require("../enums");
 const utils_1 = require("../utils");
+const enums_1 = require("../enums");
 class Channel extends utils_1.BaseClass {
+    name;
     _broadcast;
     _messages;
     _channelAssigns;
     _channelPresence;
     removeChannel;
     _channelData;
-    name;
     constructor(name, removeChannel) {
         super();
         this.name = name;
@@ -50,13 +50,6 @@ class Channel extends utils_1.BaseClass {
             .map(presence => presence.doc);
     }
     /**
-     * @desc Checks if a user exists in the channel
-     * @param clientId - The clientId of the user
-     */
-    hasUser(clientId) {
-        return !!this._channelAssigns[clientId];
-    }
-    /**
      * @desc Gets the channel's assigns
      */
     get assigns() {
@@ -66,6 +59,13 @@ class Channel extends utils_1.BaseClass {
             assigns[clientId] = rest;
         });
         return assigns;
+    }
+    /**
+     * @desc Checks if a user exists in the channel
+     * @param clientId - The clientId of the user
+     */
+    hasUser(clientId) {
+        return !!this._channelAssigns[clientId];
     }
     /**
      * @desc Adds a new user to the channel
