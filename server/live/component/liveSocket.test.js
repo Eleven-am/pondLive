@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const liveSocket_1 = require("./liveSocket");
-const pondLiveChannel_1 = require("../pondLiveChannel");
+const pondLiveChannel_1 = require("./pondLiveChannel");
 const createSocket = () => {
     const pondChannel = new pondLiveChannel_1.PondLiveChannelManager();
     const manager = {

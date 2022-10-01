@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const liveRouter_1 = require("./liveRouter");
-const pondResponse_1 = require("../../utils/pondResponse");
+const utils_1 = require("../../utils");
 describe('liveRouter', () => {
     it('should create a router from a pond response', () => {
         const resolver = jest.fn();
@@ -10,7 +10,7 @@ describe('liveRouter', () => {
             presence: {},
             channelData: {},
         };
-        const response = new pondResponse_1.PondResponse({}, assigns, resolver);
+        const response = new utils_1.PondResponse({}, assigns, resolver);
         const router = new liveRouter_1.LiveRouter(response);
         expect(router).toBeTruthy();
     });
@@ -87,7 +87,7 @@ describe('liveRouter', () => {
             channelData: {},
         };
         const resolver = jest.fn();
-        const response3 = new pondResponse_1.PondResponse({}, assigns, resolver);
+        const response3 = new utils_1.PondResponse({}, assigns, resolver);
         const router3 = new liveRouter_1.LiveRouter(response3);
         router3.redirect('/test');
         expect(resolver).toBeCalled();
@@ -118,7 +118,7 @@ describe('liveRouter', () => {
             channelData: {},
         };
         const resolver = jest.fn();
-        const response3 = new pondResponse_1.PondResponse({}, assigns, resolver);
+        const response3 = new utils_1.PondResponse({}, assigns, resolver);
         const router3 = new liveRouter_1.LiveRouter(response3);
         router3.push('/test');
         expect(resolver).toBeCalled();
@@ -149,7 +149,7 @@ describe('liveRouter', () => {
             channelData: {},
         };
         const resolver = jest.fn();
-        const response3 = new pondResponse_1.PondResponse({}, assigns, resolver);
+        const response3 = new utils_1.PondResponse({}, assigns, resolver);
         const router3 = new liveRouter_1.LiveRouter(response3);
         router3.replace('/test');
         expect(resolver).toBeCalled();
@@ -178,7 +178,7 @@ describe('liveRouter', () => {
             channelData: {},
         };
         const resolver = jest.fn();
-        const response3 = new pondResponse_1.PondResponse({}, assigns, resolver);
+        const response3 = new utils_1.PondResponse({}, assigns, resolver);
         const router3 = new liveRouter_1.LiveRouter(response3);
         router3.redirect('/test');
         expect(router3.sentResponse).toBe(true);

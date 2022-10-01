@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// @ts-ignore
 const deepDiff_1 = require("./deepDiff");
 describe('DeepDiffMapper', () => {
     it('should return unchanged if both objects are the same', () => {

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const basePromise_1 = require("../utils/basePromise");
+const utils_1 = require("../utils");
 const endpoint_1 = require("./endpoint");
 const pondSocket_1 = require("./pondSocket");
 const superwstest_1 = __importDefault(require("superwstest"));
@@ -54,7 +54,7 @@ describe('server', () => {
         const server = require('http').createServer();
         const socket = new pondSocket_1.PondSocket(server);
         socket.listen(3001, () => { });
-        expect(() => server.emit('error', new Error('test'))).toThrowError(basePromise_1.PondError);
+        expect(() => server.emit('error', new Error('test'))).toThrowError(utils_1.PondError);
         server.close();
     });
     it('should be able to reject a socket', () => {

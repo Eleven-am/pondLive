@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const componentManager_1 = require("./componentManager");
-const pondLiveChannel_1 = require("./pondLiveChannel");
+const pondLiveChannel_1 = require("./component/pondLiveChannel");
 const createComponentManager = () => {
     const test = {
         pond: {

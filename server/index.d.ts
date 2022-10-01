@@ -1,9 +1,8 @@
-import {IncomingHttpHeaders, IncomingMessage, Server, ServerResponse} from "server/http";
+import {IncomingHttpHeaders, IncomingMessage, Server, ServerResponse} from "http";
 import {WebSocket, WebSocketServer} from "ws";
-import {ClientActions, PondBaseActions, PondSenders, ResponsePicker, ServerActions} from "../../server/enums";
+import {ClientActions, PondBaseActions, PondSenders, ResponsePicker, ServerActions} from "./enums";
 import internal from "stream";
-import {HtmlSafeString} from "../../http";
-import {NextFunction} from "../../server/http";
+import {HtmlSafeString, NextFunction} from "../../http";
 
 export type default_t<T = any> = Record<string, any>
 
@@ -327,7 +326,8 @@ export class PondBase<T> {
     toArray(): PondDocument<T>[];
 }
 
-type SendResponse<T = ResponsePicker.CHANNEL> = T extends ResponsePicker.CHANNEL ? Required<PondResponseAssigns> : T extends ResponsePicker.POND ? Required<Omit<PondResponseAssigns, 'presence' | 'channelData'>> : never;
+export type SendResponse<T = ResponsePicker.CHANNEL> = T extends ResponsePicker.CHANNEL ? Required<PondResponseAssigns> :
+    T extends ResponsePicker.POND ? Required<Omit<PondResponseAssigns, 'presence' | 'channelData'>> : never;
 
 export class PondResponse<T extends ResponsePicker = ResponsePicker.CHANNEL> {
     /**
