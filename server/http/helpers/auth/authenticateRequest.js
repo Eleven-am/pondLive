@@ -1,12 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthenticateUpgrade = exports.AuthenticateRequest = void 0;
-const utils_1 = require("../../../utils");
-const cookieHandler_1 = require("./cookieHandler");
-const AuthenticateRequest = (secret, cookie) => (req, res, next) => {
-    const base = new utils_1.BaseClass();
-    let token = (0, cookieHandler_1.parseCookies)(req.headers)[cookie] || '';
-    let clientId = base.decrypt(secret, token)?.time || null;
+var utils_1 = require("../../../utils");
+var cookieHandler_1 = require("./cookieHandler");
+var AuthenticateRequest = function (secret, cookie) { return function (req, res, next) {
+    var _a;
+    var base = new utils_1.BaseClass();
+    var token = (0, cookieHandler_1.parseCookies)(req.headers)[cookie] || '';
+    var clientId = ((_a = base.decrypt(secret, token)) === null || _a === void 0 ? void 0 : _a.time) || null;
     if (!clientId) {
         if (token) {
             (0, cookieHandler_1.deleteCookie)(res, cookie);
@@ -32,12 +33,13 @@ const AuthenticateRequest = (secret, cookie) => (req, res, next) => {
         req.token = token;
         next();
     }
-};
+}; };
 exports.AuthenticateRequest = AuthenticateRequest;
-const AuthenticateUpgrade = (secret, cookie) => (req, socket, _, next) => {
-    const base = new utils_1.BaseClass();
-    let token = (0, cookieHandler_1.parseCookies)(req.headers)[cookie] || '';
-    let clientId = base.decrypt(secret, token)?.time || null;
+var AuthenticateUpgrade = function (secret, cookie) { return function (req, socket, _, next) {
+    var _a;
+    var base = new utils_1.BaseClass();
+    var token = (0, cookieHandler_1.parseCookies)(req.headers)[cookie] || '';
+    var clientId = ((_a = base.decrypt(secret, token)) === null || _a === void 0 ? void 0 : _a.time) || null;
     if (!clientId || clientId && Date.now() - parseInt(clientId) > 1000 * 60 * 60 * 2) {
         socket.write('HTTP/1.1 401 Unauthorized\r');
         socket.write('Content-Type: application/json\r');
@@ -47,5 +49,5 @@ const AuthenticateUpgrade = (secret, cookie) => (req, socket, _, next) => {
     }
     else
         next();
-};
+}; };
 exports.AuthenticateUpgrade = AuthenticateUpgrade;

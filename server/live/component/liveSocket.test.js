@@ -1,32 +1,33 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const liveSocket_1 = require("./liveSocket");
-const pondLiveChannel_1 = require("./pondLiveChannel");
-const createSocket = () => {
-    const pondChannel = new pondLiveChannel_1.PondLiveChannelManager();
-    const manager = {
+var liveSocket_1 = require("./liveSocket");
+var pondLiveChannel_1 = require("./pondLiveChannel");
+var createSocket = function () {
+    var pondChannel = new pondLiveChannel_1.PondLiveChannelManager();
+    var manager = {
         handleInfo: jest.fn(),
     };
-    return new liveSocket_1.LiveSocket('123', pondChannel, manager, () => { });
+    return new liveSocket_1.LiveSocket('123', pondChannel, manager, function () { });
 };
-describe('LiveSocket', () => {
-    it('should be able to assign data to a context', () => {
-        const socket = createSocket();
+describe('LiveSocket', function () {
+    it('should be able to assign data to a context', function () {
+        var socket = createSocket();
         expect(socket.context).toEqual({});
         socket.assign({ test: 'test' });
         expect(socket.context).toEqual({ test: 'test' });
     });
-    it('should be able to subscribe to a channel', () => {
-        const socket = createSocket();
+    it('should be able to subscribe to a channel', function () {
+        var _a;
+        var socket = createSocket();
         socket.subscribe('/pond', 'testEvent');
         // The default behavior of the pond channel is to create a new channel when a client subscribes to it.
-        expect(socket['_pond'].getChannel('/pond')?.topic).toEqual('/pond');
+        expect((_a = socket['_pond'].getChannel('/pond')) === null || _a === void 0 ? void 0 : _a.topic).toEqual('/pond');
         expect(socket['_pond'].channels).toHaveLength(1);
     });
-    it('should be able to able to accept a channel', () => {
-        const socket = createSocket();
+    it('should be able to able to accept a channel', function () {
+        var socket = createSocket();
         socket.subscribe('/pond', 'testEvent');
-        const chan = socket['_pond'].getChannel('/pond');
+        var chan = socket['_pond'].getChannel('/pond');
         expect(chan).not.toBeNull();
         // When the socket receives a message it should call the channel's createPondResponse method
         socket['_channel'] = {
@@ -39,39 +40,39 @@ describe('LiveSocket', () => {
         };
         // if we broadcast through chan or the socket it should attempt to generate a response
         // When the response is generated it should call the manager's handleInfo method as well
-        chan?.broadcast('testEvent', { test: 'test' });
+        chan === null || chan === void 0 ? void 0 : chan.broadcast('testEvent', { test: 'test' });
         socket.broadcast('/pond', 'testEvent', { test: 'test' });
         // Although 2 broadcasts were made, the manager's handleInfo method should only be called once
         // this is because even though the socket subscribed to a specific event, it doesn't handle
         // an event that it emits itself
         expect(socket['_manager'].handleInfo).toHaveBeenCalledTimes(1);
         // if we tried to broadcast to a different event, the manager's handleInfo method should not be called
-        chan?.broadcast('testEvent2', { test: 'test' });
+        chan === null || chan === void 0 ? void 0 : chan.broadcast('testEvent2', { test: 'test' });
         socket.broadcast('/pond', 'testEvent2', { test: 'test' });
         expect(socket['_manager'].handleInfo).toHaveBeenCalledTimes(1);
     });
-    it('should be able to assign data to a channel', () => {
-        const socket = createSocket();
+    it('should be able to assign data to a channel', function () {
+        var socket = createSocket();
         socket.subscribe('/pond', 'testEvent'); // Subscribe to the pond channel to create a new channel
-        const chan = socket['_pond'].getChannel('/pond');
+        var chan = socket['_pond'].getChannel('/pond');
         expect(chan).not.toBeNull();
         socket.assignToChannel('/pond', { test: 'test' });
-        expect(chan?.data).toEqual({ test: 'test' });
+        expect(chan === null || chan === void 0 ? void 0 : chan.data).toEqual({ test: 'test' });
     });
-    it('should be able to get data from a channel', () => {
-        const socket = createSocket();
+    it('should be able to get data from a channel', function () {
+        var socket = createSocket();
         socket.subscribe('/pond', 'testEvent'); // Subscribe to the pond channel to create a new channel
-        const chan = socket['_pond'].getChannel('/pond');
+        var chan = socket['_pond'].getChannel('/pond');
         expect(chan).not.toBeNull();
         socket.assignToChannel('/pond', { test: 'test' });
         expect(socket.getChannelData('/pond')).toEqual({ test: 'test' });
         // If the channel does not exist it should return null
         expect(socket.getChannelData('/test')).toBeNull();
     });
-    it('should be able to unsubscribe from a channel', () => {
-        const socket = createSocket();
+    it('should be able to unsubscribe from a channel', function () {
+        var socket = createSocket();
         socket.subscribe('/pond', 'testEvent'); // Subscribe to the pond channel to create a new channel
-        const chan = socket['_pond'].getChannel('/pond');
+        var chan = socket['_pond'].getChannel('/pond');
         expect(socket['_subscriptions']).toHaveLength(1);
         expect(chan).not.toBeNull();
         socket.unsubscribe('/pond');

@@ -20,3 +20,4 @@ __exportStar(require("./component/liveComponent"), exports);
 __exportStar(require("./component/liveSocket"), exports);
 __exportStar(require("./componentManager"), exports);
 __exportStar(require("./genServer"), exports);
+__exportStar(require("./component/pondLiveChannel"), exports);

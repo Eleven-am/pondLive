@@ -23,9 +23,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const index = __importStar(require("./index"));
-describe('Index', () => {
-    it('should export the correct functions', () => {
+var index = __importStar(require("./index"));
+describe('Index', function () {
+    it('should export the correct functions', function () {
         expect(Object.keys(index)).toEqual([
             "parseCookies",
             "setCookie",

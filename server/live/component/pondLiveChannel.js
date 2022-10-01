@@ -1,83 +1,89 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PondLiveChannelManager = exports.PondLiveChannel = void 0;
-const utils_1 = require("../../utils");
-class PondLiveChannel {
-    topic;
-    _subscriberCount;
-    _data;
-    _subject;
-    _destroy;
-    constructor(topic, destroy) {
+var utils_1 = require("../../utils");
+var PondLiveChannel = /** @class */ (function () {
+    function PondLiveChannel(topic, destroy) {
         this.topic = topic;
         this._subscriberCount = 0;
         this._data = {};
         this._subject = new utils_1.EventPubSub();
         this._destroy = destroy;
     }
-    assign(data) {
+    PondLiveChannel.prototype.assign = function (data) {
         this._data = Object.assign(this._data, data);
-    }
-    get data() {
-        return this._data;
-    }
-    _buildUnsubscribe(subscription) {
+    };
+    Object.defineProperty(PondLiveChannel.prototype, "data", {
+        get: function () {
+            return this._data;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    PondLiveChannel.prototype._buildUnsubscribe = function (subscription) {
+        var _this = this;
         return {
-            unsubscribe: () => {
+            unsubscribe: function () {
                 subscription.unsubscribe();
-                this._subscriberCount--;
-                if (this._subscriberCount === 0)
-                    this._destroy();
+                _this._subscriberCount--;
+                if (_this._subscriberCount === 0)
+                    _this._destroy();
             }
         };
-    }
-    subscribe(event, callback) {
+    };
+    PondLiveChannel.prototype.subscribe = function (event, callback) {
         this._subscriberCount++;
-        const unsubscribe = this._subject.subscribe(event, callback);
+        var unsubscribe = this._subject.subscribe(event, callback);
         return this._buildUnsubscribe(unsubscribe);
-    }
-    subscribeAll(callback) {
+    };
+    PondLiveChannel.prototype.subscribeAll = function (callback) {
         this._subscriberCount++;
-        const unsubscribe = this._subject.subscribeAll(callback);
+        var unsubscribe = this._subject.subscribeAll(callback);
         return this._buildUnsubscribe(unsubscribe);
-    }
-    broadcast(event, data) {
+    };
+    PondLiveChannel.prototype.broadcast = function (event, data) {
         this._subject.publish(event, data);
-    }
-    destroy() {
+    };
+    PondLiveChannel.prototype.destroy = function () {
         this._subject.complete();
         this._destroy();
-    }
-}
+    };
+    return PondLiveChannel;
+}());
 exports.PondLiveChannel = PondLiveChannel;
-class PondLiveChannelManager {
-    _channels;
-    constructor() {
+var PondLiveChannelManager = /** @class */ (function () {
+    function PondLiveChannelManager() {
         this._channels = new utils_1.PondBase();
     }
-    getChannel(topic) {
-        return this._channels.find(channel => channel.topic === topic)?.doc || null;
-    }
-    createChannel(topic) {
-        return this._channels.createDocument(doc => {
+    PondLiveChannelManager.prototype.getChannel = function (topic) {
+        var _a;
+        return ((_a = this._channels.find(function (channel) { return channel.topic === topic; })) === null || _a === void 0 ? void 0 : _a.doc) || null;
+    };
+    PondLiveChannelManager.prototype.createChannel = function (topic) {
+        return this._channels.createDocument(function (doc) {
             return new PondLiveChannel(topic, doc.removeDoc.bind(doc));
         }).doc;
-    }
-    get channels() {
-        return this._channels.toArray();
-    }
-    broadcast(topic, event, data) {
-        const channel = this.getChannel(topic);
+    };
+    Object.defineProperty(PondLiveChannelManager.prototype, "channels", {
+        get: function () {
+            return this._channels.toArray();
+        },
+        enumerable: false,
+        configurable: true
+    });
+    PondLiveChannelManager.prototype.broadcast = function (topic, event, data) {
+        var channel = this.getChannel(topic);
         if (channel)
             channel.broadcast(event, data);
-    }
-    subscribe(topic, event, callback) {
-        const channel = this.getChannel(topic) || this.createChannel(topic);
+    };
+    PondLiveChannelManager.prototype.subscribe = function (topic, event, callback) {
+        var channel = this.getChannel(topic) || this.createChannel(topic);
         return channel.subscribe(event, callback);
-    }
-    subscribeAll(topic, callback) {
-        const channel = this.getChannel(topic) || this.createChannel(topic);
+    };
+    PondLiveChannelManager.prototype.subscribeAll = function (topic, callback) {
+        var channel = this.getChannel(topic) || this.createChannel(topic);
         return channel.subscribeAll(callback);
-    }
-}
+    };
+    return PondLiveChannelManager;
+}());
 exports.PondLiveChannelManager = PondLiveChannelManager;

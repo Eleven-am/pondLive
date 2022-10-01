@@ -1,16 +1,21 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PondResponse = void 0;
-const basePromise_1 = require("./basePromise");
-class PondResponse {
-    _executed;
-    _data;
-    _isChannel;
-    _assigns;
-    _message;
-    _error;
-    resolver;
-    constructor(data, assigns, resolver, isChannel = true) {
+var basePromise_1 = require("./basePromise");
+var PondResponse = /** @class */ (function () {
+    function PondResponse(data, assigns, resolver, isChannel) {
+        if (isChannel === void 0) { isChannel = true; }
         this._executed = false;
         this._data = data;
         this.resolver = resolver;
@@ -23,26 +28,26 @@ class PondResponse {
      * @param payload - the payload to send
      * @param assigns - the data to assign to the client
      */
-    send(event, payload, assigns) {
+    PondResponse.prototype.send = function (event, payload, assigns) {
         this._message = {
             event: event,
             payload: payload,
         };
         return this._execute(assigns);
-    }
+    };
     /**
      * @desc Accepts the request and optionally assigns data to the client
      * @param assigns - the data to assign to the client
      */
-    accept(assigns) {
+    PondResponse.prototype.accept = function (assigns) {
         return this._execute(assigns);
-    }
+    };
     /**
      * @desc Rejects the request with the given error message
      * @param message - the error message
      * @param errorCode - the error code
      */
-    reject(message, errorCode) {
+    PondResponse.prototype.reject = function (message, errorCode) {
         message = message || (this._isChannel ? 'Message' : 'Connection') + ' rejected';
         errorCode = errorCode || 403;
         this._error = {
@@ -50,16 +55,16 @@ class PondResponse {
             errorCode: errorCode,
         };
         return this._execute({});
-    }
+    };
     /**
      * @desc Executes the response callback
      * @param assigns - the data to assign to the client
      * @private
      */
-    _execute(assigns) {
+    PondResponse.prototype._execute = function (assigns) {
         if (!this._executed) {
             this._executed = true;
-            const data = {
+            var data = {
                 assigns: this._mergeAssigns(assigns),
                 message: this._message,
                 error: this._error,
@@ -68,25 +73,26 @@ class PondResponse {
         }
         else
             throw new basePromise_1.PondError('Response has already been sent', 500, this._data);
-    }
+    };
     /**
      * @desc Merges the assigns with the default assigns
      * @param data - the data to merge
      * @private
      */
-    _mergeAssigns(data) {
+    PondResponse.prototype._mergeAssigns = function (data) {
         if (data === undefined)
             return this._assigns;
-        const otherAssigns = data;
-        const newAssigns = this._assigns;
-        const presence = { ...newAssigns.presence, ...otherAssigns.presence };
-        const channelData = { ...newAssigns.channelData, ...otherAssigns.channelData };
-        const assigns = { ...newAssigns.assigns, ...otherAssigns.assigns };
+        var otherAssigns = data;
+        var newAssigns = this._assigns;
+        var presence = __assign(__assign({}, newAssigns.presence), otherAssigns.presence);
+        var channelData = __assign(__assign({}, newAssigns.channelData), otherAssigns.channelData);
+        var assigns = __assign(__assign({}, newAssigns.assigns), otherAssigns.assigns);
         return {
             presence: presence,
             channelData: channelData,
             assigns: assigns,
         };
-    }
-}
+    };
+    return PondResponse;
+}());
 exports.PondResponse = PondResponse;

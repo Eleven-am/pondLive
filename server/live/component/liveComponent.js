@@ -2,15 +2,18 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LiveFactory = void 0;
 function LiveFactory(props) {
-    return class LiveComponentImpl {
-        routes = props.routes;
-        mount = props.mount;
-        onRendered = props.onRendered;
-        onEvent = props.onEvent;
-        onInfo = props.onInfo;
-        onUnmount = props.onUnmount;
-        render = props.render;
-        manageStyles = props.manageStyles;
-    };
+    return /** @class */ (function () {
+        function LiveComponentImpl() {
+            this.routes = props.routes;
+            this.mount = props.mount;
+            this.onRendered = props.onRendered;
+            this.onEvent = props.onEvent;
+            this.onInfo = props.onInfo;
+            this.onUnmount = props.onUnmount;
+            this.render = props.render;
+            this.manageStyles = props.manageStyles;
+        }
+        return LiveComponentImpl;
+    }());
 }
 exports.LiveFactory = LiveFactory;

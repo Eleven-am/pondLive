@@ -27,9 +27,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FileRouter = void 0;
-const path_1 = __importDefault(require("path"));
-const fs = __importStar(require("fs"));
-const getContentType = (extension) => {
+var path_1 = __importDefault(require("path"));
+var fs = __importStar(require("fs"));
+var getContentType = function (extension) {
     switch (extension) {
         case '.html':
             return 'text/html';
@@ -49,22 +49,22 @@ const getContentType = (extension) => {
             return 'text/plain';
     }
 };
-const modifyUrl = (url) => {
+var modifyUrl = function (url) {
     if (url === '/') {
         return '/index.html';
     }
     return url || '';
 };
-const FileRouter = (absolutePath) => (request, response, next) => {
+var FileRouter = function (absolutePath) { return function (request, response, next) {
     if (request.method !== "GET")
         return next();
-    const modifiedUrl = modifyUrl(request.url);
-    const filePath = path_1.default.join(absolutePath, modifiedUrl);
+    var modifiedUrl = modifyUrl(request.url);
+    var filePath = path_1.default.join(absolutePath, modifiedUrl);
     if (!fs.existsSync(filePath))
         return next();
-    const extension = path_1.default.extname(modifiedUrl);
-    const contentType = getContentType(extension);
-    fs.readFile(filePath, (error, content) => {
+    var extension = path_1.default.extname(modifiedUrl);
+    var contentType = getContentType(extension);
+    fs.readFile(filePath, function (error, content) {
         if (error) {
             response.writeHead(500);
             response.end();
@@ -80,5 +80,5 @@ const FileRouter = (absolutePath) => (request, response, next) => {
             }
         }
     });
-};
+}; };
 exports.FileRouter = FileRouter;

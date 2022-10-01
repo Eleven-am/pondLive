@@ -1,25 +1,45 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MiddleWare = void 0;
-const utils_1 = require("../../../utils");
-class MiddleWare extends utils_1.BaseClass {
-    _server;
-    _stack = [];
-    constructor(server) {
-        super();
-        this._server = server;
-        this._initMiddleware();
+var utils_1 = require("../../../utils");
+var MiddleWare = /** @class */ (function (_super) {
+    __extends(MiddleWare, _super);
+    function MiddleWare(server) {
+        var _this = _super.call(this) || this;
+        _this._stack = [];
+        _this._server = server;
+        _this._initMiddleware();
+        return _this;
     }
-    get stack() {
-        return this._stack;
-    }
-    use(middleware) {
+    Object.defineProperty(MiddleWare.prototype, "stack", {
+        get: function () {
+            return this._stack;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    MiddleWare.prototype.use = function (middleware) {
         this._stack.push(middleware);
-    }
-    _execute(req, res) {
-        const temp = this._stack.concat();
-        const next = () => {
-            const middleware = temp.shift();
+    };
+    MiddleWare.prototype._execute = function (req, res) {
+        var temp = this._stack.concat();
+        var next = function () {
+            var middleware = temp.shift();
             if (middleware)
                 middleware(req, res, next);
             else {
@@ -28,11 +48,13 @@ class MiddleWare extends utils_1.BaseClass {
             }
         };
         next();
-    }
-    _initMiddleware() {
-        this._server.on('request', (req, res) => {
-            this._execute(req, res);
+    };
+    MiddleWare.prototype._initMiddleware = function () {
+        var _this = this;
+        this._server.on('request', function (req, res) {
+            _this._execute(req, res);
         });
-    }
-}
+    };
+    return MiddleWare;
+}(utils_1.BaseClass));
 exports.MiddleWare = MiddleWare;

@@ -2,12 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JsonBodyParserMiddleware = exports.BodyParserMiddleware = void 0;
 function BodyParserMiddleware() {
-    return (req, _, next) => {
-        let body = '';
-        req.on('data', chunk => {
+    return function (req, _, next) {
+        var body = '';
+        req.on('data', function (chunk) {
             body += chunk.toString();
         });
-        req.on('end', () => {
+        req.on('end', function () {
             req.body = body;
             next();
         });
@@ -15,7 +15,7 @@ function BodyParserMiddleware() {
 }
 exports.BodyParserMiddleware = BodyParserMiddleware;
 function JsonBodyParserMiddleware() {
-    return (req, _, next) => {
+    return function (req, _, next) {
         if (req.headers['content-type'] === 'application/json' && req.body) {
             try {
                 req.body = JSON.parse(req.body);
