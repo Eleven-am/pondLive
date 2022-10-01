@@ -792,8 +792,9 @@ export interface LiveComponent<LiveContext = any, LiveEvent = any, LiveInfo = an
     /**
      * @desc onUnmount is called when the component is unmounted
      * @param context - The context of the component
+     * @param socket
      */
-    onUnmount?(context: Readonly<LiveContext>): void | Promise<void>;
+    onUnmount?(context: Readonly<LiveContext>, socket: LiveSocket<LiveContext>): void | Promise<void>;
 
     /**
      * @desc The render function is called when the component is rendered and is used to generate the html for the component
