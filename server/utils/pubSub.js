@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Subject = exports.Broadcast = void 0;
+exports.EventPubSub = exports.Subject = exports.Broadcast = void 0;
 class Broadcast {
     _subscribers = new Set();
     /**
@@ -25,9 +25,14 @@ class Broadcast {
     publish(data) {
         let result;
         for (const subscriber of this._subscribers) {
-            result = subscriber(data);
-            if (result)
-                break;
+            try {
+                result = subscriber(data);
+                if (result)
+                    break;
+            }
+            catch (e) {
+                throw e;
+            }
         }
         return result;
     }
@@ -63,3 +68,70 @@ class Subject extends Broadcast {
     }
 }
 exports.Subject = Subject;
+class EventPubSub {
+    _subscribers = new Set();
+    /**
+     * @desc Subscribe to the event subject
+     * @param event - The event to subscribe to
+     * @param handler - The handler to call when the event subject is published
+     */
+    subscribe(event, handler) {
+        const subscriber = (eventData) => {
+            if (eventData.type === event)
+                return handler(eventData.data);
+        };
+        this._subscribers.add(subscriber);
+        return {
+            /**
+             * @desc Unsubscribe from the event subject
+             */
+            unsubscribe: () => {
+                this._subscribers.delete(subscriber);
+            }
+        };
+    }
+    /**
+     * @desc Publish to the event subject
+     * @param event - The event to publish
+     * @param data - The data to publish
+     */
+    publish(event, data) {
+        let result;
+        for (const subscriber of this._subscribers) {
+            try {
+                result = subscriber({ type: event, data });
+                if (result)
+                    break;
+            }
+            catch (e) {
+                throw e;
+            }
+        }
+        return result;
+    }
+    /**
+     * @desc Subscribe to all events
+     * @param handler - The handler to call when the event subject is published
+     */
+    subscribeAll(handler) {
+        const subscriber = (eventData) => {
+            return handler(eventData.data);
+        };
+        this._subscribers.add(subscriber);
+        return {
+            /**
+             * @desc Unsubscribe from the event subject
+             */
+            unsubscribe: () => {
+                this._subscribers.delete(subscriber);
+            }
+        };
+    }
+    /**
+     * @desc Complete the event subject
+     */
+    complete() {
+        this._subscribers.clear();
+    }
+}
+exports.EventPubSub = EventPubSub;

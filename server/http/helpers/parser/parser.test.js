@@ -226,7 +226,36 @@ describe('CssGenerator', () => {
     });
     it('should generate a style element from a string with multiple classes and multiple rules', () => {
         const css = (0, cssGenerator_1.CssGenerator)('hello');
-        const data = css `.body { color: red; } .test { color: blue; } .test2 { color: green; }`;
-        expect(data.string.toString()).toEqual('<style>.body-hello { color: red; } .test-hello { color: blue; } .test2-hello { color: green; }</style>');
+        const data = css `.body { color: red; } .test { color: blue; } .testDo { color: green; }`;
+        expect(data.string.toString()).toEqual('<style>.body-hello { color: red; } .test-hello { color: blue; } .testDo-hello { color: green; }</style>');
+    });
+    it('should ignore non class styles', () => {
+        const css = (0, cssGenerator_1.CssGenerator)('hello');
+        const data = css `body { color: red; }`;
+        expect(data.string.toString()).toEqual('<style>body { color: red; }</style>');
+        const idData = css `#body { color: red; }`;
+        expect(idData.string.toString()).toEqual('<style>#body { color: red; }</style>');
+        const elementData = css `div { color: red; }`;
+        expect(elementData.string.toString()).toEqual('<style>div { color: red; }</style>');
+    });
+    it('should generate a style element from a string with multiple classes and multiple rules and multiple media queries', () => {
+        const css = (0, cssGenerator_1.CssGenerator)('hello');
+        const data = css `.body { color: red; } .test { color: blue; } .testDo { color: green; } @media (max-width: 600px) { .body { color: red; } .test { color: blue; } .testDo { color: green; } }`;
+        expect(data.string.toString()).toEqual('<style>.body-hello { color: red; } .test-hello { color: blue; } .testDo-hello { color: green; } @media (max-width: 600px) { .body-hello { color: red; } .test-hello { color: blue; } .testDo-hello { color: green; } }</style>');
+    });
+    it('should correctly handle pseudo classes', () => {
+        const css = (0, cssGenerator_1.CssGenerator)('hello');
+        const data = css `.body:hover { color: red; } .test:active { color: blue; } .testDo:focus { color: green; }`;
+        expect(data.string.toString()).toEqual('<style>.body-hello:hover { color: red; } .test-hello:active { color: blue; } .testDo-hello:focus { color: green; }</style>');
+    });
+    it('should correctly handle pseudo elements', () => {
+        const css = (0, cssGenerator_1.CssGenerator)('hello');
+        const data = css `.body::before { color: red; } .test::after { color: blue; } .testDo::selection { color: green; }`;
+        expect(data.string.toString()).toEqual('<style>.body-hello::before { color: red; } .test-hello::after { color: blue; } .testDo-hello::selection { color: green; }</style>');
+    });
+    it('should handle sibling selectors', () => {
+        const css = (0, cssGenerator_1.CssGenerator)('hello');
+        const data = css `.body + .test { color: red; } .test ~ .testDo { color: blue; }`;
+        expect(data.string.toString()).toEqual('<style>.body-hello + .test-hello { color: red; } .test-hello ~ .testDo-hello { color: blue; }</style>');
     });
 });

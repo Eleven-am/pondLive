@@ -1,5 +1,5 @@
 import {Subscription} from "rxjs";
-import {PondAssigns, PondMessage, PondPresence} from "../../server/types";
+import {PondAssigns, PondMessage, PondPresence} from "../server/types";
 
 export declare type ChannelParams = PondAssigns;
 

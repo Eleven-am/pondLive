@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LiveRouter = void 0;
-const basePromise_1 = require("../../utils/basePromise");
-const pondResponse_1 = require("../../utils/pondResponse");
+const utils_1 = require("../../utils");
 class LiveRouter {
     _response;
     _responseSent;
@@ -15,22 +14,31 @@ class LiveRouter {
             pageTitle: undefined,
             flashMessage: undefined,
         };
-        if (response instanceof pondResponse_1.PondResponse)
+        if (response instanceof utils_1.PondResponse)
             this._routerType = 'socket';
         else
             this._routerType = routerType;
     }
+    /**
+     * @desc Sets the page title for the next page
+     * @param title - The title of the page
+     */
     set pageTitle(title) {
         this._headers.pageTitle = title;
     }
+    /**
+     * @desc Sets the flash message for the next page
+     * @param message - The message to display
+     */
     set flashMessage(message) {
         this._headers.flashMessage = message;
     }
-    get headers() {
-        return this._headers;
-    }
+    /**
+     * @desc Pushes a new page to the client
+     * @param path - The path to push
+     */
     push(path) {
-        if (this._response instanceof pondResponse_1.PondResponse) {
+        if (this._response instanceof utils_1.PondResponse) {
             const message = {
                 action: 'push',
                 path: path,
@@ -43,8 +51,12 @@ class LiveRouter {
                 this._sendResponse(path, this._response);
         }
     }
+    /**
+     * @desc Redirects the client to a new page
+     * @param path - The path to redirect to
+     */
     redirect(path) {
-        if (this._response instanceof pondResponse_1.PondResponse) {
+        if (this._response instanceof utils_1.PondResponse) {
             const message = {
                 action: 'redirect',
                 path: path,
@@ -57,8 +69,12 @@ class LiveRouter {
                 this._sendResponse(path, this._response);
         }
     }
+    /**
+     * @desc Replaces the current page with a new page
+     * @param path - The path to replace with
+     */
     replace(path) {
-        if (this._response instanceof pondResponse_1.PondResponse) {
+        if (this._response instanceof utils_1.PondResponse) {
             const message = {
                 action: 'replace',
                 path: path,
@@ -74,9 +90,12 @@ class LiveRouter {
     get sentResponse() {
         return this._responseSent;
     }
+    get headers() {
+        return this._headers;
+    }
     _sendResponse(path, response) {
         if (this._responseSent) {
-            throw new basePromise_1.PondError('Response already sent', 500, 'PondLive');
+            throw new utils_1.PondError('Response already sent', 500, 'PondLive');
         }
         this._responseSent = true;
         response.writeHead(302, {
@@ -86,14 +105,14 @@ class LiveRouter {
     }
     _sendPondResponse(message, response) {
         if (this._responseSent) {
-            throw new basePromise_1.PondError('Response already sent', 500, 'PondLive');
+            throw new utils_1.PondError('Response already sent', 500, 'PondLive');
         }
         this._responseSent = true;
         response.send('router', message);
     }
     _sendClientRouterResponse(action, path, response) {
         if (this._responseSent) {
-            throw new basePromise_1.PondError('Response already sent', 500, 'PondLive');
+            throw new utils_1.PondError('Response already sent', 500, 'PondLive');
         }
         this._responseSent = true;
         response.setHeader('x-router-action', action);

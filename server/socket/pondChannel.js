@@ -40,11 +40,6 @@ class PondChannel extends utils_1.BaseClass {
     on(event, callback) {
         const resolver = this._buildHandler(event, callback);
         this._subscribers.add(resolver);
-        return {
-            unsubscribe: () => {
-                this._subscribers.delete(resolver);
-            }
-        };
     }
     /**
      * @desc Add new user to channel

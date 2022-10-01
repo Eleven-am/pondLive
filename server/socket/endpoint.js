@@ -336,14 +336,5 @@ class Endpoint extends utils_1.BaseClass {
             throw new utils_1.PondError('Channel not found', 404, { channelName, event });
         return action(channel);
     }
-    /**
-     * @desc Shuts down the endpoint.
-     */
-    close() {
-        this._sockets.clear();
-        this._channels.clear();
-        if (this._server)
-            this._server.close();
-    }
 }
 exports.Endpoint = Endpoint;

@@ -511,12 +511,6 @@ export declare class Channel extends BaseClass {
      * @param callback - The callback to call when a message is received
      */
     subscribeToMessages(clientId: string, callback: (message: ServerMessage) => void): Subscription;
-
-    /**
-     * @desc creates a pond response object, useful for sending a response to a client
-     * @param clientId - The client id of the user to send the message to
-     */
-    createPondResponse(clientId: string): PondResponse;
 }
 
 export declare type ChannelHandler = (req: IncomingJoinMessage, res: PondResponse, channel: Channel) => void;

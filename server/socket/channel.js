@@ -252,8 +252,6 @@ class Channel extends utils_1.BaseClass {
                 });
             }
         }
-        else if (clientId !== 'SERVER')
-            throw new utils_1.PondError('Client not found', 5002, clientId);
     }
     /**
      * @desc Subscribes to a channel event
@@ -282,43 +280,11 @@ class Channel extends utils_1.BaseClass {
         };
     }
     /**
-     * @desc creates a pond response object, useful for sending a response to a client
-     * @param clientId - The client id of the user to send the message to
-     */
-    createPondResponse(clientId) {
-        const client = this._retrieveUser(clientId);
-        if (!client)
-            throw new utils_1.PondError('Client not found', 5002, clientId);
-        const assigns = {
-            assigns: client.assigns,
-            presence: client.presence.doc,
-            channelData: this.data
-        };
-        const resolver = (innerData) => {
-            const { presence, assigns, channelData } = innerData.assigns;
-            if (innerData.error)
-                throw new utils_1.PondError(innerData.error.errorMessage, innerData.error.errorCode, {
-                    event: 'artificial',
-                    channelName: this.name,
-                });
-            else {
-                if (!this.isObjectEmpty(channelData))
-                    this.data = channelData;
-                if (!Object.values(enums_1.PondSenders).includes(clientId)) {
-                    this.updateUser(clientId, presence, assigns);
-                    if (innerData.message)
-                        this.sendTo(innerData.message.event, innerData.message.payload, enums_1.PondSenders.POND_CHANNEL, [clientId]);
-                }
-            }
-        };
-        return new utils_1.PondResponse(clientId, assigns, resolver);
-    }
-    /**
-     * @desc Sends a message to a specific user or group of users except the sender
-     * @param clients - The client id of the user to send the message to
-     * @param message - The message to send
-     * @private
-     */
+       * @desc Sends a message to a specific user or group of users except the sender
+       * @param clients - The client id of the user to send the message to
+       * @param message - The message to send
+       * @private
+       */
     _sendToClients(clients, message) {
         this._messages.publish({ clients, message });
     }

@@ -347,6 +347,49 @@ describe('endpoint', () => {
         expect(endpoint.listChannels()).toHaveLength(1);
         server.close();
     });
+    it('should be capable of sending messages to a specific user', async () => {
+        const socket = new pondSocket_1.PondSocket();
+        const server = socket.listen(3006, () => {
+        });
+        expect(server).toBeDefined();
+        const endpoint = socket.createEndpoint('/api/:room', (_, res) => {
+            res.accept();
+        });
+        const channel = endpoint.createChannel('/test/:room', (req, res, _) => {
+            expect(req.params.room).toBeDefined();
+            res.accept();
+        });
+        channel.on('/test/:room', (req, res, _) => {
+            if (req.params.room === 'TEST') {
+                res.accept();
+            }
+            else if (req.params.room === 'TEST2') {
+                res.reject();
+            }
+            else if (req.params.room === 'TEST3') {
+                res.reject('choke on my balls');
+            }
+            else
+                res.reject('TEST');
+        });
+        const message = {
+            action: enums_1.ClientActions.JOIN_CHANNEL, channelName: '/test/socket', event: 'TEST', payload: {}
+        };
+        await (0, superwstest_1.default)(server)
+            .ws('/api/socket')
+            .expectUpgrade(res => expect(res.statusCode).toBe(101))
+            .sendJson(message)
+            .expectJson() // receives a presence message, this can not be matched because the payload is dynamic
+            .sendJson({
+            ...message, action: enums_1.ClientActions.BROADCAST_FROM, payload: {
+                message: {
+                    action: enums_1.ServerActions.MESSAGE, payload: {}, event: "TEST", channelName: "/test/socket"
+                }
+            }
+        });
+        expect(endpoint.listChannels()).toHaveLength(1);
+        server.close();
+    });
     it('should be able to update user presence on user demand', async () => {
         const socket = new pondSocket_1.PondSocket();
         const server = socket.listen(3005, () => {
@@ -414,6 +457,47 @@ describe('endpoint', () => {
         })
             .expectJson();
         expect(endpoint.listChannels()).toHaveLength(0); // by now the first channel should have been removed; and since we gracefully closed the connection, the second channel should have been removed as well
+        server.close();
+    });
+    it('should ba able to send messages to a specific user', async () => {
+        const socket = new pondSocket_1.PondSocket();
+        const server = socket.listen(3004, () => { });
+        expect(server).toBeDefined();
+        const endpoint = socket.createEndpoint('/api/:room', (_, res) => {
+            res.accept();
+        });
+        const channel = endpoint.createChannel('/test/:room', (req, res, _) => {
+            expect(req.params.room).toBeDefined();
+            res.accept();
+        });
+        channel.on(':room', (req, res, _) => {
+            if (req.params.room === 'TEST') {
+                endpoint.send(req.client.clientId, 'Test', { message: 'hello' });
+                res.accept();
+            }
+        });
+        const message = {
+            action: enums_1.ClientActions.JOIN_CHANNEL, channelName: '/test/socket', event: 'TEST', payload: {}
+        };
+        await (0, superwstest_1.default)(server)
+            .ws('/api/socket')
+            .expectUpgrade(res => expect(res.statusCode).toBe(101))
+            .sendJson(message)
+            .expectJson() // receives a presence message, this can not be matched because the payload is dynamic
+            .sendJson({
+            ...message, action: enums_1.ClientActions.BROADCAST_FROM, payload: {
+                message: {
+                    action: enums_1.ServerActions.MESSAGE, payload: {}, event: "TEST", channelName: "/test/socket"
+                }
+            }
+        }).expectJson({
+            action: enums_1.ServerActions.MESSAGE,
+            event: 'Test', channelName: enums_1.PondSenders.SERVER,
+            payload: {
+                message: 'hello'
+            }
+        });
+        expect(endpoint.listChannels()).toHaveLength(1);
         server.close();
     });
 });

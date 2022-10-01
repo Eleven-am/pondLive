@@ -2,8 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const pondChannel_1 = require("./pondChannel");
 const channel_1 = require("./channel");
-const pondBase_1 = require("../utils/pondBase");
-const basePromise_1 = require("../utils/basePromise");
+const utils_1 = require("../utils");
 describe('PondChannel', () => {
     it('should exists', () => {
         expect(pondChannel_1.PondChannel).toBeDefined();
@@ -48,12 +47,12 @@ describe('PondChannel', () => {
         const channel = new channel_1.Channel('/test', () => { });
         const doc = pondChannel["_channels"].set(channel);
         expect(doc).toBeDefined();
-        expect(doc).toBeInstanceOf(pondBase_1.PondDocument);
+        expect(doc).toBeInstanceOf(utils_1.PondDocument);
         expect(pondChannel.getChannelInfo('/test')).toEqual(doc.doc.info);
         channel.broadcast('message', { data: 'test' });
         expect(messageReceived).toBeNull(); // when you add a channel externally, it is not subscribed to bvy the pond channel
         doc.removeDoc();
-        expect(() => pondChannel.getChannelInfo('/test')).toThrowError(basePromise_1.PondError); // channel is removed from the pond channel and can not be found
+        expect(() => pondChannel.getChannelInfo('/test')).toThrowError(utils_1.PondError); // channel is removed from the pond channel and can not be found
         await expect(pondChannel.addUser({
             clientId: 'test',
             assigns: {},
@@ -61,7 +60,7 @@ describe('PondChannel', () => {
                 send() { },
                 on() { }
             }
-        }, '/balls', {})).rejects.toEqual(new basePromise_1.PondError('Invalid channel name', 400, { channelName: '/balls' }));
+        }, '/balls', {})).rejects.toEqual(new utils_1.PondError('Invalid channel name', 400, { channelName: '/balls' }));
         // invalid channel name because the channel name doesn't match the pond path
         try {
             await pondChannel.addUser({
@@ -74,8 +73,8 @@ describe('PondChannel', () => {
             }, '/test', {});
         }
         catch (error) {
-            expect(error).toBeInstanceOf(basePromise_1.PondError); // this is because, the pondChannel handler doesn't act on the response
-            expect(error).toEqual(new basePromise_1.PondError('Function did not resolve a Promise', 500, {
+            expect(error).toBeInstanceOf(utils_1.PondError); // this is because, the pondChannel handler doesn't act on the response
+            expect(error).toEqual(new utils_1.PondError('Function did not resolve a Promise', 500, {
                 channelName: '/test',
             }));
         }
@@ -121,8 +120,8 @@ describe('PondChannel', () => {
             }, '/rejectWithMessage', {});
         }
         catch (error) {
-            expect(error).toBeInstanceOf(basePromise_1.PondError); // this is because we reject the connection
-            expect(error).toEqual(new basePromise_1.PondError('test', 69420, {
+            expect(error).toBeInstanceOf(utils_1.PondError); // this is because we reject the connection
+            expect(error).toEqual(new utils_1.PondError('test', 69420, {
                 channelName: '/rejectWithMessage',
             }));
         }
@@ -137,8 +136,8 @@ describe('PondChannel', () => {
             }, '/balls', {});
         }
         catch (error) {
-            expect(error).toBeInstanceOf(basePromise_1.PondError); // this is because we reject the connection
-            expect(error).toEqual(new basePromise_1.PondError('Message rejected', 403, {
+            expect(error).toBeInstanceOf(utils_1.PondError); // this is because we reject the connection
+            expect(error).toEqual(new utils_1.PondError('Message rejected', 403, {
                 channelName: '/balls',
             }));
         }
@@ -281,8 +280,8 @@ describe('PondChannel', () => {
             });
         }
         catch (error) {
-            expect(error).toBeInstanceOf(basePromise_1.PondError);
-            expect(error).toEqual(new basePromise_1.PondError('Message rejected', 403, {
+            expect(error).toBeInstanceOf(utils_1.PondError);
+            expect(error).toEqual(new utils_1.PondError('Message rejected', 403, {
                 channelName: '/pond',
                 event: 'eventballs'
             }));
@@ -300,8 +299,8 @@ describe('PondChannel', () => {
             });
         }
         catch (e) {
-            expect(e).toBeInstanceOf(basePromise_1.PondError);
-            expect(e).toEqual(new basePromise_1.PondError('test', 69420, {
+            expect(e).toBeInstanceOf(utils_1.PondError);
+            expect(e).toEqual(new utils_1.PondError('test', 69420, {
                 channelName: '/pond',
                 event: 'eventrejectWithMessage'
             }));
@@ -440,7 +439,7 @@ describe('PondChannel', () => {
             pond.closeFromChannel('/pond', 'test2');
         }
         catch (e) {
-            expect(e).toBeInstanceOf(basePromise_1.PondError);
+            expect(e).toBeInstanceOf(utils_1.PondError);
             // The encompassing handler sends a message to the user whose presence was changed (test2)
             // this message causes an error because the user is no longer connected to the pond
         }

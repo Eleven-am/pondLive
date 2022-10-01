@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PondClientSocket = void 0;
 const webSocket_1 = require("rxjs/webSocket");
 const rxjs_1 = require("rxjs");
-const pondBase_1 = require("../server/utils/pondBase");
+const utils_1 = require("../server/utils");
 const channel_1 = require("./channel");
 const rxjs_2 = require("rxjs");
 const operators_1 = require("rxjs/operators");
@@ -28,7 +28,7 @@ class PondClientSocket {
         if (address.protocol !== 'wss:' && address.protocol !== 'ws:')
             address.protocol = protocol;
         this.address = address;
-        this.channels = new pondBase_1.PondBase();
+        this.channels = new utils_1.PondBase();
     }
     /**
      * @desc Connects to the server and returns the socket.
@@ -86,7 +86,7 @@ class PondClientSocket {
         this.socket?.unsubscribe();
         this.subscription?.unsubscribe();
         this.socket = undefined;
-        this.channels = new pondBase_1.PondBase();
+        this.channels = new utils_1.PondBase();
     }
     /**
      * @desc A retry strategy for the socket.

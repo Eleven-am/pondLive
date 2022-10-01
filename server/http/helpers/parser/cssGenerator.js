@@ -4,7 +4,7 @@ exports.CssGenerator = void 0;
 const parser_1 = require("./parser");
 const CssGenerator = (id) => {
     const scopeCss = (css) => {
-        return css.replace(/(\s*{)/g, `-${id}$1`);
+        return css.replace(/(\.[a-zA-Z]+)/g, `$1-${id}`);
     };
     const getClasses = (css) => {
         const classes = new Set();

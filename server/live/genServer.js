@@ -9,6 +9,7 @@ const pondSocket_1 = require("../socket/pondSocket");
 const utils_1 = require("../utils");
 const componentManager_1 = require("./componentManager");
 const path_1 = __importDefault(require("path"));
+const pondLiveChannel_1 = require("./pondLiveChannel");
 const GenerateLiveServer = (routes, server, chain, props) => {
     const pondServer = props?.pondSocket ?? new pondSocket_1.PondSocket(server);
     const base = new utils_1.BaseClass();
@@ -40,7 +41,8 @@ const GenerateLiveServer = (routes, server, chain, props) => {
     const managerProps = {
         pond: channel,
         htmlPath: props?.htmlPath,
-        chain, parentId: pondId
+        chain, parentId: pondId,
+        pondLive: new pondLiveChannel_1.PondLiveChannelManager(),
     };
     routes.map(route => {
         const path = `${pondPath}${route.path}`;

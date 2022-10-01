@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const enums_1 = require("../enums");
-const basePromise_1 = require("../utils/basePromise");
+const utils_1 = require("../utils");
 const channel_1 = require("./channel");
 describe('Channel', () => {
     it('should exist', () => {
@@ -93,7 +93,7 @@ describe('Channel', () => {
             channelData: {}
         };
         channel.addUser(user);
-        expect(() => channel.addUser(user)).toThrowError(basePromise_1.PondError);
+        expect(() => channel.addUser(user)).toThrowError(utils_1.PondError);
     });
     it('should remove a user from the channel', () => {
         const lastSeenDate = new Date();
@@ -465,7 +465,7 @@ describe('Channel', () => {
         let receivedMessages = [];
         channel.subscribe(event => {
             if (event.event === 'testEvent' && event.clientId === 'test1')
-                return new basePromise_1.PondError('test', 500, {
+                return new utils_1.PondError('test', 500, {
                     event: 'testEvent',
                     channelName: 'test'
                 });
@@ -495,7 +495,7 @@ describe('Channel', () => {
         // seeing as this is vital information, we need to make sure that all users gets the message even though external subscribers can interrupt the broadcast
         // the users are thus subscribed to the pubSub directly and not through the channel's subscribe method
         receivedMessages = [];
-        expect(() => channel.broadcast('testEvent', { test: 'test' }, 'test1')).toThrow(basePromise_1.PondError);
+        expect(() => channel.broadcast('testEvent', { test: 'test' }, 'test1')).toThrow(utils_1.PondError);
         // when a subscriber interrupts the broadcast, the message is not sent to the user that sent the message and an error is thrown
         expect(receivedMessages.length).toBe(0); // since the subscriber returned a PondError, No message was sent
         // in this case when it's messages being sent the users get the messages only after external actors do. this way the users can be sure that the message was sent
@@ -504,7 +504,7 @@ describe('Channel', () => {
         channel.broadcast('testEvent', { test: 'test' });
         expect(receivedMessages.length).toBe(1); // A message is sent to all users
         receivedMessages = [];
-        expect(() => channel.broadcastFrom('testEvent', { test: 'test' }, 'test1')).toThrowError(basePromise_1.PondError);
+        expect(() => channel.broadcastFrom('testEvent', { test: 'test' }, 'test1')).toThrowError(utils_1.PondError);
         expect(receivedMessages.length).toBe(0); // since the subscriber returned a PondError, the broadcast should be interrupted
         receivedMessages = [];
         channel.broadcastFrom('testEvent', { test: 'test' }, 'test2');
@@ -564,7 +564,7 @@ describe('Channel', () => {
         message2 = 0;
         channel.subscribe(event => {
             if (event.event === 'testEvent' && event.clientId === 'test1')
-                return new basePromise_1.PondError('test', 500, {
+                return new utils_1.PondError('test', 500, {
                     event: 'testEvent',
                     channelName: 'test',
                 });
@@ -578,31 +578,5 @@ describe('Channel', () => {
         expect(message1).toBe(0);
         sub2.unsubscribe();
         sub1.unsubscribe();
-    });
-    it('should throw an error when creating a pond response with false clientId', () => {
-        const channel = new channel_1.Channel('test', () => { });
-        expect(() => channel.createPondResponse('test')).toThrowError();
-        // add a user to the channel
-        const user1 = {
-            client: {
-                clientId: 'test1',
-            },
-            presence: {},
-            assigns: {},
-            channelData: {},
-        };
-        channel.addUser(user1);
-        expect(() => channel.createPondResponse('test')).toThrowError();
-        const res = channel.createPondResponse('test1');
-        channel.subscribe(event => {
-            expect(event.event).toEqual('testEvent');
-            expect(event.clientId).toEqual(enums_1.PondSenders.POND_CHANNEL);
-            expect(event.channelName).toEqual('test');
-        });
-        res.accept();
-        const res2 = channel.createPondResponse('test1');
-        expect(() => res2.reject()).toThrowError();
-        const res3 = channel.createPondResponse('test1');
-        res3.send('testEvent', { test: 'test' });
     });
 });
