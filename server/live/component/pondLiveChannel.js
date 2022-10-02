@@ -20,6 +20,12 @@ var PondLiveChannel = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    PondLiveChannel.prototype.onComplete = function (callback) {
+        var _this = this;
+        this._subject.onComplete(function () {
+            callback(_this._data);
+        });
+    };
     PondLiveChannel.prototype._buildUnsubscribe = function (subscription) {
         var _this = this;
         return {

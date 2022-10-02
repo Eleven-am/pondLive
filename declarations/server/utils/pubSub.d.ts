@@ -51,4 +51,9 @@ export declare class EventPubSub<T, A> {
      * @desc Complete the event subject
      */
     complete(): void;
+    /**
+     * @desc Subscribe to the event subject completion
+     * @param handler - The handler to call when the event subject is completed
+     */
+    onComplete(handler: () => void): void;
 }

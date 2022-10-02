@@ -16,7 +16,7 @@ var DomDiff = function (container, htmlString, path, headers) {
 exports.DomDiff = DomDiff;
 var DeepDiff = function (obj1, obj2) {
     if (obj1 instanceof Text && obj2 instanceof Text && obj1.textContent !== obj2.textContent) {
-        obj1.replaceWith(obj2);
+        obj1.replaceWith(obj2.cloneNode(true));
         return;
     }
     if (obj1 instanceof Text && obj2 instanceof Element) {
@@ -24,11 +24,12 @@ var DeepDiff = function (obj1, obj2) {
         return;
     }
     if (obj1 instanceof Element && obj2 instanceof Text) {
-        obj1.replaceWith(obj2);
+        obj1.replaceWith(obj2.cloneNode(true));
         return;
     }
     if (obj1.tagName !== obj2.tagName) {
         obj1.replaceWith(obj2.cloneNode(true));
+        return;
     }
     for (var key in obj2.attributes) {
         var attribute = obj2.attributes[key];
@@ -58,7 +59,7 @@ var DeepDiff = function (obj1, obj2) {
 };
 exports.DeepDiff = DeepDiff;
 var removeElementAndSiblings = function (parent, childIndex) {
-    var children = parent.children;
+    var children = parent.childNodes;
     for (var i = children.length - 1; i >= childIndex; i--) {
         var child = children[i];
         child.remove();

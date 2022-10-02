@@ -147,14 +147,11 @@ var EventPubSub = /** @class */ (function () {
      */
     EventPubSub.prototype.publish = function (event, data) {
         var e_2, _a;
-        var result;
         try {
             for (var _b = __values(this._subscribers), _c = _b.next(); !_c.done; _c = _b.next()) {
                 var subscriber = _c.value;
                 try {
-                    result = subscriber({ type: event, data: data });
-                    if (result)
-                        break;
+                    subscriber({ type: event, data: data });
                 }
                 catch (e) {
                     throw e;
@@ -168,7 +165,6 @@ var EventPubSub = /** @class */ (function () {
             }
             finally { if (e_2) throw e_2.error; }
         }
-        return result;
     };
     /**
      * @desc Subscribe to all events
@@ -194,6 +190,15 @@ var EventPubSub = /** @class */ (function () {
      */
     EventPubSub.prototype.complete = function () {
         this._subscribers.clear();
+        if (this._onComplete)
+            this._onComplete();
+    };
+    /**
+     * @desc Subscribe to the event subject completion
+     * @param handler - The handler to call when the event subject is completed
+     */
+    EventPubSub.prototype.onComplete = function (handler) {
+        this._onComplete = handler;
     };
     return EventPubSub;
 }());

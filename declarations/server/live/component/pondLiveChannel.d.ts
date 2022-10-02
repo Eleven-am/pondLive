@@ -5,6 +5,7 @@ export declare class PondLiveChannel {
     constructor(topic: string, destroy: () => void);
     assign(data: default_t): void;
     get data(): default_t<any>;
+    onComplete(callback: (data: any) => void): void;
     subscribe(event: string, callback: (data: default_t) => void): Subscription;
     subscribeAll(callback: (data: default_t) => void): Subscription;
     broadcast(event: string, data: default_t): void;

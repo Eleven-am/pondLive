@@ -6,6 +6,7 @@ var __makeTemplateObject = (this && this.__makeTemplateObject) || function (cook
 Object.defineProperty(exports, "__esModule", { value: true });
 var parser_1 = require("./parser");
 var cssGenerator_1 = require("./cssGenerator");
+var getChanged_1 = require("./getChanged");
 describe('html parser', function () {
     it('should parse a simple html string', function () {
         var className = 'test';
@@ -216,66 +217,103 @@ describe('html parser', function () {
             0: ''
         });
     });
+    it('should detect the changes and rerender correctly', function () {
+        var value = 'Hello World';
+        var string = (0, parser_1.html)(templateObject_30 || (templateObject_30 = __makeTemplateObject(["<div>", "</div>"], ["<div>", "</div>"])), value || '');
+        expect(string.toString()).toEqual('<div>Hello World</div>');
+        var parts = string.getParts();
+        expect(parts).toEqual({ "0": "Hello World", "s": ["<div>", "</div>"] });
+        value = null;
+        var string2 = (0, parser_1.html)(templateObject_31 || (templateObject_31 = __makeTemplateObject(["<div>", "</div>"], ["<div>", "</div>"])), value || '');
+        expect(string2.toString()).toEqual('<div></div>');
+        expect(string2.getParts()).toEqual({ "0": "", "s": ["<div>", "</div>"] });
+        var diff = string.differentiate(string2);
+        expect(diff).toEqual({
+            0: ''
+        });
+        var merge = (0, getChanged_1.mergeObjects)(parts, diff);
+        expect(merge).toEqual({ "0": "", "s": ["<div>", "</div>"] });
+        var htmlString = string.parsedHtmlToString(merge);
+        expect(htmlString).toEqual('<div></div>');
+    });
+    it('should detect the changes and rerender correctly with nested dynamic values', function () {
+        var className = 'test';
+        var message = 'Hello World';
+        var message2 = 'Hello World 2';
+        var string = (0, parser_1.html)(templateObject_32 || (templateObject_32 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, message);
+        var string2 = (0, parser_1.html)(templateObject_33 || (templateObject_33 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, message2);
+        expect(string.toString()).toEqual('<div class="test">Hello World</div>');
+        var parts = string.getParts();
+        expect(parts).toEqual({ "1": "Hello World", "0": "test", "s": ["<div class=\"", "\">", "</div>"] });
+        var diff = string.differentiate(string2);
+        expect(diff).toEqual({
+            1: 'Hello World 2'
+        });
+        var merge = (0, getChanged_1.mergeObjects)(parts, diff);
+        expect(merge).toEqual({ "1": "Hello World 2", "0": "test", "s": ["<div class=\"", "\">", "</div>"] });
+        var htmlString = string.parsedHtmlToString(merge);
+        expect(htmlString).toEqual('<div class="test">Hello World 2</div>');
+    });
 });
 describe('CssGenerator', function () {
     it('should generate a record object from a string', function () {
         var css = (0, cssGenerator_1.CssGenerator)('hello');
-        var data = css(templateObject_30 || (templateObject_30 = __makeTemplateObject([".body { color: red; }"], [".body { color: red; }"])));
+        var data = css(templateObject_34 || (templateObject_34 = __makeTemplateObject([".body { color: red; }"], [".body { color: red; }"])));
         expect(data.classes).toEqual({ body: 'body-hello' });
     });
     it('should generate a record object from a string with multiple classes', function () {
         var css = (0, cssGenerator_1.CssGenerator)('hello');
-        var data = css(templateObject_31 || (templateObject_31 = __makeTemplateObject([".body { color: red; } .test { color: blue; }"], [".body { color: red; } .test { color: blue; }"])));
+        var data = css(templateObject_35 || (templateObject_35 = __makeTemplateObject([".body { color: red; } .test { color: blue; }"], [".body { color: red; } .test { color: blue; }"])));
         expect(data.classes).toEqual({ body: 'body-hello', test: 'test-hello' });
     });
     it('should generate a record object from a string with multiple classes and multiple rules', function () {
         var css = (0, cssGenerator_1.CssGenerator)('hello');
-        var data = css(templateObject_32 || (templateObject_32 = __makeTemplateObject([".body { color: red; } .test { color: blue; } .test2 { color: green; }"], [".body { color: red; } .test { color: blue; } .test2 { color: green; }"])));
+        var data = css(templateObject_36 || (templateObject_36 = __makeTemplateObject([".body { color: red; } .test { color: blue; } .test2 { color: green; }"], [".body { color: red; } .test { color: blue; } .test2 { color: green; }"])));
         expect(data.classes).toEqual({ body: 'body-hello', test: 'test-hello', test2: 'test2-hello' });
     });
     it('should generate a style element from a string', function () {
         var css = (0, cssGenerator_1.CssGenerator)('hello');
-        var data = css(templateObject_33 || (templateObject_33 = __makeTemplateObject([".body { color: red; }"], [".body { color: red; }"])));
+        var data = css(templateObject_37 || (templateObject_37 = __makeTemplateObject([".body { color: red; }"], [".body { color: red; }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello { color: red; }</style>');
     });
     it('should generate a style element from a string with multiple classes', function () {
         var css = (0, cssGenerator_1.CssGenerator)('hello');
-        var data = css(templateObject_34 || (templateObject_34 = __makeTemplateObject([".body { color: red; } .test { color: blue; }"], [".body { color: red; } .test { color: blue; }"])));
+        var data = css(templateObject_38 || (templateObject_38 = __makeTemplateObject([".body { color: red; } .test { color: blue; }"], [".body { color: red; } .test { color: blue; }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello { color: red; } .test-hello { color: blue; }</style>');
     });
     it('should generate a style element from a string with multiple classes and multiple rules', function () {
         var css = (0, cssGenerator_1.CssGenerator)('hello');
-        var data = css(templateObject_35 || (templateObject_35 = __makeTemplateObject([".body { color: red; } .test { color: blue; } .testDo { color: green; }"], [".body { color: red; } .test { color: blue; } .testDo { color: green; }"])));
+        var data = css(templateObject_39 || (templateObject_39 = __makeTemplateObject([".body { color: red; } .test { color: blue; } .testDo { color: green; }"], [".body { color: red; } .test { color: blue; } .testDo { color: green; }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello { color: red; } .test-hello { color: blue; } .testDo-hello { color: green; }</style>');
     });
     it('should ignore non class styles', function () {
         var css = (0, cssGenerator_1.CssGenerator)('hello');
-        var data = css(templateObject_36 || (templateObject_36 = __makeTemplateObject(["body { color: red; }"], ["body { color: red; }"])));
+        var data = css(templateObject_40 || (templateObject_40 = __makeTemplateObject(["body { color: red; }"], ["body { color: red; }"])));
         expect(data.string.toString()).toEqual('<style>body { color: red; }</style>');
-        var idData = css(templateObject_37 || (templateObject_37 = __makeTemplateObject(["#body { color: red; }"], ["#body { color: red; }"])));
+        var idData = css(templateObject_41 || (templateObject_41 = __makeTemplateObject(["#body { color: red; }"], ["#body { color: red; }"])));
         expect(idData.string.toString()).toEqual('<style>#body { color: red; }</style>');
-        var elementData = css(templateObject_38 || (templateObject_38 = __makeTemplateObject(["div { color: red; }"], ["div { color: red; }"])));
+        var elementData = css(templateObject_42 || (templateObject_42 = __makeTemplateObject(["div { color: red; }"], ["div { color: red; }"])));
         expect(elementData.string.toString()).toEqual('<style>div { color: red; }</style>');
     });
     it('should generate a style element from a string with multiple classes and multiple rules and multiple media queries', function () {
         var css = (0, cssGenerator_1.CssGenerator)('hello');
-        var data = css(templateObject_39 || (templateObject_39 = __makeTemplateObject([".body { color: red; } .test { color: blue; } .testDo { color: green; } @media (max-width: 600px) { .body { color: red; } .test { color: blue; } .testDo { color: green; } }"], [".body { color: red; } .test { color: blue; } .testDo { color: green; } @media (max-width: 600px) { .body { color: red; } .test { color: blue; } .testDo { color: green; } }"])));
+        var data = css(templateObject_43 || (templateObject_43 = __makeTemplateObject([".body { color: red; } .test { color: blue; } .testDo { color: green; } @media (max-width: 600px) { .body { color: red; } .test { color: blue; } .testDo { color: green; } }"], [".body { color: red; } .test { color: blue; } .testDo { color: green; } @media (max-width: 600px) { .body { color: red; } .test { color: blue; } .testDo { color: green; } }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello { color: red; } .test-hello { color: blue; } .testDo-hello { color: green; } @media (max-width: 600px) { .body-hello { color: red; } .test-hello { color: blue; } .testDo-hello { color: green; } }</style>');
     });
     it('should correctly handle pseudo classes', function () {
         var css = (0, cssGenerator_1.CssGenerator)('hello');
-        var data = css(templateObject_40 || (templateObject_40 = __makeTemplateObject([".body:hover { color: red; } .test:active { color: blue; } .testDo:focus { color: green; }"], [".body:hover { color: red; } .test:active { color: blue; } .testDo:focus { color: green; }"])));
+        var data = css(templateObject_44 || (templateObject_44 = __makeTemplateObject([".body:hover { color: red; } .test:active { color: blue; } .testDo:focus { color: green; }"], [".body:hover { color: red; } .test:active { color: blue; } .testDo:focus { color: green; }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello:hover { color: red; } .test-hello:active { color: blue; } .testDo-hello:focus { color: green; }</style>');
     });
     it('should correctly handle pseudo elements', function () {
         var css = (0, cssGenerator_1.CssGenerator)('hello');
-        var data = css(templateObject_41 || (templateObject_41 = __makeTemplateObject([".body::before { color: red; } .test::after { color: blue; } .testDo::selection { color: green; }"], [".body::before { color: red; } .test::after { color: blue; } .testDo::selection { color: green; }"])));
+        var data = css(templateObject_45 || (templateObject_45 = __makeTemplateObject([".body::before { color: red; } .test::after { color: blue; } .testDo::selection { color: green; }"], [".body::before { color: red; } .test::after { color: blue; } .testDo::selection { color: green; }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello::before { color: red; } .test-hello::after { color: blue; } .testDo-hello::selection { color: green; }</style>');
     });
     it('should handle sibling selectors', function () {
         var css = (0, cssGenerator_1.CssGenerator)('hello');
-        var data = css(templateObject_42 || (templateObject_42 = __makeTemplateObject([".body + .test { color: red; } .test ~ .testDo { color: blue; }"], [".body + .test { color: red; } .test ~ .testDo { color: blue; }"])));
+        var data = css(templateObject_46 || (templateObject_46 = __makeTemplateObject([".body + .test { color: red; } .test ~ .testDo { color: blue; }"], [".body + .test { color: red; } .test ~ .testDo { color: blue; }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello + .test-hello { color: red; } .test-hello ~ .testDo-hello { color: blue; }</style>');
     });
 });
-var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5, templateObject_6, templateObject_7, templateObject_8, templateObject_9, templateObject_10, templateObject_11, templateObject_12, templateObject_13, templateObject_14, templateObject_15, templateObject_16, templateObject_17, templateObject_18, templateObject_19, templateObject_20, templateObject_21, templateObject_22, templateObject_23, templateObject_24, templateObject_25, templateObject_26, templateObject_27, templateObject_28, templateObject_29, templateObject_30, templateObject_31, templateObject_32, templateObject_33, templateObject_34, templateObject_35, templateObject_36, templateObject_37, templateObject_38, templateObject_39, templateObject_40, templateObject_41, templateObject_42;
+var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5, templateObject_6, templateObject_7, templateObject_8, templateObject_9, templateObject_10, templateObject_11, templateObject_12, templateObject_13, templateObject_14, templateObject_15, templateObject_16, templateObject_17, templateObject_18, templateObject_19, templateObject_20, templateObject_21, templateObject_22, templateObject_23, templateObject_24, templateObject_25, templateObject_26, templateObject_27, templateObject_28, templateObject_29, templateObject_30, templateObject_31, templateObject_32, templateObject_33, templateObject_34, templateObject_35, templateObject_36, templateObject_37, templateObject_38, templateObject_39, templateObject_40, templateObject_41, templateObject_42, templateObject_43, templateObject_44, templateObject_45, templateObject_46;
