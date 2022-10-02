@@ -62,10 +62,11 @@ var PondServer = /** @class */ (function () {
         this.use(handler);
     };
     PondServer.prototype.usePondLive = function (routes, htmlPath) {
-        (0, live_1.GenerateLiveServer)(routes, this._server, this._middlewareChain, {
+        var data = (0, live_1.GenerateLiveServer)(routes, this._server, this._middlewareChain, {
             pondSocket: this._pondSocket,
             htmlPath: htmlPath
         });
+        return data.manager;
     };
     return PondServer;
 }());

@@ -51,6 +51,7 @@ var GenerateLiveServer = function (routes, server, chain, props) {
         var path = "".concat(pondPath).concat(route.path);
         return new componentManager_1.ComponentManager(path, new route.Component(), managerProps);
     });
-    return pondServer;
+    var manager = managerProps.pondLive;
+    return { pondServer: pondServer, manager: manager };
 };
 exports.GenerateLiveServer = GenerateLiveServer;

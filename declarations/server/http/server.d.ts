@@ -2,7 +2,7 @@
 import { IncomingMessage, ServerResponse } from "http";
 import { NextFunction } from "./helpers/middlewares/middleWare";
 import { EndpointHandler } from '../socket';
-import { Route } from "../live";
+import {PondLiveChannelManager, Route} from "../live";
 import { PondDeleteRequest, PondGetRequest, PondPatchRequest, PondPath, PondPostRequest, PondPutRequest } from "../types";
 import { PondHTTPResponse } from "./helpers/server/pondHTTPResponse";
 export declare class PondServer {
@@ -19,5 +19,5 @@ export declare class PondServer {
     useAuthenticator(secret: string, cookieName?: string): void;
     useBodyParser(): void;
     useCors(): void;
-    usePondLive(routes: Route[], htmlPath?: string): void;
+    usePondLive(routes: Route[], htmlPath?: string): PondLiveChannelManager;
 }
