@@ -8,8 +8,8 @@ var http_1 = require("../http");
 var pondSocket_1 = require("../socket/pondSocket");
 var utils_1 = require("../utils");
 var componentManager_1 = require("./componentManager");
-var path_1 = __importDefault(require("path"));
 var pondLiveChannel_1 = require("./component/pondLiveChannel");
+var path_1 = __importDefault(require("path"));
 var GenerateLiveServer = function (routes, server, chain, props) {
     var _a;
     var pondServer = (_a = props === null || props === void 0 ? void 0 : props.pondSocket) !== null && _a !== void 0 ? _a : new pondSocket_1.PondSocket(server);

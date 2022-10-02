@@ -12,13 +12,15 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VerbHandler = void 0;
+var pondHTTPResponse_1 = require("../helpers/server/pondHTTPResponse");
 var VerbHandler = function (chain, path, method, handler) {
     chain.use(function (req, res, next) {
         if (method === req.method) {
             var resolver = chain.generateEventRequest(path, req.url || '');
             if (resolver) {
+                var newRes = new pondHTTPResponse_1.PondHTTPResponse(res);
                 var newReq = __assign(__assign({}, req), resolver);
-                handler(newReq, res, next);
+                handler(newReq, newRes, next);
             }
             else
                 next();

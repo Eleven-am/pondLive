@@ -3,6 +3,17 @@ var __makeTemplateObject = (this && this.__makeTemplateObject) || function (cook
     if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
     return cooked;
 };
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -82,6 +93,7 @@ var fs = __importStar(require("fs"));
 var utils_1 = require("../utils");
 var http_1 = require("../http");
 var enums_1 = require("../enums");
+var pondHTTPResponse_1 = require("../http/helpers/server/pondHTTPResponse");
 var ComponentManager = /** @class */ (function () {
     function ComponentManager(path, component, props) {
         var _this = this;
@@ -159,11 +171,14 @@ var ComponentManager = /** @class */ (function () {
                                                 return {
                                                     socket: new liveSocket_1.LiveSocket(clientId, _this._pondLive, _this, doc.removeDoc.bind(doc)),
                                                     rendered: (0, http_1.html)(templateObject_2 || (templateObject_2 = __makeTemplateObject([""], [""]))),
-                                                    classes: {}
+                                                    timer: null,
                                                 };
                                             });
-                                        else if (document.doc.socket)
+                                        else if (document.doc.socket) {
+                                            document.doc.timer && clearTimeout(document.doc.timer);
                                             document.doc.socket.downgrade();
+                                            document.updateDoc(__assign(__assign({}, document.doc), { timer: null }));
+                                        }
                                         mountContext = {
                                             params: data.params,
                                             path: data.address,
@@ -175,14 +190,15 @@ var ComponentManager = /** @class */ (function () {
                                         _d.sent();
                                         _d.label = 10;
                                     case 10:
-                                        if (document.doc.socket) {
-                                            rendered = this._renderComponent(document, renderRoutes);
-                                            return [2 /*return*/, {
-                                                    path: this._componentId,
-                                                    rendered: rendered
-                                                }];
-                                        }
-                                        return [2 /*return*/, null];
+                                        if (!document.doc.socket) return [3 /*break*/, 12];
+                                        return [4 /*yield*/, this._renderComponent(document, renderRoutes)];
+                                    case 11:
+                                        rendered = _d.sent();
+                                        return [2 /*return*/, {
+                                                path: this._componentId,
+                                                rendered: rendered
+                                            }];
+                                    case 12: return [2 /*return*/, null];
                                 }
                             });
                         }); })];
@@ -260,8 +276,9 @@ var ComponentManager = /** @class */ (function () {
                                     case 1:
                                         _a.sent();
                                         _a.label = 2;
-                                    case 2:
-                                        this._pushToClient(router, document, 'updated', res);
+                                    case 2: return [4 /*yield*/, this._pushToClient(router, document, 'updated', res)];
+                                    case 3:
+                                        _a.sent();
                                         return [2 /*return*/];
                                 }
                             });
@@ -279,7 +296,7 @@ var ComponentManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this._execute(function () { return __awaiter(_this, void 0, void 0, function () {
-                            var socket;
+                            var socket, timer;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
@@ -292,13 +309,10 @@ var ComponentManager = /** @class */ (function () {
                                         _a.sent();
                                         _a.label = 2;
                                     case 2:
-                                        if (!socket.doc.socket.isWebsocket)
-                                            setTimeout(function () {
-                                                if (!socket.doc.socket.isWebsocket)
-                                                    socket.doc.socket.destroy();
-                                            }, 10000);
-                                        else
-                                            socket.removeDoc();
+                                        timer = setTimeout(function () {
+                                            socket.doc.socket.destroy();
+                                        }, 1000);
+                                        socket.updateDoc(__assign(__assign({}, socket.doc), { timer: timer }));
                                         return [2 /*return*/];
                                 }
                             });
@@ -334,10 +348,16 @@ var ComponentManager = /** @class */ (function () {
                                         document = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
                                         if (!document)
                                             throw new utils_1.PondError('Client not found', 404, clientId);
+                                        if (document.doc.timer) {
+                                            clearTimeout(document.doc.timer);
+                                            document.updateDoc(__assign(__assign({}, document.doc), { timer: null }));
+                                        }
                                         return [4 /*yield*/, callback(document.doc.socket)];
                                     case 1:
                                         _a.sent();
-                                        this._pushToClient(router, document, responseEvent, res);
+                                        return [4 /*yield*/, this._pushToClient(router, document, responseEvent, res)];
+                                    case 2:
+                                        _a.sent();
                                         return [2 /*return*/];
                                 }
                             });
@@ -350,58 +370,85 @@ var ComponentManager = /** @class */ (function () {
         });
     };
     ComponentManager.prototype._pushToClient = function (router, document, responseEvent, res) {
-        var _this = this;
-        this._execute(function () {
-            if (router.sentResponse)
-                return;
-            var renderRoutes = function () { return (0, clientRouter_1.clientRouter)(_this._componentId, 'BREAK', (0, http_1.html)(templateObject_3 || (templateObject_3 = __makeTemplateObject([""], [""])))); };
-            var previousRender = document.doc.rendered;
-            var renderContext = _this._renderComponent(document, renderRoutes);
-            var htmlData = (0, clientRouter_1.clientRouter)(_this._parentId, _this._componentId, renderContext);
-            if (responseEvent === 'updated') {
-                var previous = (0, clientRouter_1.clientRouter)(_this._parentId, _this._componentId, previousRender);
-                var difference = previous.differentiate(htmlData);
-                if (_this._base.isObjectEmpty(difference))
-                    return;
-                res.send(responseEvent, { rendered: difference, path: _this._componentId, headers: router.headers });
-            }
-            else
-                res.send(responseEvent, {
-                    rendered: htmlData.getParts(),
-                    path: _this._componentId,
-                    headers: router.headers
-                });
-        });
-    };
-    ComponentManager.prototype._renderComponent = function (document, renderRoutes) {
-        var _this = this;
-        return this._execute(function () {
-            var renderContext = {
-                context: document.doc.socket.context,
-                renderRoutes: renderRoutes
-            };
-            var css = (0, http_1.CssGenerator)(_this._parentId);
-            var styleObject = _this._component.manageStyles ? _this._component.manageStyles(document.doc.socket.context, css) : {
-                string: (0, http_1.html)(templateObject_4 || (templateObject_4 = __makeTemplateObject([""], [""]))),
-                classes: {}
-            };
-            var rendered = _this._component.render(renderContext, styleObject.classes);
-            var finalHtml = (0, http_1.html)(templateObject_5 || (templateObject_5 = __makeTemplateObject(["", "", ""], ["", "", ""])), styleObject.string, rendered);
-            document.updateDoc({
-                socket: document.doc.socket,
-                rendered: finalHtml,
-            });
-            return finalHtml;
-        });
-    };
-    ComponentManager.prototype._initialiseHTTPManager = function () {
-        var _this = this;
-        this._chain.use(function (req, res, next) { return __awaiter(_this, void 0, void 0, function () {
+        return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this._execute(function () { return __awaiter(_this, void 0, void 0, function () {
-                            var csrfToken, method, eventRequest, resolver, htmlData, router, headers, html_1, headers, html_2, htmlString;
+                            var renderRoutes, previousRender, renderContext, htmlData, previous, difference;
+                            var _this = this;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        if (router.sentResponse)
+                                            return [2 /*return*/];
+                                        renderRoutes = function () { return (0, clientRouter_1.clientRouter)(_this._componentId, 'BREAK', (0, http_1.html)(templateObject_3 || (templateObject_3 = __makeTemplateObject([""], [""])))); };
+                                        previousRender = document.doc.rendered;
+                                        return [4 /*yield*/, this._renderComponent(document, renderRoutes)];
+                                    case 1:
+                                        renderContext = _a.sent();
+                                        htmlData = (0, clientRouter_1.clientRouter)(this._parentId, this._componentId, renderContext);
+                                        if (responseEvent === 'updated') {
+                                            previous = (0, clientRouter_1.clientRouter)(this._parentId, this._componentId, previousRender);
+                                            difference = previous.differentiate(htmlData);
+                                            if (this._base.isObjectEmpty(difference))
+                                                return [2 /*return*/];
+                                            res.send(responseEvent, { rendered: difference, path: this._componentId, headers: router.headers });
+                                        }
+                                        else
+                                            res.send(responseEvent, {
+                                                rendered: htmlData.getParts(),
+                                                path: this._componentId,
+                                                headers: router.headers
+                                            });
+                                        return [2 /*return*/];
+                                }
+                            });
+                        }); })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    ComponentManager.prototype._renderComponent = function (document, renderRoutes) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this._execute(function () {
+                            var renderContext = {
+                                context: document.doc.socket.context,
+                                renderRoutes: renderRoutes
+                            };
+                            var css = (0, http_1.CssGenerator)(_this._parentId);
+                            var styleObject = _this._component.manageStyles ? _this._component.manageStyles(document.doc.socket.context, css) : {
+                                string: (0, http_1.html)(templateObject_4 || (templateObject_4 = __makeTemplateObject([""], [""]))),
+                                classes: {}
+                            };
+                            var rendered = _this._component.render(renderContext, styleObject.classes);
+                            var finalHtml = (0, http_1.html)(templateObject_5 || (templateObject_5 = __makeTemplateObject(["", "", ""], ["", "", ""])), styleObject.string, rendered);
+                            document.updateDoc({
+                                socket: document.doc.socket,
+                                rendered: finalHtml,
+                                timer: document.doc.timer
+                            });
+                            return finalHtml;
+                        })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
+    ComponentManager.prototype._initialiseHTTPManager = function () {
+        var _this = this;
+        this._chain.use(function (req, response, next) { return __awaiter(_this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this._execute(function () { return __awaiter(_this, void 0, void 0, function () {
+                            var csrfToken, method, eventRequest, resolver, htmlData, res, router, headers, html_1, headers, html_2, htmlString;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
                                     case 0:
@@ -411,6 +458,7 @@ var ComponentManager = /** @class */ (function () {
                                         eventRequest = this._base.getLiveRequest(this._path, req.url);
                                         resolver = this._base.generateEventRequest(this._path, req.url);
                                         htmlData = null;
+                                        res = new pondHTTPResponse_1.PondHTTPResponse(response);
                                         router = new liveRouter_1.LiveRouter(res);
                                         if (!(resolver && csrfToken === req.token)) return [3 /*break*/, 2];
                                         return [4 /*yield*/, this.render(resolver, req.clientId, router)];
@@ -429,12 +477,10 @@ var ComponentManager = /** @class */ (function () {
                                         return [3 /*break*/, 5];
                                     case 4:
                                         if (csrfToken !== req.token && resolver) {
-                                            res.statusCode = 403;
-                                            res.statusMessage = 'Invalid CSRF Token';
-                                            res.setHeader('Content-Type', 'application/json');
-                                            return [2 /*return*/, res.end(JSON.stringify({
-                                                    error: 'Invalid CSRF token'
-                                                }))];
+                                            res.status(403, 'Invalid CSRF Token')
+                                                .json({
+                                                error: 'Invalid CSRF token'
+                                            });
                                         }
                                         _a.label = 5;
                                     case 5:
@@ -445,18 +491,16 @@ var ComponentManager = /** @class */ (function () {
                                             res.setHeader('x-page-title', headers.pageTitle);
                                         if (headers.flashMessage)
                                             res.setHeader('x-flash-message', headers.flashMessage);
-                                        res.setHeader('Content-Type', 'text/html');
                                         res.setHeader('x-router-container', '#' + this._parentId);
                                         html_1 = (0, clientRouter_1.clientRouter)(this._parentId, htmlData.path, htmlData.rendered);
-                                        return [2 /*return*/, res.end(html_1.toString())];
+                                        return [2 /*return*/, res.html(html_1.toString())];
                                     case 6:
                                         headers = router.headers;
-                                        res.setHeader('Content-Type', 'text/html');
                                         html_2 = (0, clientRouter_1.clientRouter)(this._parentId, htmlData.path, htmlData.rendered);
                                         return [4 /*yield*/, this._renderHtml(html_2, req.token, headers)];
                                     case 7:
                                         htmlString = _a.sent();
-                                        return [2 /*return*/, res.end(htmlString)];
+                                        return [2 /*return*/, res.html(htmlString)];
                                     case 8:
                                         next();
                                         return [2 /*return*/];
@@ -473,66 +517,90 @@ var ComponentManager = /** @class */ (function () {
     ComponentManager.prototype._initialiseSocketManager = function () {
         var _this = this;
         this._pond.on("mount/".concat(this._componentId), function (req, res, channel) { return __awaiter(_this, void 0, void 0, function () {
+            var e_2;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._execute(function () { return __awaiter(_this, void 0, void 0, function () {
-                            var router;
-                            var _this = this;
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        router = new liveRouter_1.LiveRouter(res);
-                                        return [4 /*yield*/, this.handleRendered(req.client.clientAssigns.clientId, router, res, channel)];
-                                    case 1:
-                                        _a.sent();
-                                        channel.subscribe(function (data) {
-                                            if (data.action === enums_1.ServerActions.PRESENCE && data.event === 'LEAVE_CHANNEL')
-                                                _this.handleUnmount(req.client.clientAssigns.clientId);
-                                        });
-                                        return [2 /*return*/];
-                                }
-                            });
-                        }); })];
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this._execute(function () { return __awaiter(_this, void 0, void 0, function () {
+                                var router;
+                                var _this = this;
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0:
+                                            router = new liveRouter_1.LiveRouter(res);
+                                            return [4 /*yield*/, this.handleRendered(req.client.clientAssigns.clientId, router, res, channel)];
+                                        case 1:
+                                            _a.sent();
+                                            channel.subscribe(function (data) {
+                                                if (data.action === enums_1.ServerActions.PRESENCE && data.event === 'LEAVE_CHANNEL')
+                                                    _this.handleUnmount(req.client.clientAssigns.clientId);
+                                            });
+                                            return [2 /*return*/];
+                                    }
+                                });
+                            }); })];
                     case 1:
                         _a.sent();
-                        return [2 /*return*/];
+                        return [3 /*break*/, 3];
+                    case 2:
+                        e_2 = _a.sent();
+                        throw e_2;
+                    case 3: return [2 /*return*/];
                 }
             });
         }); });
         this._pond.on("update/".concat(this._componentId), function (req, res, channel) { return __awaiter(_this, void 0, void 0, function () {
-            var router;
+            var router, e_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        _a.trys.push([0, 2, , 3]);
                         router = new liveRouter_1.LiveRouter(res);
                         return [4 /*yield*/, this.handleRendered(req.client.clientAssigns.clientId, router, res, channel)];
                     case 1:
                         _a.sent();
-                        return [2 /*return*/];
+                        return [3 /*break*/, 3];
+                    case 2:
+                        e_3 = _a.sent();
+                        throw e_3;
+                    case 3: return [2 /*return*/];
                 }
             });
         }); });
         this._pond.on("event/".concat(this._componentId), function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-            var router;
+            var router, e_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        _a.trys.push([0, 2, , 3]);
                         router = new liveRouter_1.LiveRouter(res);
                         return [4 /*yield*/, this.handleEvent(req.message, req.client.clientAssigns.clientId, router, res)];
                     case 1:
                         _a.sent();
-                        return [2 /*return*/];
+                        return [3 /*break*/, 3];
+                    case 2:
+                        e_4 = _a.sent();
+                        throw e_4;
+                    case 3: return [2 /*return*/];
                 }
             });
         }); });
         this._pond.on("unmount/".concat(this._componentId), function (req) { return __awaiter(_this, void 0, void 0, function () {
+            var e_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.handleUnmount(req.client.clientAssigns.clientId)];
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.handleUnmount(req.client.clientAssigns.clientId)];
                     case 1:
                         _a.sent();
-                        return [2 /*return*/];
+                        return [3 /*break*/, 3];
+                    case 2:
+                        e_5 = _a.sent();
+                        throw e_5;
+                    case 3: return [2 /*return*/];
                 }
             });
         }); });
@@ -542,15 +610,25 @@ var ComponentManager = /** @class */ (function () {
         this._initialiseSocketManager();
     };
     ComponentManager.prototype._execute = function (callback) {
-        try {
-            return callback();
-        }
-        catch (error) {
-            if (error instanceof utils_1.PondError)
-                throw error;
-            else
-                throw new utils_1.PondError('Internal Server Error', 500, error);
-        }
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, new Promise(function (resolve, reject) {
+                            try {
+                                var result = callback();
+                                if (result instanceof Promise)
+                                    result.then(resolve).catch(reject);
+                                else
+                                    resolve(result);
+                            }
+                            catch (e) {
+                                reject(e);
+                            }
+                        })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     return ComponentManager;
 }());

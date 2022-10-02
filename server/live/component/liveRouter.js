@@ -111,10 +111,7 @@ var LiveRouter = /** @class */ (function () {
             throw new utils_1.PondError('Response already sent', 500, 'PondLive');
         }
         this._responseSent = true;
-        response.writeHead(302, {
-            Location: path
-        });
-        response.end();
+        response.redirect(path);
     };
     LiveRouter.prototype._sendPondResponse = function (message, response) {
         if (this._responseSent) {

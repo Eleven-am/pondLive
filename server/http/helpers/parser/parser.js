@@ -48,6 +48,9 @@ function safe(value) {
 }
 exports.safe = safe;
 function escapeHTML(unsafe) {
+    if (unsafe === undefined || unsafe === null) {
+        return '';
+    }
     if (unsafe instanceof HtmlSafeString) {
         return unsafe.toString();
     }
@@ -90,8 +93,9 @@ var HtmlSafeString = /** @class */ (function () {
         if (Array.isArray(data))
             return join(data, '').toString();
         if (data.s) {
+            var stat = data.s.filter(function (s) { return s !== undefined; });
             result = data.s[0];
-            for (var i = 0; i < data.s.length - 1; i++) {
+            for (var i = 0; i < stat.length - 1; i++) {
                 if (typeof data[i] === 'object')
                     result += this.parsedHtmlToString(parsed[i]) + data.s[i + 1];
                 else

@@ -124,7 +124,7 @@ describe('DeepDiffMapper', function () {
         };
         expect(function () { return (0, deepDiff_1.DeepDiffMapper)(obj1, obj2); }).toThrow('Invalid argument. Function given, object expected.');
     });
-    it('should ignore a nestd function', function () {
+    it('should ignore a nested function', function () {
         var obj1 = {
             a: 1,
             b: {

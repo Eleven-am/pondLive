@@ -52,7 +52,7 @@ describe('getChanges', function () {
             }
         };
         var result = (0, getChanged_1.getChanges)(obj);
-        expect(result).toEqual({ 3: { a: 2, d: 5 } });
+        expect(result).toEqual({ 3: { a: 2, b: null, d: 5 } });
     });
     it('should be able to get only changed properties4', function () {
         var obj = {
@@ -124,5 +124,45 @@ describe('mergeObjects', function () {
         expect(result).toEqual(obj2);
         var result2 = (0, getChanged_1.mergeObjects)(obj2, obj1);
         expect(result2).toEqual(obj2);
+    });
+    it('should remove null values from original object1', function () {
+        var obj1 = {
+            a: 1,
+            b: 2,
+            c: 3,
+        };
+        var obj2 = {
+            a: 2,
+            b: null,
+        };
+        var result = (0, getChanged_1.mergeObjects)(obj1, obj2);
+        expect(result).toEqual({
+            a: 2,
+            c: 3,
+        });
+    });
+    it('should remove null values from original object2', function () {
+        var obj1 = {
+            a: 1,
+            b: {
+                c: 2,
+                d: 3,
+            },
+        };
+        var obj2 = {
+            a: 2,
+            b: {
+                c: null,
+                e: 5,
+            },
+        };
+        var result = (0, getChanged_1.mergeObjects)(obj1, obj2);
+        expect(result).toEqual({
+            a: 2,
+            b: {
+                d: 3,
+                e: 5,
+            },
+        });
     });
 });
