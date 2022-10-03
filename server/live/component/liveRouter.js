@@ -39,24 +39,6 @@ var LiveRouter = /** @class */ (function () {
         configurable: true
     });
     /**
-     * @desc Pushes a new page to the client
-     * @param path - The path to push
-     */
-    LiveRouter.prototype.push = function (path) {
-        if (this._response instanceof utils_1.PondResponse) {
-            var message = {
-                action: 'push',
-                path: path,
-            };
-            this._sendPondResponse(message, this._response);
-        }
-        else {
-            this._routerType === 'client-router' ?
-                this._sendClientRouterResponse('push', path, this._response) :
-                this._sendResponse(path, this._response);
-        }
-    };
-    /**
      * @desc Redirects the client to a new page
      * @param path - The path to redirect to
      */
@@ -107,23 +89,20 @@ var LiveRouter = /** @class */ (function () {
         configurable: true
     });
     LiveRouter.prototype._sendResponse = function (path, response) {
-        if (this._responseSent) {
+        if (this._responseSent)
             throw new utils_1.PondError('Response already sent', 500, 'PondLive');
-        }
         this._responseSent = true;
         response.redirect(path);
     };
     LiveRouter.prototype._sendPondResponse = function (message, response) {
-        if (this._responseSent) {
+        if (this._responseSent)
             throw new utils_1.PondError('Response already sent', 500, 'PondLive');
-        }
         this._responseSent = true;
         response.send('router', message);
     };
     LiveRouter.prototype._sendClientRouterResponse = function (action, path, response) {
-        if (this._responseSent) {
+        if (this._responseSent)
             throw new utils_1.PondError('Response already sent', 500, 'PondLive');
-        }
         this._responseSent = true;
         response.setHeader('x-router-action', action);
         response.setHeader('x-router-path', path);

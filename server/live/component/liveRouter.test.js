@@ -92,37 +92,6 @@ describe('liveRouter', function () {
         router3.redirect('/test');
         expect(resolver).toBeCalled();
     });
-    it('should be capable of pushing', function () {
-        var response = {
-            writeHead: jest.fn(),
-            end: jest.fn(),
-        };
-        var router = new liveRouter_1.LiveRouter(response);
-        router.push('/test');
-        expect(response.writeHead).toBeCalledWith(302, {
-            Location: '/test',
-        });
-        expect(response.end).toBeCalled();
-        var response2 = {
-            writeHead: jest.fn(),
-            setHeader: jest.fn(),
-            end: jest.fn(),
-        };
-        var router2 = new liveRouter_1.LiveRouter(response2, 'client-router');
-        router2.push('/test');
-        expect(response2.setHeader).toBeCalledWith('x-router-action', 'push');
-        expect(response2.setHeader).toBeCalledWith('x-router-path', '/test');
-        var assigns = {
-            assigns: {},
-            presence: {},
-            channelData: {},
-        };
-        var resolver = jest.fn();
-        var response3 = new utils_1.PondResponse({}, assigns, resolver);
-        var router3 = new liveRouter_1.LiveRouter(response3);
-        router3.push('/test');
-        expect(resolver).toBeCalled();
-    });
     it('should be capable of replacing', function () {
         var response = {
             writeHead: jest.fn(),

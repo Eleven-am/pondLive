@@ -15,11 +15,6 @@ export declare class LiveRouter {
      */
     set flashMessage(message: string);
     /**
-     * @desc Pushes a new page to the client
-     * @param path - The path to push
-     */
-    push(path: string): Promise<void> | void;
-    /**
      * @desc Redirects the client to a new page
      * @param path - The path to redirect to
      */
