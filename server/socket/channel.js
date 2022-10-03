@@ -58,9 +58,10 @@ var Channel = /** @class */ (function (_super) {
          * @desc Returns the channel info
          */
         get: function () {
-            return {
+            var data = {
                 name: this.name, channelData: this.data, presence: this.presence, assigns: this.assigns
             };
+            return Object.freeze(data);
         },
         enumerable: false,
         configurable: true
@@ -70,7 +71,8 @@ var Channel = /** @class */ (function (_super) {
          * @desc Gets the channel's data
          */
         get: function () {
-            return this._channelData;
+            var result = __assign({}, this._channelData);
+            return Object.freeze(result);
         },
         /**
          * @desc Sets the channel's data
@@ -313,11 +315,11 @@ var Channel = /** @class */ (function (_super) {
         };
     };
     /**
-       * @desc Sends a message to a specific user or group of users except the sender
-       * @param clients - The client id of the user to send the message to
-       * @param message - The message to send
-       * @private
-       */
+     * @desc Sends a message to a specific user or group of users except the sender
+     * @param clients - The client id of the user to send the message to
+     * @param message - The message to send
+     * @private
+     */
     Channel.prototype._sendToClients = function (clients, message) {
         this._messages.publish({ clients: clients, message: message });
     };

@@ -1,20 +1,49 @@
 "use strict";
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PondClientSocket = void 0;
-const webSocket_1 = require("rxjs/webSocket");
-const rxjs_1 = require("rxjs");
-const utils_1 = require("../server/utils");
-const channel_1 = require("./channel");
-const rxjs_2 = require("rxjs");
-const operators_1 = require("rxjs/operators");
-class PondClientSocket {
-    address;
-    socketState = 'CLOSED';
-    channels;
-    subscription;
-    socket;
-    constructor(endpoint, params) {
-        let address;
+var webSocket_1 = require("rxjs/webSocket");
+var rxjs_1 = require("rxjs");
+var utils_1 = require("../server/utils");
+var channel_1 = require("./channel");
+var rxjs_2 = require("rxjs");
+var operators_1 = require("rxjs/operators");
+var PondClientSocket = /** @class */ (function () {
+    function PondClientSocket(endpoint, params) {
+        this.socketState = 'CLOSED';
+        /**
+         * @desc A retry strategy for the socket.
+         * @param maxTries - The maximum number of retries.
+         * @param ms - The number of milliseconds to wait before retrying.
+         */
+        this._retryStrategy = function (maxTries, ms) {
+            return (0, rxjs_2.pipe)((0, operators_1.retryWhen)(function (attempts) {
+                var observableForRetries = (0, rxjs_2.zip)((0, rxjs_2.range)(1, maxTries), attempts)
+                    .pipe((0, operators_1.map)(function (_a) {
+                    var _b = __read(_a, 2), elemFromRange = _b[0], _ = _b[1];
+                    return elemFromRange;
+                }), (0, operators_1.map)(function (i) { return i * i; }), (0, rxjs_1.switchMap)(function (i) { return (0, rxjs_2.timer)(i * ms); }));
+                var observableForFailure = (0, rxjs_1.throwError)(new Error('Could not connect to server'))
+                    .pipe((0, rxjs_1.materialize)(), (0, rxjs_1.delay)(1000), (0, rxjs_1.dematerialize)());
+                return (0, rxjs_1.concat)(observableForRetries, observableForFailure);
+            }));
+        };
+        var address;
         try {
             address = new URL(endpoint);
         }
@@ -22,9 +51,9 @@ class PondClientSocket {
             address = new URL(window.location.toString());
             address.pathname = endpoint;
         }
-        const query = new URLSearchParams(params);
+        var query = new URLSearchParams(params);
         address.search = query.toString();
-        const protocol = address.protocol === 'https:' ? 'wss:' : 'ws:';
+        var protocol = address.protocol === 'https:' ? 'wss:' : 'ws:';
         if (address.protocol !== 'wss:' && address.protocol !== 'ws:')
             address.protocol = protocol;
         this.address = address;
@@ -33,74 +62,63 @@ class PondClientSocket {
     /**
      * @desc Connects to the server and returns the socket.
      */
-    connect() {
+    PondClientSocket.prototype.connect = function () {
+        var _this = this;
         if (this.socketState !== 'CLOSED')
             return;
         this.socketState = 'CONNECTING';
-        const socket = (0, webSocket_1.webSocket)({
+        var socket = (0, webSocket_1.webSocket)({
             url: this.address.toString(),
             openObserver: {
-                next: () => {
-                    this.socketState = 'OPEN';
+                next: function () {
+                    _this.socketState = 'OPEN';
                 }
             },
             closeObserver: {
-                next: () => {
-                    this.socketState = 'CLOSED';
+                next: function () {
+                    _this.socketState = 'CLOSED';
                 }
             },
             closingObserver: {
-                next: () => {
-                    this.socketState = 'CLOSING';
+                next: function () {
+                    _this.socketState = 'CLOSING';
                 }
             }
         });
         this.socket = socket;
         this.subscription = socket.pipe(this._retryStrategy(100, 1000)).subscribe();
         return this;
-    }
+    };
     /**
      * @desc Returns the current state of the socket.
      */
-    getState() {
+    PondClientSocket.prototype.getState = function () {
         return this.socketState;
-    }
+    };
     /**
      * @desc Creates a channel with the given name and params.
      * @param channel - The name of the channel.
      * @param params - The params to send to the server.
      */
-    createChannel(channel, params) {
-        const channelDoc = this.channels.find(c => c.channel === channel);
+    PondClientSocket.prototype.createChannel = function (channel, params) {
+        var channelDoc = this.channels.find(function (c) { return c.channel === channel; });
         if (channelDoc)
             return channelDoc.doc;
-        const newChannel = new channel_1.Channel(channel, params || {}, this.socket);
+        var newChannel = new channel_1.Channel(channel, params || {}, this.socket);
         this.channels.set(newChannel);
         return newChannel;
-    }
+    };
     /**
      * @desc Disconnects the socket from the server.
      */
-    disconnect() {
-        this.socket?.complete();
-        this.socket?.unsubscribe();
-        this.subscription?.unsubscribe();
+    PondClientSocket.prototype.disconnect = function () {
+        var _a, _b, _c;
+        (_a = this.socket) === null || _a === void 0 ? void 0 : _a.complete();
+        (_b = this.socket) === null || _b === void 0 ? void 0 : _b.unsubscribe();
+        (_c = this.subscription) === null || _c === void 0 ? void 0 : _c.unsubscribe();
         this.socket = undefined;
         this.channels = new utils_1.PondBase();
-    }
-    /**
-     * @desc A retry strategy for the socket.
-     * @param maxTries - The maximum number of retries.
-     * @param ms - The number of milliseconds to wait before retrying.
-     */
-    _retryStrategy = (maxTries, ms) => {
-        return (0, rxjs_2.pipe)((0, operators_1.retryWhen)(attempts => {
-            const observableForRetries = (0, rxjs_2.zip)((0, rxjs_2.range)(1, maxTries), attempts)
-                .pipe((0, operators_1.map)(([elemFromRange, _]) => elemFromRange), (0, operators_1.map)(i => i * i), (0, rxjs_1.switchMap)(i => (0, rxjs_2.timer)(i * ms)));
-            const observableForFailure = (0, rxjs_1.throwError)(new Error('Could not connect to server'))
-                .pipe((0, rxjs_1.materialize)(), (0, rxjs_1.delay)(1000), (0, rxjs_1.dematerialize)());
-            return (0, rxjs_1.concat)(observableForRetries, observableForFailure);
-        }));
     };
-}
+    return PondClientSocket;
+}());
 exports.PondClientSocket = PondClientSocket;

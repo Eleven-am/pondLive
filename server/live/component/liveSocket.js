@@ -100,7 +100,8 @@ var LiveSocket = /** @class */ (function () {
          * @desc Gets the live context.
          */
         get: function () {
-            return this._liveContext;
+            var result = __assign({}, this._liveContext);
+            return Object.freeze(result);
         },
         enumerable: false,
         configurable: true

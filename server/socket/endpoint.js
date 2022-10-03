@@ -239,7 +239,7 @@ var Endpoint = /** @class */ (function (_super) {
     Endpoint.prototype.send = function (clientId, event, message) {
         var newMessage = {
             action: enums_1.ServerActions.MESSAGE,
-            channelName: 'SERVER',
+            channelName: enums_1.PondSenders.ENDPOINT,
             event: event,
             payload: message,
         };
@@ -268,7 +268,8 @@ var Endpoint = /** @class */ (function (_super) {
     Endpoint.prototype.broadcast = function (event, message) {
         var sockets = __spreadArray([], __read(this._sockets.generate()), false);
         var newMessage = {
-            action: enums_1.ServerActions.MESSAGE, channelName: 'SERVER',
+            action: enums_1.ServerActions.MESSAGE,
+            channelName: enums_1.PondSenders.ENDPOINT,
             event: event,
             payload: message,
         };
@@ -357,7 +358,7 @@ var Endpoint = /** @class */ (function (_super) {
                         errorMessage = {
                             action: enums_1.ServerActions.ERROR,
                             event: 'INVALID_MESSAGE',
-                            channelName: 'END_POINT',
+                            channelName: enums_1.PondSenders.ENDPOINT,
                             payload: {}
                         };
                         _c.label = 1;
@@ -395,7 +396,7 @@ var Endpoint = /** @class */ (function (_super) {
                             message_1 = {
                                 action: enums_1.ServerActions.ERROR,
                                 event: 'INVALID_MESSAGE',
-                                channelName: 'END_POINT',
+                                channelName: enums_1.PondSenders.ENDPOINT,
                                 payload: {
                                     message: 'Invalid message',
                                 }

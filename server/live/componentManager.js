@@ -311,7 +311,7 @@ var ComponentManager = /** @class */ (function () {
                                     case 2:
                                         timer = setTimeout(function () {
                                             socket.doc.socket.destroy();
-                                        }, 1000);
+                                        }, 10000);
                                         socket.updateDoc(__assign(__assign({}, socket.doc), { timer: timer }));
                                         return [2 /*return*/];
                                 }
