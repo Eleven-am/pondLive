@@ -1,0 +1,1525 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1664643907378" clover="3.2.0">
+  <project timestamp="1664643907378" name="All files">
+    <metrics statements="1369" coveredstatements="1044" conditionals="4573" coveredconditionals="282" methods="1497" coveredmethods="295" elements="7439" coveredelements="1621" complexity="0" loc="1369" ncloc="1369" packages="12" files="38" classes="38"/>
+    <package name="server">
+      <metrics statements="37" coveredstatements="27" conditionals="12" coveredconditionals="12" methods="21" coveredmethods="6"/>
+      <file name="enums.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/enums.ts">
+        <metrics statements="27" coveredstatements="27" conditionals="12" coveredconditionals="12" methods="6" coveredmethods="6"/>
+        <line num="1" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="2" count="12" type="stmt"/>
+        <line num="3" count="12" type="stmt"/>
+        <line num="6" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="7" count="12" type="stmt"/>
+        <line num="8" count="12" type="stmt"/>
+        <line num="9" count="12" type="stmt"/>
+        <line num="10" count="12" type="stmt"/>
+        <line num="13" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="14" count="12" type="stmt"/>
+        <line num="15" count="12" type="stmt"/>
+        <line num="16" count="12" type="stmt"/>
+        <line num="17" count="12" type="stmt"/>
+        <line num="18" count="12" type="stmt"/>
+        <line num="19" count="12" type="stmt"/>
+        <line num="22" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="23" count="12" type="stmt"/>
+        <line num="24" count="12" type="stmt"/>
+        <line num="25" count="12" type="stmt"/>
+        <line num="28" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="29" count="12" type="stmt"/>
+        <line num="30" count="12" type="stmt"/>
+        <line num="31" count="12" type="stmt"/>
+        <line num="34" count="12" type="cond" truecount="2" falsecount="0"/>
+        <line num="35" count="12" type="stmt"/>
+        <line num="36" count="12" type="stmt"/>
+        <line num="37" count="12" type="stmt"/>
+      </file>
+      <file name="index.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/index.ts">
+        <metrics statements="10" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="15" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="server.http">
+      <metrics statements="47" coveredstatements="23" conditionals="1" coveredconditionals="0" methods="14" coveredmethods="0"/>
+      <file name="index.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/index.ts">
+        <metrics statements="13" coveredstatements="13" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="6" count="3" type="stmt"/>
+        <line num="7" count="3" type="stmt"/>
+        <line num="8" count="3" type="stmt"/>
+        <line num="9" count="3" type="stmt"/>
+        <line num="10" count="3" type="stmt"/>
+        <line num="11" count="3" type="stmt"/>
+        <line num="12" count="3" type="stmt"/>
+        <line num="13" count="3" type="stmt"/>
+      </file>
+      <file name="server.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/server.ts">
+        <metrics statements="34" coveredstatements="10" conditionals="1" coveredconditionals="0" methods="14" coveredmethods="0"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="6" count="3" type="stmt"/>
+        <line num="7" count="3" type="stmt"/>
+        <line num="8" count="3" type="stmt"/>
+        <line num="9" count="3" type="stmt"/>
+        <line num="10" count="3" type="stmt"/>
+        <line num="13" count="3" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="70" count="0" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="server.http.helpers.auth">
+      <metrics statements="63" coveredstatements="63" conditionals="24" coveredconditionals="23" methods="8" coveredmethods="8"/>
+      <file name="authenticateRequest.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/auth/authenticateRequest.ts">
+        <metrics statements="35" coveredstatements="35" conditionals="17" coveredconditionals="17" methods="4" coveredmethods="4"/>
+        <line num="2" count="5" type="stmt"/>
+        <line num="3" count="5" type="stmt"/>
+        <line num="15" count="5" type="stmt"/>
+        <line num="16" count="4" type="stmt"/>
+        <line num="17" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="18" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="20" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="21" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="23" count="1" type="stmt"/>
+        <line num="24" count="1" type="stmt"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="29" count="1" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="34" count="1" type="stmt"/>
+        <line num="35" count="1" type="stmt"/>
+        <line num="36" count="1" type="stmt"/>
+        <line num="39" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="40" count="1" type="stmt"/>
+        <line num="41" count="1" type="stmt"/>
+        <line num="42" count="1" type="stmt"/>
+        <line num="45" count="1" type="stmt"/>
+        <line num="46" count="1" type="stmt"/>
+        <line num="47" count="1" type="stmt"/>
+        <line num="51" count="5" type="stmt"/>
+        <line num="52" count="4" type="stmt"/>
+        <line num="53" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="54" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="56" count="4" type="cond" truecount="5" falsecount="0"/>
+        <line num="57" count="3" type="stmt"/>
+        <line num="58" count="3" type="stmt"/>
+        <line num="59" count="3" type="stmt"/>
+        <line num="60" count="3" type="stmt"/>
+        <line num="61" count="3" type="stmt"/>
+        <line num="65" count="1" type="stmt"/>
+      </file>
+      <file name="cookieHandler.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/auth/cookieHandler.ts">
+        <metrics statements="26" coveredstatements="26" conditionals="7" coveredconditionals="6" methods="4" coveredmethods="4"/>
+        <line num="4" count="10" type="stmt"/>
+        <line num="5" count="10" type="stmt"/>
+        <line num="6" count="10" type="cond" truecount="1" falsecount="0"/>
+        <line num="8" count="8" type="stmt"/>
+        <line num="9" count="14" type="stmt"/>
+        <line num="10" count="14" type="stmt"/>
+        <line num="11" count="14" type="cond" truecount="1" falsecount="0"/>
+        <line num="12" count="8" type="stmt"/>
+        <line num="13" count="8" type="cond" truecount="0" falsecount="1"/>
+        <line num="14" count="8" type="stmt"/>
+        <line num="17" count="8" type="stmt"/>
+        <line num="21" count="6" type="stmt"/>
+        <line num="26" count="6" type="cond" truecount="1" falsecount="0"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="31" count="6" type="cond" truecount="1" falsecount="0"/>
+        <line num="32" count="1" type="stmt"/>
+        <line num="35" count="6" type="stmt"/>
+        <line num="37" count="6" type="stmt"/>
+        <line num="38" count="13" type="stmt"/>
+        <line num="39" count="13" type="stmt"/>
+        <line num="40" count="13" type="cond" truecount="1" falsecount="0"/>
+        <line num="41" count="12" type="stmt"/>
+        <line num="45" count="6" type="stmt"/>
+        <line num="49" count="3" type="stmt"/>
+        <line num="54" count="6" type="stmt"/>
+      </file>
+      <file name="index.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/auth/index.ts">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="4" type="stmt"/>
+        <line num="2" count="4" type="stmt"/>
+      </file>
+    </package>
+    <package name="server.http.helpers.middlewares">
+      <metrics statements="33" coveredstatements="31" conditionals="4" coveredconditionals="3" methods="13" coveredmethods="13"/>
+      <file name="middleWare.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/middlewares/middleWare.ts">
+        <metrics statements="18" coveredstatements="16" conditionals="2" coveredconditionals="1" methods="7" coveredmethods="7"/>
+        <line num="2" count="4" type="stmt"/>
+        <line num="11" count="4" type="stmt"/>
+        <line num="13" count="4" type="stmt"/>
+        <line num="16" count="4" type="stmt"/>
+        <line num="17" count="4" type="stmt"/>
+        <line num="18" count="4" type="stmt"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="26" count="7" type="stmt"/>
+        <line num="30" count="6" type="stmt"/>
+        <line num="31" count="6" type="stmt"/>
+        <line num="32" count="6" type="stmt"/>
+        <line num="33" count="6" type="cond" truecount="1" falsecount="1"/>
+        <line num="34" count="6" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="41" count="6" type="stmt"/>
+        <line num="45" count="4" type="stmt"/>
+        <line num="46" count="6" type="stmt"/>
+      </file>
+      <file name="socketMiddleWare.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/middlewares/socketMiddleWare.ts">
+        <metrics statements="15" coveredstatements="15" conditionals="2" coveredconditionals="2" methods="6" coveredmethods="6"/>
+        <line num="7" count="3" type="stmt"/>
+        <line num="9" count="21" type="stmt"/>
+        <line num="12" count="21" type="stmt"/>
+        <line num="13" count="21" type="stmt"/>
+        <line num="17" count="17" type="stmt"/>
+        <line num="21" count="23" type="stmt"/>
+        <line num="22" count="23" type="stmt"/>
+        <line num="23" count="24" type="stmt"/>
+        <line num="24" count="24" type="cond" truecount="2" falsecount="0"/>
+        <line num="25" count="23" type="stmt"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="29" count="1" type="stmt"/>
+        <line num="33" count="23" type="stmt"/>
+        <line num="37" count="21" type="stmt"/>
+        <line num="38" count="23" type="stmt"/>
+      </file>
+    </package>
+    <package name="server.http.helpers.parser">
+      <metrics statements="183" coveredstatements="132" conditionals="90" coveredconditionals="47" methods="29" coveredmethods="24"/>
+      <file name="cssGenerator.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/parser/cssGenerator.ts">
+        <metrics statements="18" coveredstatements="18" conditionals="0" coveredconditionals="0" methods="6" coveredmethods="6"/>
+        <line num="1" count="4" type="stmt"/>
+        <line num="4" count="4" type="stmt"/>
+        <line num="5" count="11" type="stmt"/>
+        <line num="6" count="13" type="stmt"/>
+        <line num="9" count="11" type="stmt"/>
+        <line num="10" count="13" type="stmt"/>
+        <line num="11" count="13" type="stmt"/>
+        <line num="12" count="28" type="stmt"/>
+        <line num="13" count="28" type="stmt"/>
+        <line num="16" count="13" type="stmt"/>
+        <line num="17" count="13" type="stmt"/>
+        <line num="18" count="24" type="stmt"/>
+        <line num="21" count="13" type="stmt"/>
+        <line num="25" count="13" type="stmt"/>
+        <line num="26" count="13" type="stmt"/>
+        <line num="27" count="13" type="stmt"/>
+        <line num="28" count="13" type="stmt"/>
+        <line num="34" count="11" type="stmt"/>
+      </file>
+      <file name="deepDiff.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/parser/deepDiff.ts">
+        <metrics statements="43" coveredstatements="43" conditionals="23" coveredconditionals="23" methods="8" coveredmethods="8"/>
+        <line num="1" count="6" type="stmt"/>
+        <line num="2" count="14" type="stmt"/>
+        <line num="3" count="331" type="stmt"/>
+        <line num="6" count="14" type="stmt"/>
+        <line num="7" count="80" type="stmt"/>
+        <line num="10" count="14" type="stmt"/>
+        <line num="11" count="16" type="stmt"/>
+        <line num="14" count="14" type="stmt"/>
+        <line num="15" count="114" type="stmt"/>
+        <line num="18" count="14" type="stmt"/>
+        <line num="19" count="114" type="cond" truecount="2" falsecount="0"/>
+        <line num="22" count="14" type="stmt"/>
+        <line num="23" count="62" type="cond" truecount="1" falsecount="0"/>
+        <line num="24" count="48" type="stmt"/>
+        <line num="26" count="14" type="cond" truecount="4" falsecount="0"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="29" count="13" type="cond" truecount="1" falsecount="0"/>
+        <line num="30" count="2" type="stmt"/>
+        <line num="32" count="11" type="cond" truecount="1" falsecount="0"/>
+        <line num="33" count="3" type="stmt"/>
+        <line num="35" count="8" type="stmt"/>
+        <line num="38" count="14" type="stmt"/>
+        <line num="39" count="91" type="cond" truecount="3" falsecount="0"/>
+        <line num="40" count="3" type="stmt"/>
+        <line num="42" count="88" type="cond" truecount="3" falsecount="0"/>
+        <line num="43" count="62" type="stmt"/>
+        <line num="44" count="62" type="cond" truecount="1" falsecount="0"/>
+        <line num="45" count="8" type="stmt"/>
+        <line num="51" count="54" type="stmt"/>
+        <line num="57" count="26" type="stmt"/>
+        <line num="58" count="26" type="stmt"/>
+        <line num="59" count="77" type="cond" truecount="1" falsecount="0"/>
+        <line num="60" count="1" type="stmt"/>
+        <line num="63" count="76" type="stmt"/>
+        <line num="64" count="76" type="cond" truecount="1" falsecount="0"/>
+        <line num="65" count="73" type="stmt"/>
+        <line num="68" count="76" type="stmt"/>
+        <line num="71" count="26" type="stmt"/>
+        <line num="72" count="74" type="cond" truecount="3" falsecount="0"/>
+        <line num="73" count="73" type="stmt"/>
+        <line num="76" count="1" type="stmt"/>
+        <line num="79" count="26" type="stmt"/>
+        <line num="82" count="14" type="stmt"/>
+      </file>
+      <file name="domDiff.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/parser/domDiff.ts">
+        <metrics statements="50" coveredstatements="3" conditionals="40" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="4" count="0" type="stmt"/>
+        <line num="5" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="8" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="14" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="18" count="3" type="stmt"/>
+        <line num="19" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="24" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="29" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="34" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="41" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="48" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="51" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="59" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="62" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="65" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="70" count="3" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="74" count="0" type="stmt"/>
+      </file>
+      <file name="getChanged.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/parser/getChanged.ts">
+        <metrics statements="20" coveredstatements="20" conditionals="12" coveredconditionals="12" methods="2" coveredmethods="2"/>
+        <line num="1" count="6" type="stmt"/>
+        <line num="2" count="66" type="stmt"/>
+        <line num="3" count="66" type="stmt"/>
+        <line num="4" count="155" type="cond" truecount="4" falsecount="0"/>
+        <line num="5" count="10" type="stmt"/>
+        <line num="7" count="145" type="cond" truecount="1" falsecount="0"/>
+        <line num="8" count="59" type="stmt"/>
+        <line num="9" count="59" type="cond" truecount="3" falsecount="0"/>
+        <line num="10" count="7" type="stmt"/>
+        <line num="13" count="66" type="stmt"/>
+        <line num="17" count="6" type="stmt"/>
+        <line num="18" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="19" count="1" type="stmt"/>
+        <line num="21" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="24" count="3" type="stmt"/>
+        <line num="25" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="26" count="1" type="stmt"/>
+        <line num="28" count="5" type="stmt"/>
+        <line num="30" count="3" type="stmt"/>
+      </file>
+      <file name="parser.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/parser/parser.ts">
+        <metrics statements="52" coveredstatements="48" conditionals="15" coveredconditionals="12" methods="10" coveredmethods="8"/>
+        <line num="1" count="5" type="stmt"/>
+        <line num="2" count="5" type="stmt"/>
+        <line num="3" count="5" type="stmt"/>
+        <line num="7" count="5" type="stmt"/>
+        <line num="11" count="5" type="stmt"/>
+        <line num="18" count="5" type="stmt"/>
+        <line num="19" count="6" type="cond" truecount="2" falsecount="1"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="22" count="6" type="cond" truecount="0" falsecount="1"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="25" count="6" type="stmt"/>
+        <line num="28" count="5" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="33" count="64" type="cond" truecount="1" falsecount="0"/>
+        <line num="34" count="19" type="stmt"/>
+        <line num="36" count="45" type="cond" truecount="1" falsecount="0"/>
+        <line num="37" count="2" type="stmt"/>
+        <line num="39" count="43" type="stmt"/>
+        <line num="42" count="5" type="stmt"/>
+        <line num="47" count="90" type="stmt"/>
+        <line num="48" count="90" type="stmt"/>
+        <line num="52" count="50" type="stmt"/>
+        <line num="53" count="50" type="stmt"/>
+        <line num="54" count="44" type="stmt"/>
+        <line num="56" count="50" type="stmt"/>
+        <line num="60" count="32" type="stmt"/>
+        <line num="63" count="32" type="stmt"/>
+        <line num="64" count="75" type="cond" truecount="2" falsecount="0"/>
+        <line num="65" count="16" type="stmt"/>
+        <line num="66" count="59" type="cond" truecount="2" falsecount="0"/>
+        <line num="67" count="4" type="stmt"/>
+        <line num="69" count="55" type="cond" truecount="1" falsecount="0"/>
+        <line num="70" count="1" type="stmt"/>
+        <line num="72" count="54" type="stmt"/>
+        <line num="74" count="31" type="stmt"/>
+        <line num="78" count="13" type="stmt"/>
+        <line num="79" count="13" type="stmt"/>
+        <line num="80" count="13" type="cond" truecount="0" falsecount="1"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="82" count="13" type="cond" truecount="1" falsecount="0"/>
+        <line num="83" count="13" type="stmt"/>
+        <line num="84" count="13" type="stmt"/>
+        <line num="85" count="30" type="cond" truecount="2" falsecount="0"/>
+        <line num="86" count="10" type="stmt"/>
+        <line num="88" count="20" type="stmt"/>
+        <line num="91" count="13" type="stmt"/>
+        <line num="95" count="3" type="stmt"/>
+        <line num="96" count="3" type="stmt"/>
+        <line num="98" count="3" type="stmt"/>
+        <line num="99" count="3" type="stmt"/>
+        <line num="103" count="5" type="stmt"/>
+        <line num="104" count="71" type="stmt"/>
+      </file>
+    </package>
+    <package name="server.http.helpers.server">
+      <metrics statements="55" coveredstatements="26" conditionals="21" coveredconditionals="4" methods="13" coveredmethods="8"/>
+      <file name="bodyParser.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/server/bodyParser.ts">
+        <metrics statements="15" coveredstatements="15" conditionals="4" coveredconditionals="4" methods="6" coveredmethods="6"/>
+        <line num="8" count="4" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="14" count="1" type="stmt"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="16" count="1" type="stmt"/>
+        <line num="21" count="4" type="stmt"/>
+        <line num="22" count="2" type="stmt"/>
+        <line num="23" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="24" count="1" type="stmt"/>
+        <line num="25" count="1" type="stmt"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="32" count="1" type="stmt"/>
+      </file>
+      <file name="cors.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/server/cors.ts">
+        <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+        <line num="3" count="4" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+      </file>
+      <file name="fileRouter.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/helpers/server/fileRouter.ts">
+        <metrics statements="34" coveredstatements="5" conditionals="17" coveredconditionals="0" methods="5" coveredmethods="0"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="8" count="3" type="stmt"/>
+        <line num="9" count="0" type="cond" truecount="0" falsecount="8"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="29" count="3" type="stmt"/>
+        <line num="30" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="34" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="37" count="3" type="stmt"/>
+        <line num="38" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="44" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="51" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="55" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="server.http.verbs">
+      <metrics statements="9" coveredstatements="9" conditionals="6" coveredconditionals="6" methods="2" coveredmethods="2"/>
+      <file name="verbHandler.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/http/verbs/verbHandler.ts">
+        <metrics statements="9" coveredstatements="9" conditionals="6" coveredconditionals="6" methods="2" coveredmethods="2"/>
+        <line num="7" count="4" type="stmt"/>
+        <line num="8" count="8" type="stmt"/>
+        <line num="9" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="10" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="11" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="12" count="7" type="stmt"/>
+        <line num="13" count="7" type="stmt"/>
+        <line num="15" count="2" type="stmt"/>
+        <line num="17" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="server.live">
+      <metrics statements="234" coveredstatements="69" conditionals="90" coveredconditionals="6" methods="63" coveredmethods="19"/>
+      <file name="componentManager.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/live/componentManager.ts">
+        <metrics statements="158" coveredstatements="27" conditionals="65" coveredconditionals="0" methods="41" coveredmethods="4"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="6" count="3" type="stmt"/>
+        <line num="7" count="3" type="stmt"/>
+        <line num="8" count="3" type="stmt"/>
+        <line num="30" count="3" type="stmt"/>
+        <line num="44" count="1" type="stmt"/>
+        <line num="45" count="1" type="stmt"/>
+        <line num="46" count="1" type="stmt"/>
+        <line num="47" count="1" type="stmt"/>
+        <line num="48" count="1" type="stmt"/>
+        <line num="49" count="1" type="stmt"/>
+        <line num="50" count="1" type="stmt"/>
+        <line num="51" count="1" type="stmt"/>
+        <line num="52" count="1" type="stmt"/>
+        <line num="53" count="1" type="stmt"/>
+        <line num="54" count="1" type="stmt"/>
+        <line num="55" count="1" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="69" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="70" count="0" type="stmt"/>
+        <line num="71" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="78" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="80" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="83" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="92" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="101" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="104" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="107" count="0" type="stmt"/>
+        <line num="113" count="0" type="stmt"/>
+        <line num="118" count="0" type="stmt"/>
+        <line num="119" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="127" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="128" count="0" type="stmt"/>
+        <line num="133" count="0" type="stmt"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="135" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="138" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="139" count="0" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
+        <line num="146" count="0" type="stmt"/>
+        <line num="147" count="0" type="stmt"/>
+        <line num="148" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="150" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="151" count="0" type="stmt"/>
+        <line num="153" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="154" count="0" type="stmt"/>
+        <line num="155" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="156" count="0" type="stmt"/>
+        <line num="160" count="0" type="stmt"/>
+        <line num="165" count="0" type="stmt"/>
+        <line num="166" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="167" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="168" count="0" type="stmt"/>
+        <line num="184" count="0" type="stmt"/>
+        <line num="198" count="0" type="stmt"/>
+        <line num="199" count="0" type="stmt"/>
+        <line num="200" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="201" count="0" type="stmt"/>
+        <line num="203" count="0" type="stmt"/>
+        <line num="204" count="0" type="stmt"/>
+        <line num="209" count="0" type="stmt"/>
+        <line num="210" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="212" count="0" type="stmt"/>
+        <line num="214" count="0" type="stmt"/>
+        <line num="215" count="0" type="stmt"/>
+        <line num="217" count="0" type="stmt"/>
+        <line num="219" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="220" count="0" type="stmt"/>
+        <line num="221" count="0" type="stmt"/>
+        <line num="222" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="224" count="0" type="stmt"/>
+        <line num="227" count="0" type="stmt"/>
+        <line num="236" count="0" type="stmt"/>
+        <line num="237" count="0" type="stmt"/>
+        <line num="242" count="0" type="stmt"/>
+        <line num="243" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="247" count="0" type="stmt"/>
+        <line num="248" count="0" type="stmt"/>
+        <line num="250" count="0" type="stmt"/>
+        <line num="255" count="0" type="stmt"/>
+        <line num="260" count="1" type="stmt"/>
+        <line num="261" count="0" type="stmt"/>
+        <line num="262" count="0" type="stmt"/>
+        <line num="263" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="264" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="265" count="0" type="stmt"/>
+        <line num="266" count="0" type="stmt"/>
+        <line num="267" count="0" type="stmt"/>
+        <line num="268" count="0" type="stmt"/>
+        <line num="270" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="271" count="0" type="stmt"/>
+        <line num="272" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="274" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="275" count="0" type="stmt"/>
+        <line num="276" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="278" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="279" count="0" type="stmt"/>
+        <line num="280" count="0" type="stmt"/>
+        <line num="281" count="0" type="stmt"/>
+        <line num="282" count="0" type="stmt"/>
+        <line num="287" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="288" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="289" count="0" type="stmt"/>
+        <line num="290" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="291" count="0" type="stmt"/>
+        <line num="293" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="294" count="0" type="stmt"/>
+        <line num="296" count="0" type="stmt"/>
+        <line num="297" count="0" type="stmt"/>
+        <line num="298" count="0" type="stmt"/>
+        <line num="299" count="0" type="stmt"/>
+        <line num="302" count="0" type="stmt"/>
+        <line num="303" count="0" type="stmt"/>
+        <line num="304" count="0" type="stmt"/>
+        <line num="305" count="0" type="stmt"/>
+        <line num="306" count="0" type="stmt"/>
+        <line num="311" count="0" type="stmt"/>
+        <line num="317" count="1" type="stmt"/>
+        <line num="318" count="0" type="stmt"/>
+        <line num="319" count="0" type="stmt"/>
+        <line num="320" count="0" type="stmt"/>
+        <line num="322" count="0" type="stmt"/>
+        <line num="323" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="324" count="0" type="stmt"/>
+        <line num="329" count="1" type="stmt"/>
+        <line num="330" count="0" type="stmt"/>
+        <line num="331" count="0" type="stmt"/>
+        <line num="334" count="1" type="stmt"/>
+        <line num="335" count="0" type="stmt"/>
+        <line num="336" count="0" type="stmt"/>
+        <line num="339" count="1" type="stmt"/>
+        <line num="340" count="0" type="stmt"/>
+        <line num="345" count="1" type="stmt"/>
+        <line num="346" count="1" type="stmt"/>
+        <line num="350" count="0" type="stmt"/>
+        <line num="351" count="0" type="stmt"/>
+        <line num="353" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="354" count="0" type="stmt"/>
+        <line num="356" count="0" type="stmt"/>
+      </file>
+      <file name="genServer.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/live/genServer.ts">
+        <metrics statements="34" coveredstatements="7" conditionals="17" coveredconditionals="0" methods="4" coveredmethods="0"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="6" count="3" type="stmt"/>
+        <line num="7" count="3" type="stmt"/>
+        <line num="8" count="3" type="stmt"/>
+        <line num="18" count="3" type="stmt"/>
+        <line num="19" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="22" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="23" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="35" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="37" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="46" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="61" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+      </file>
+      <file name="index.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/live/index.ts">
+        <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="6" count="3" type="stmt"/>
+      </file>
+      <file name="pondLiveChannel.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/live/pondLiveChannel.ts">
+        <metrics statements="36" coveredstatements="29" conditionals="8" coveredconditionals="6" methods="18" coveredmethods="15"/>
+        <line num="2" count="4" type="stmt"/>
+        <line num="4" count="4" type="stmt"/>
+        <line num="12" count="5" type="stmt"/>
+        <line num="13" count="5" type="stmt"/>
+        <line num="14" count="5" type="stmt"/>
+        <line num="15" count="5" type="stmt"/>
+        <line num="16" count="5" type="stmt"/>
+        <line num="20" count="2" type="stmt"/>
+        <line num="24" count="2" type="stmt"/>
+        <line num="28" count="5" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="32" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="39" count="5" type="stmt"/>
+        <line num="40" count="5" type="stmt"/>
+        <line num="41" count="5" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="51" count="4" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="60" count="4" type="stmt"/>
+        <line num="64" count="7" type="stmt"/>
+        <line num="68" count="16" type="cond" truecount="2" falsecount="0"/>
+        <line num="72" count="5" type="stmt"/>
+        <line num="73" count="5" type="stmt"/>
+        <line num="78" count="2" type="stmt"/>
+        <line num="82" count="2" type="stmt"/>
+        <line num="83" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="84" count="2" type="stmt"/>
+        <line num="88" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="89" count="5" type="stmt"/>
+        <line num="93" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="94" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="server.live.client">
+      <metrics statements="2" coveredstatements="0" conditionals="4132" coveredconditionals="0" methods="1103" coveredmethods="0"/>
+      <file name="pondLive.js" path="/Users/royossai/WebstormProjects/pondSocket/server/live/client/pondLive.js">
+        <metrics statements="2" coveredstatements="0" conditionals="4132" coveredconditionals="0" methods="1103" coveredmethods="0"/>
+        <line num="1" count="0" type="cond" truecount="0" falsecount="1344"/>
+        <line num="2" count="0" type="cond" truecount="0" falsecount="2788"/>
+      </file>
+    </package>
+    <package name="server.live.component">
+      <metrics statements="112" coveredstatements="80" conditionals="32" coveredconditionals="23" methods="36" coveredmethods="26"/>
+      <file name="clientRouter.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/live/component/clientRouter.ts">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="1" count="4" type="stmt"/>
+        <line num="3" count="4" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+      </file>
+      <file name="liveComponent.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/live/component/liveComponent.ts">
+        <metrics statements="10" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="88" count="3" type="stmt"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="92" count="0" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="98" count="0" type="stmt"/>
+        <line num="100" count="0" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="104" count="0" type="stmt"/>
+      </file>
+      <file name="liveRouter.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/live/component/liveRouter.ts">
+        <metrics statements="39" coveredstatements="39" conditionals="18" coveredconditionals="18" methods="11" coveredmethods="11"/>
+        <line num="2" count="5" type="stmt"/>
+        <line num="14" count="5" type="stmt"/>
+        <line num="21" count="19" type="stmt"/>
+        <line num="22" count="19" type="stmt"/>
+        <line num="23" count="19" type="stmt"/>
+        <line num="27" count="19" type="cond" truecount="2" falsecount="0"/>
+        <line num="28" count="6" type="stmt"/>
+        <line num="30" count="13" type="stmt"/>
+        <line num="38" count="2" type="stmt"/>
+        <line num="46" count="2" type="stmt"/>
+        <line num="54" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="55" count="1" type="stmt"/>
+        <line num="60" count="1" type="stmt"/>
+        <line num="62" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="73" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="74" count="3" type="stmt"/>
+        <line num="79" count="3" type="stmt"/>
+        <line num="81" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="92" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="93" count="1" type="stmt"/>
+        <line num="98" count="1" type="stmt"/>
+        <line num="100" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="107" count="3" type="stmt"/>
+        <line num="111" count="3" type="stmt"/>
+        <line num="115" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="116" count="1" type="stmt"/>
+        <line num="118" count="4" type="stmt"/>
+        <line num="119" count="4" type="stmt"/>
+        <line num="122" count="4" type="stmt"/>
+        <line num="126" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="127" count="1" type="stmt"/>
+        <line num="129" count="4" type="stmt"/>
+        <line num="130" count="4" type="stmt"/>
+        <line num="134" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="135" count="1" type="stmt"/>
+        <line num="137" count="4" type="stmt"/>
+        <line num="138" count="4" type="stmt"/>
+        <line num="139" count="4" type="stmt"/>
+        <line num="140" count="4" type="stmt"/>
+      </file>
+      <file name="liveSocket.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/live/component/liveSocket.ts">
+        <metrics statements="60" coveredstatements="37" conditionals="14" coveredconditionals="5" methods="23" coveredmethods="14"/>
+        <line num="2" count="4" type="stmt"/>
+        <line num="4" count="4" type="stmt"/>
+        <line num="8" count="4" type="stmt"/>
+        <line num="19" count="6" type="stmt"/>
+        <line num="20" count="6" type="stmt"/>
+        <line num="21" count="6" type="stmt"/>
+        <line num="22" count="6" type="stmt"/>
+        <line num="23" count="6" type="stmt"/>
+        <line num="24" count="6" type="stmt"/>
+        <line num="25" count="6" type="stmt"/>
+        <line num="26" count="6" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="60" count="4" type="stmt"/>
+        <line num="67" count="2" type="stmt"/>
+        <line num="75" count="1" type="stmt"/>
+        <line num="84" count="2" type="stmt"/>
+        <line num="85" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="86" count="2" type="stmt"/>
+        <line num="96" count="2" type="stmt"/>
+        <line num="100" count="2" type="stmt"/>
+        <line num="108" count="2" type="stmt"/>
+        <line num="109" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="110" count="1" type="stmt"/>
+        <line num="112" count="1" type="stmt"/>
+        <line num="121" count="5" type="stmt"/>
+        <line num="122" count="2" type="cond" truecount="3" falsecount="0"/>
+        <line num="123" count="1" type="stmt"/>
+        <line num="124" count="1" type="stmt"/>
+        <line num="125" count="1" type="stmt"/>
+        <line num="126" count="1" type="stmt"/>
+        <line num="130" count="5" type="stmt"/>
+        <line num="138" count="1" type="stmt"/>
+        <line num="139" count="1" type="stmt"/>
+        <line num="140" count="1" type="stmt"/>
+        <line num="148" count="0" type="stmt"/>
+        <line num="149" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="150" count="0" type="stmt"/>
+        <line num="151" count="0" type="stmt"/>
+        <line num="152" count="0" type="stmt"/>
+        <line num="153" count="0" type="stmt"/>
+        <line num="157" count="0" type="stmt"/>
+        <line num="161" count="0" type="stmt"/>
+        <line num="162" count="0" type="stmt"/>
+        <line num="163" count="0" type="stmt"/>
+        <line num="167" count="1" type="cond" truecount="0" falsecount="1"/>
+        <line num="168" count="0" type="stmt"/>
+        <line num="170" count="1" type="stmt"/>
+        <line num="176" count="1" type="stmt"/>
+        <line num="177" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="178" count="0" type="stmt"/>
+        <line num="180" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="181" count="0" type="stmt"/>
+        <line num="183" count="0" type="stmt"/>
+        <line num="186" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="server.socket">
+      <metrics statements="342" coveredstatements="332" conditionals="115" coveredconditionals="112" methods="110" coveredmethods="104"/>
+      <file name="channel.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/socket/channel.ts">
+        <metrics statements="89" coveredstatements="89" conditionals="36" coveredconditionals="36" methods="26" coveredmethods="26"/>
+        <line num="1" count="5" type="stmt"/>
+        <line num="11" count="5" type="stmt"/>
+        <line num="32" count="5" type="stmt"/>
+        <line num="42" count="39" type="stmt"/>
+        <line num="43" count="39" type="stmt"/>
+        <line num="44" count="39" type="stmt"/>
+        <line num="45" count="39" type="stmt"/>
+        <line num="46" count="39" type="stmt"/>
+        <line num="47" count="39" type="stmt"/>
+        <line num="48" count="39" type="stmt"/>
+        <line num="49" count="39" type="stmt"/>
+        <line num="56" count="29" type="stmt"/>
+        <line num="65" count="65" type="stmt"/>
+        <line num="73" count="4" type="stmt"/>
+        <line num="80" count="84" type="stmt"/>
+        <line num="81" count="105" type="stmt"/>
+        <line num="88" count="29" type="stmt"/>
+        <line num="89" count="29" type="stmt"/>
+        <line num="90" count="42" type="stmt"/>
+        <line num="91" count="42" type="stmt"/>
+        <line num="94" count="29" type="stmt"/>
+        <line num="102" count="44" type="stmt"/>
+        <line num="110" count="37" type="stmt"/>
+        <line num="111" count="37" type="cond" truecount="1" falsecount="0"/>
+        <line num="112" count="1" type="stmt"/>
+        <line num="115" count="36" type="stmt"/>
+        <line num="116" count="36" type="stmt"/>
+        <line num="117" count="36" type="stmt"/>
+        <line num="119" count="36" type="stmt"/>
+        <line num="136" count="7" type="stmt"/>
+        <line num="137" count="7" type="cond" truecount="1" falsecount="0"/>
+        <line num="138" count="5" type="stmt"/>
+        <line num="148" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="150" count="13" type="stmt"/>
+        <line num="151" count="14" type="stmt"/>
+        <line num="152" count="14" type="cond" truecount="1" falsecount="0"/>
+        <line num="153" count="14" type="stmt"/>
+        <line num="154" count="14" type="stmt"/>
+        <line num="156" count="14" type="stmt"/>
+        <line num="169" count="13" type="cond" truecount="1" falsecount="0"/>
+        <line num="170" count="10" type="stmt"/>
+        <line num="179" count="10" type="stmt"/>
+        <line num="190" count="11" type="stmt"/>
+        <line num="192" count="11" type="cond" truecount="3" falsecount="0"/>
+        <line num="194" count="10" type="stmt"/>
+        <line num="197" count="10" type="stmt"/>
+        <line num="205" count="10" type="cond" truecount="1" falsecount="0"/>
+        <line num="206" count="7" type="stmt"/>
+        <line num="216" count="6" type="stmt"/>
+        <line num="217" count="6" type="cond" truecount="1" falsecount="0"/>
+        <line num="219" count="5" type="stmt"/>
+        <line num="223" count="5" type="stmt"/>
+        <line num="231" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="232" count="4" type="stmt"/>
+        <line num="233" count="6" type="stmt"/>
+        <line num="235" count="4" type="stmt"/>
+        <line num="246" count="14" type="stmt"/>
+        <line num="247" count="14" type="cond" truecount="3" falsecount="0"/>
+        <line num="248" count="1" type="stmt"/>
+        <line num="250" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="251" count="16" type="stmt"/>
+        <line num="253" count="13" type="cond" truecount="1" falsecount="0"/>
+        <line num="255" count="11" type="stmt"/>
+        <line num="259" count="11" type="stmt"/>
+        <line num="267" count="11" type="cond" truecount="1" falsecount="0"/>
+        <line num="268" count="9" type="stmt"/>
+        <line num="275" count="13" type="stmt"/>
+        <line num="285" count="13" type="stmt"/>
+        <line num="286" count="13" type="cond" truecount="1" falsecount="0"/>
+        <line num="287" count="13" type="stmt"/>
+        <line num="292" count="13" type="stmt"/>
+        <line num="293" count="13" type="cond" truecount="1" falsecount="0"/>
+        <line num="294" count="5" type="stmt"/>
+        <line num="295" count="5" type="stmt"/>
+        <line num="318" count="21" type="stmt"/>
+        <line num="319" count="27" type="cond" truecount="1" falsecount="0"/>
+        <line num="322" count="21" type="stmt"/>
+        <line num="323" count="36" type="stmt"/>
+        <line num="329" count="36" type="stmt"/>
+        <line num="332" count="21" type="stmt"/>
+        <line num="334" count="16" type="stmt"/>
+        <line num="335" count="16" type="stmt"/>
+        <line num="347" count="20" type="stmt"/>
+        <line num="356" count="65" type="stmt"/>
+        <line num="357" count="65" type="cond" truecount="2" falsecount="0"/>
+        <line num="358" count="65" type="cond" truecount="3" falsecount="0"/>
+        <line num="359" count="49" type="stmt"/>
+        <line num="360" count="49" type="stmt"/>
+        <line num="365" count="16" type="stmt"/>
+      </file>
+      <file name="endpoint.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/socket/endpoint.ts">
+        <metrics statements="113" coveredstatements="109" conditionals="39" coveredconditionals="38" methods="32" coveredmethods="31"/>
+        <line num="11" count="3" type="stmt"/>
+        <line num="15" count="3" type="stmt"/>
+        <line num="16" count="3" type="stmt"/>
+        <line num="21" count="3" type="stmt"/>
+        <line num="28" count="25" type="stmt"/>
+        <line num="29" count="25" type="stmt"/>
+        <line num="30" count="25" type="stmt"/>
+        <line num="31" count="25" type="stmt"/>
+        <line num="32" count="25" type="stmt"/>
+        <line num="41" count="13" type="stmt"/>
+        <line num="76" count="8" type="stmt"/>
+        <line num="77" count="8" type="stmt"/>
+        <line num="78" count="8" type="stmt"/>
+        <line num="89" count="22" type="stmt"/>
+        <line num="91" count="22" type="stmt"/>
+        <line num="97" count="22" type="stmt"/>
+        <line num="99" count="22" type="stmt"/>
+        <line num="104" count="22" type="stmt"/>
+        <line num="105" count="22" type="cond" truecount="1" falsecount="0"/>
+        <line num="106" count="1" type="stmt"/>
+        <line num="107" count="1" type="stmt"/>
+        <line num="110" count="21" type="stmt"/>
+        <line num="111" count="21" type="stmt"/>
+        <line num="112" count="21" type="stmt"/>
+        <line num="117" count="21" type="stmt"/>
+        <line num="118" count="21" type="stmt"/>
+        <line num="120" count="21" type="cond" truecount="1" falsecount="0"/>
+        <line num="121" count="3" type="stmt"/>
+        <line num="128" count="3" type="stmt"/>
+        <line num="131" count="21" type="stmt"/>
+        <line num="135" count="22" type="stmt"/>
+        <line num="136" count="22" type="stmt"/>
+        <line num="145" count="1" type="stmt"/>
+        <line num="151" count="1" type="stmt"/>
+        <line num="152" count="1" type="stmt"/>
+        <line num="153" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="154" count="1" type="stmt"/>
+        <line num="155" count="1" type="stmt"/>
+        <line num="156" count="1" type="stmt"/>
+        <line num="167" count="1" type="stmt"/>
+        <line num="173" count="1" type="stmt"/>
+        <line num="174" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="176" count="1" type="stmt"/>
+        <line num="177" count="1" type="stmt"/>
+        <line num="184" count="5" type="stmt"/>
+        <line num="191" count="5" type="stmt"/>
+        <line num="200" count="2" type="stmt"/>
+        <line num="201" count="2" type="stmt"/>
+        <line num="206" count="2" type="stmt"/>
+        <line num="207" count="3" type="stmt"/>
+        <line num="215" count="11" type="stmt"/>
+        <line num="216" count="11" type="cond" truecount="1" falsecount="0"/>
+        <line num="217" count="11" type="stmt"/>
+        <line num="218" count="11" type="cond" truecount="1" falsecount="0"/>
+        <line num="219" count="10" type="stmt"/>
+        <line num="222" count="1" type="stmt"/>
+        <line num="231" count="21" type="stmt"/>
+        <line num="232" count="24" type="stmt"/>
+        <line num="234" count="21" type="stmt"/>
+        <line num="235" count="19" type="stmt"/>
+        <line num="236" count="15" type="stmt"/>
+        <line num="237" count="19" type="stmt"/>
+        <line num="240" count="21" type="stmt"/>
+        <line num="241" count="0" type="stmt"/>
+        <line num="242" count="0" type="stmt"/>
+        <line num="243" count="0" type="stmt"/>
+        <line num="253" count="21" type="stmt"/>
+        <line num="263" count="24" type="stmt"/>
+        <line num="270" count="24" type="stmt"/>
+        <line num="271" count="24" type="stmt"/>
+        <line num="273" count="23" type="cond" truecount="2" falsecount="0"/>
+        <line num="274" count="1" type="stmt"/>
+        <line num="278" count="22" type="cond" truecount="2" falsecount="0"/>
+        <line num="279" count="1" type="stmt"/>
+        <line num="283" count="21" type="cond" truecount="2" falsecount="0"/>
+        <line num="284" count="1" type="stmt"/>
+        <line num="289" count="20" type="stmt"/>
+        <line num="291" count="17" type="cond" truecount="1" falsecount="0"/>
+        <line num="292" count="3" type="stmt"/>
+        <line num="295" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="296" count="1" type="stmt"/>
+        <line num="304" count="1" type="stmt"/>
+        <line num="305" count="6" type="cond" truecount="1" falsecount="0"/>
+        <line num="306" count="6" type="stmt"/>
+        <line num="317" count="6" type="stmt"/>
+        <line num="328" count="20" type="cond" truecount="6" falsecount="0"/>
+        <line num="330" count="9" type="stmt"/>
+        <line num="331" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="332" count="8" type="stmt"/>
+        <line num="338" count="8" type="stmt"/>
+        <line num="341" count="1" type="stmt"/>
+        <line num="346" count="8" type="stmt"/>
+        <line num="349" count="2" type="stmt"/>
+        <line num="350" count="1" type="stmt"/>
+        <line num="352" count="1" type="stmt"/>
+        <line num="355" count="2" type="stmt"/>
+        <line num="356" count="2" type="stmt"/>
+        <line num="358" count="2" type="stmt"/>
+        <line num="361" count="2" type="stmt"/>
+        <line num="362" count="2" type="stmt"/>
+        <line num="364" count="1" type="stmt"/>
+        <line num="367" count="3" type="stmt"/>
+        <line num="368" count="3" type="cond" truecount="3" falsecount="0"/>
+        <line num="369" count="2" type="stmt"/>
+        <line num="374" count="1" type="stmt"/>
+        <line num="376" count="0" type="stmt"/>
+        <line num="379" count="2" type="stmt"/>
+        <line num="380" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="382" count="2" type="stmt"/>
+        <line num="394" count="11" type="stmt"/>
+        <line num="395" count="11" type="cond" truecount="1" falsecount="0"/>
+        <line num="396" count="1" type="stmt"/>
+        <line num="398" count="10" type="stmt"/>
+      </file>
+      <file name="index.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/socket/index.ts">
+        <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+      </file>
+      <file name="pondChannel.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/socket/pondChannel.ts">
+        <metrics statements="97" coveredstatements="97" conditionals="32" coveredconditionals="32" methods="36" coveredmethods="36"/>
+        <line num="1" count="4" type="stmt"/>
+        <line num="14" count="4" type="stmt"/>
+        <line num="16" count="4" type="stmt"/>
+        <line num="22" count="4" type="stmt"/>
+        <line num="30" count="15" type="stmt"/>
+        <line num="31" count="15" type="stmt"/>
+        <line num="32" count="15" type="stmt"/>
+        <line num="33" count="15" type="stmt"/>
+        <line num="34" count="15" type="stmt"/>
+        <line num="35" count="15" type="stmt"/>
+        <line num="42" count="10" type="stmt"/>
+        <line num="51" count="43" type="stmt"/>
+        <line num="60" count="6" type="stmt"/>
+        <line num="62" count="6" type="stmt"/>
+        <line num="72" count="21" type="stmt"/>
+        <line num="74" count="21" type="stmt"/>
+        <line num="75" count="21" type="stmt"/>
+        <line num="76" count="21" type="cond" truecount="1" falsecount="0"/>
+        <line num="77" count="1" type="stmt"/>
+        <line num="79" count="20" type="cond" truecount="1" falsecount="0"/>
+        <line num="80" count="15" type="stmt"/>
+        <line num="82" count="20" type="stmt"/>
+        <line num="88" count="20" type="stmt"/>
+        <line num="94" count="20" type="stmt"/>
+        <line num="95" count="19" type="cond" truecount="1" falsecount="0"/>
+        <line num="96" count="2" type="stmt"/>
+        <line num="98" count="17" type="stmt"/>
+        <line num="99" count="17" type="cond" truecount="2" falsecount="0"/>
+        <line num="101" count="17" type="stmt"/>
+        <line num="102" count="43" type="stmt"/>
+        <line num="105" count="17" type="stmt"/>
+        <line num="112" count="17" type="stmt"/>
+        <line num="114" count="17" type="cond" truecount="1" falsecount="0"/>
+        <line num="115" count="1" type="stmt"/>
+        <line num="117" count="17" type="stmt"/>
+        <line num="120" count="20" type="stmt"/>
+        <line num="121" count="20" type="stmt"/>
+        <line num="132" count="1" type="stmt"/>
+        <line num="133" count="1" type="stmt"/>
+        <line num="143" count="1" type="stmt"/>
+        <line num="144" count="1" type="stmt"/>
+        <line num="145" count="1" type="stmt"/>
+        <line num="156" count="2" type="stmt"/>
+        <line num="157" count="2" type="cond" truecount="4" falsecount="0"/>
+        <line num="166" count="12" type="stmt"/>
+        <line num="167" count="10" type="stmt"/>
+        <line num="179" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="180" count="2" type="stmt"/>
+        <line num="181" count="2" type="stmt"/>
+        <line num="190" count="31" type="cond" truecount="2" falsecount="0"/>
+        <line num="199" count="2" type="stmt"/>
+        <line num="200" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="201" count="1" type="stmt"/>
+        <line num="203" count="1" type="stmt"/>
+        <line num="204" count="1" type="stmt"/>
+        <line num="212" count="16" type="cond" truecount="1" falsecount="0"/>
+        <line num="213" count="8" type="stmt"/>
+        <line num="214" count="8" type="stmt"/>
+        <line num="215" count="8" type="stmt"/>
+        <line num="216" count="7" type="cond" truecount="1" falsecount="0"/>
+        <line num="217" count="7" type="stmt"/>
+        <line num="228" count="18" type="cond" truecount="2" falsecount="0"/>
+        <line num="229" count="18" type="cond" truecount="1" falsecount="0"/>
+        <line num="230" count="16" type="stmt"/>
+        <line num="232" count="2" type="stmt"/>
+        <line num="241" count="16" type="stmt"/>
+        <line num="242" count="16" type="stmt"/>
+        <line num="245" count="16" type="stmt"/>
+        <line num="246" count="6" type="stmt"/>
+        <line num="249" count="16" type="stmt"/>
+        <line num="259" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="260" count="2" type="stmt"/>
+        <line num="261" count="4" type="stmt"/>
+        <line num="262" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="263" count="4" type="stmt"/>
+        <line num="264" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="265" count="4" type="stmt"/>
+        <line num="266" count="4" type="stmt"/>
+        <line num="279" count="6" type="stmt"/>
+        <line num="280" count="28" type="stmt"/>
+        <line num="281" count="28" type="stmt"/>
+        <line num="283" count="28" type="cond" truecount="1" falsecount="0"/>
+        <line num="284" count="15" type="stmt"/>
+        <line num="290" count="15" type="stmt"/>
+        <line num="303" count="15" type="stmt"/>
+        <line num="304" count="13" type="stmt"/>
+        <line num="306" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="307" count="3" type="stmt"/>
+        <line num="313" count="10" type="cond" truecount="1" falsecount="0"/>
+        <line num="314" count="2" type="stmt"/>
+        <line num="316" count="10" type="cond" truecount="1" falsecount="0"/>
+        <line num="317" count="4" type="stmt"/>
+        <line num="319" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="320" count="1" type="stmt"/>
+        <line num="330" count="15" type="stmt"/>
+        <line num="331" count="15" type="stmt"/>
+        <line num="334" count="28" type="cond" truecount="2" falsecount="0"/>
+      </file>
+      <file name="pondSocket.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/socket/pondSocket.ts">
+        <metrics statements="39" coveredstatements="33" conditionals="8" coveredconditionals="6" methods="16" coveredmethods="11"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="7" count="3" type="stmt"/>
+        <line num="9" count="3" type="stmt"/>
+        <line num="15" count="21" type="stmt"/>
+        <line num="16" count="21" type="cond" truecount="2" falsecount="0"/>
+        <line num="17" count="21" type="cond" truecount="2" falsecount="0"/>
+        <line num="18" count="21" type="stmt"/>
+        <line num="19" count="21" type="stmt"/>
+        <line num="27" count="1" type="stmt"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="29" count="1" type="stmt"/>
+        <line num="38" count="16" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="68" count="17" type="stmt"/>
+        <line num="69" count="17" type="stmt"/>
+        <line num="70" count="23" type="cond" truecount="1" falsecount="1"/>
+        <line num="71" count="23" type="stmt"/>
+        <line num="72" count="23" type="cond" truecount="1" falsecount="0"/>
+        <line num="73" count="1" type="stmt"/>
+        <line num="75" count="22" type="stmt"/>
+        <line num="76" count="1" type="stmt"/>
+        <line num="79" count="17" type="stmt"/>
+        <line num="87" count="13" type="stmt"/>
+        <line num="88" count="21" type="stmt"/>
+        <line num="89" count="21" type="stmt"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="94" count="13" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="96" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="98" count="0" type="stmt"/>
+        <line num="102" count="13" type="stmt"/>
+        <line num="109" count="21" type="stmt"/>
+        <line num="110" count="1" type="stmt"/>
+        <line num="113" count="21" type="stmt"/>
+        <line num="114" count="13" type="stmt"/>
+      </file>
+    </package>
+    <package name="server.utils">
+      <metrics statements="252" coveredstatements="252" conditionals="46" coveredconditionals="46" methods="85" coveredmethods="85"/>
+      <file name="baseClass.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/utils/baseClass.ts">
+        <metrics statements="71" coveredstatements="71" conditionals="18" coveredconditionals="18" methods="30" coveredmethods="30"/>
+        <line num="16" count="13" type="stmt"/>
+        <line num="23" count="113" type="cond" truecount="2" falsecount="0"/>
+        <line num="32" count="29" type="cond" truecount="2" falsecount="0"/>
+        <line num="33" count="22" type="stmt"/>
+        <line num="36" count="7" type="stmt"/>
+        <line num="43" count="1" type="stmt"/>
+        <line num="44" count="1" type="stmt"/>
+        <line num="45" count="31" type="stmt"/>
+        <line num="46" count="31" type="stmt"/>
+        <line num="47" count="31" type="cond" truecount="2" falsecount="0"/>
+        <line num="55" count="3" type="stmt"/>
+        <line num="56" count="3" type="stmt"/>
+        <line num="57" count="24" type="stmt"/>
+        <line num="66" count="29" type="stmt"/>
+        <line num="75" count="101" type="stmt"/>
+        <line num="76" count="101" type="cond" truecount="1" falsecount="0"/>
+        <line num="80" count="18" type="stmt"/>
+        <line num="89" count="6" type="stmt"/>
+        <line num="90" count="6" type="cond" truecount="1" falsecount="0"/>
+        <line num="94" count="1" type="stmt"/>
+        <line num="103" count="15" type="stmt"/>
+        <line num="112" count="678" type="stmt"/>
+        <line num="113" count="678" type="stmt"/>
+        <line num="114" count="10" type="stmt"/>
+        <line num="115" count="10" type="stmt"/>
+        <line num="116" count="117" type="stmt"/>
+        <line num="118" count="117" type="stmt"/>
+        <line num="121" count="5" type="stmt"/>
+        <line num="123" count="5" type="stmt"/>
+        <line num="133" count="869" type="stmt"/>
+        <line num="134" count="129" type="stmt"/>
+        <line num="135" count="740" type="stmt"/>
+        <line num="137" count="7" type="stmt"/>
+        <line num="144" count="7" type="stmt"/>
+        <line num="156" count="90" type="stmt"/>
+        <line num="157" count="90" type="stmt"/>
+        <line num="158" count="90" type="cond" truecount="1" falsecount="0"/>
+        <line num="159" count="7" type="stmt"/>
+        <line num="160" count="13" type="stmt"/>
+        <line num="161" count="13" type="stmt"/>
+        <line num="164" count="90" type="stmt"/>
+        <line num="179" count="87" type="stmt"/>
+        <line num="180" count="87" type="stmt"/>
+        <line num="181" count="87" type="stmt"/>
+        <line num="182" count="87" type="cond" truecount="1" falsecount="0"/>
+        <line num="183" count="69" type="stmt"/>
+        <line num="184" count="69" type="cond" truecount="1" falsecount="0"/>
+        <line num="185" count="69" type="stmt"/>
+        <line num="186" count="69" type="stmt"/>
+        <line num="187" count="70" type="stmt"/>
+        <line num="189" count="69" type="stmt"/>
+        <line num="192" count="18" type="stmt"/>
+        <line num="210" count="10" type="cond" truecount="1" falsecount="0"/>
+        <line num="211" count="8" type="stmt"/>
+        <line num="212" count="8" type="stmt"/>
+        <line num="213" count="8" type="cond" truecount="1" falsecount="0"/>
+        <line num="214" count="6" type="stmt"/>
+        <line num="215" count="6" type="cond" truecount="1" falsecount="0"/>
+        <line num="216" count="6" type="stmt"/>
+        <line num="217" count="6" type="stmt"/>
+        <line num="218" count="8" type="stmt"/>
+        <line num="220" count="6" type="stmt"/>
+        <line num="227" count="4" type="stmt"/>
+        <line num="228" count="4" type="cond" truecount="1" falsecount="0"/>
+        <line num="230" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="231" count="1" type="stmt"/>
+        <line num="234" count="2" type="stmt"/>
+        <line num="243" count="103" type="cond" truecount="1" falsecount="0"/>
+        <line num="245" count="21" type="stmt"/>
+        <line num="246" count="21" type="cond" truecount="1" falsecount="0"/>
+        <line num="248" count="3" type="stmt"/>
+      </file>
+      <file name="basePromise.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/utils/basePromise.ts">
+        <metrics statements="20" coveredstatements="20" conditionals="5" coveredconditionals="5" methods="5" coveredmethods="5"/>
+        <line num="3" count="14" type="stmt"/>
+        <line num="9" count="44" type="stmt"/>
+        <line num="10" count="44" type="stmt"/>
+        <line num="11" count="44" type="stmt"/>
+        <line num="15" count="14" type="stmt"/>
+        <line num="16" count="48" type="stmt"/>
+        <line num="17" count="48" type="stmt"/>
+        <line num="18" count="48" type="stmt"/>
+        <line num="19" count="5" type="stmt"/>
+        <line num="20" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="23" count="48" type="stmt"/>
+        <line num="24" count="39" type="stmt"/>
+        <line num="25" count="39" type="stmt"/>
+        <line num="28" count="48" type="stmt"/>
+        <line num="29" count="48" type="stmt"/>
+        <line num="30" count="46" type="cond" truecount="1" falsecount="0"/>
+        <line num="31" count="2" type="stmt"/>
+        <line num="33" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="34" count="1" type="stmt"/>
+        <line num="36" count="1" type="stmt"/>
+      </file>
+      <file name="index.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/utils/index.ts">
+        <metrics statements="5" coveredstatements="5" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="11" type="stmt"/>
+        <line num="2" count="11" type="stmt"/>
+        <line num="3" count="11" type="stmt"/>
+        <line num="4" count="11" type="stmt"/>
+        <line num="5" count="11" type="stmt"/>
+      </file>
+      <file name="pondBase.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/utils/pondBase.ts">
+        <metrics statements="87" coveredstatements="87" conditionals="9" coveredconditionals="9" methods="29" coveredmethods="29"/>
+        <line num="1" count="12" type="stmt"/>
+        <line num="2" count="12" type="stmt"/>
+        <line num="3" count="12" type="stmt"/>
+        <line num="5" count="12" type="stmt"/>
+        <line num="12" count="454" type="stmt"/>
+        <line num="13" count="454" type="stmt"/>
+        <line num="14" count="454" type="stmt"/>
+        <line num="15" count="454" type="stmt"/>
+        <line num="19" count="151" type="stmt"/>
+        <line num="23" count="390" type="stmt"/>
+        <line num="30" count="48" type="stmt"/>
+        <line num="31" count="48" type="stmt"/>
+        <line num="39" count="53" type="stmt"/>
+        <line num="43" count="12" type="stmt"/>
+        <line num="48" count="140" type="stmt"/>
+        <line num="49" count="140" type="stmt"/>
+        <line num="56" count="26" type="stmt"/>
+        <line num="64" count="87" type="stmt"/>
+        <line num="65" count="87" type="cond" truecount="1" falsecount="0"/>
+        <line num="66" count="66" type="stmt"/>
+        <line num="68" count="21" type="stmt"/>
+        <line num="76" count="123" type="stmt"/>
+        <line num="77" count="123" type="stmt"/>
+        <line num="78" count="123" type="stmt"/>
+        <line num="79" count="123" type="stmt"/>
+        <line num="88" count="55" type="cond" truecount="2" falsecount="0"/>
+        <line num="89" count="54" type="stmt"/>
+        <line num="90" count="54" type="stmt"/>
+        <line num="91" count="54" type="stmt"/>
+        <line num="93" count="1" type="stmt"/>
+        <line num="101" count="24" type="stmt"/>
+        <line num="102" count="24" type="stmt"/>
+        <line num="103" count="24" type="stmt"/>
+        <line num="104" count="24" type="stmt"/>
+        <line num="105" count="24" type="stmt"/>
+        <line num="106" count="24" type="stmt"/>
+        <line num="114" count="1" type="stmt"/>
+        <line num="115" count="3" type="stmt"/>
+        <line num="118" count="1" type="stmt"/>
+        <line num="125" count="30" type="stmt"/>
+        <line num="126" count="26" type="stmt"/>
+        <line num="135" count="24" type="stmt"/>
+        <line num="136" count="24" type="stmt"/>
+        <line num="137" count="11" type="stmt"/>
+        <line num="138" count="11" type="cond" truecount="1" falsecount="0"/>
+        <line num="139" count="8" type="stmt"/>
+        <line num="142" count="24" type="stmt"/>
+        <line num="150" count="2" type="stmt"/>
+        <line num="151" count="2" type="stmt"/>
+        <line num="152" count="6" type="cond" truecount="1" falsecount="0"/>
+        <line num="153" count="1" type="stmt"/>
+        <line num="156" count="2" type="stmt"/>
+        <line num="164" count="2" type="stmt"/>
+        <line num="173" count="1" type="stmt"/>
+        <line num="174" count="1" type="stmt"/>
+        <line num="175" count="3" type="stmt"/>
+        <line num="176" count="3" type="stmt"/>
+        <line num="179" count="1" type="stmt"/>
+        <line num="187" count="69" type="stmt"/>
+        <line num="188" count="65" type="stmt"/>
+        <line num="189" count="65" type="cond" truecount="1" falsecount="0"/>
+        <line num="190" count="58" type="stmt"/>
+        <line num="193" count="11" type="stmt"/>
+        <line num="201" count="19" type="stmt"/>
+        <line num="208" count="1" type="stmt"/>
+        <line num="209" count="2" type="stmt"/>
+        <line num="217" count="26" type="stmt"/>
+        <line num="218" count="41" type="stmt"/>
+        <line num="220" count="41" type="cond" truecount="2" falsecount="0"/>
+        <line num="222" count="9" type="cond" truecount="1" falsecount="0"/>
+        <line num="224" count="41" type="stmt"/>
+        <line num="232" count="91" type="stmt"/>
+        <line num="233" count="91" type="stmt"/>
+        <line num="234" count="120" type="stmt"/>
+        <line num="235" count="120" type="stmt"/>
+        <line num="238" count="91" type="stmt"/>
+        <line num="245" count="50" type="stmt"/>
+        <line num="246" count="50" type="stmt"/>
+        <line num="252" count="140" type="stmt"/>
+        <line num="253" count="147" type="stmt"/>
+        <line num="254" count="147" type="stmt"/>
+        <line num="255" count="147" type="stmt"/>
+        <line num="256" count="3087" type="stmt"/>
+        <line num="259" count="147" type="stmt"/>
+        <line num="269" count="454" type="stmt"/>
+        <line num="270" count="454" type="stmt"/>
+        <line num="271" count="454" type="stmt"/>
+      </file>
+      <file name="pondResponse.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/utils/pondResponse.ts">
+        <metrics statements="27" coveredstatements="27" conditionals="10" coveredconditionals="10" methods="6" coveredmethods="6"/>
+        <line num="3" count="12" type="stmt"/>
+        <line num="8" count="12" type="stmt"/>
+        <line num="22" count="71" type="stmt"/>
+        <line num="23" count="71" type="stmt"/>
+        <line num="24" count="71" type="stmt"/>
+        <line num="25" count="71" type="stmt"/>
+        <line num="26" count="71" type="stmt"/>
+        <line num="36" count="16" type="stmt"/>
+        <line num="41" count="16" type="stmt"/>
+        <line num="49" count="42" type="stmt"/>
+        <line num="58" count="9" type="cond" truecount="4" falsecount="0"/>
+        <line num="59" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="60" count="9" type="stmt"/>
+        <line num="65" count="9" type="stmt"/>
+        <line num="74" count="67" type="cond" truecount="2" falsecount="0"/>
+        <line num="75" count="66" type="stmt"/>
+        <line num="76" count="66" type="stmt"/>
+        <line num="81" count="66" type="stmt"/>
+        <line num="84" count="1" type="stmt"/>
+        <line num="93" count="66" type="cond" truecount="1" falsecount="0"/>
+        <line num="94" count="48" type="stmt"/>
+        <line num="96" count="18" type="stmt"/>
+        <line num="97" count="18" type="stmt"/>
+        <line num="98" count="18" type="stmt"/>
+        <line num="99" count="18" type="stmt"/>
+        <line num="100" count="18" type="stmt"/>
+        <line num="102" count="18" type="stmt"/>
+      </file>
+      <file name="pubSub.ts" path="/Users/royossai/WebstormProjects/pondSocket/server/utils/pubSub.ts">
+        <metrics statements="42" coveredstatements="42" conditionals="4" coveredconditionals="4" methods="15" coveredmethods="15"/>
+        <line num="13" count="13" type="stmt"/>
+        <line num="14" count="234" type="stmt"/>
+        <line num="21" count="82" type="stmt"/>
+        <line num="23" count="82" type="stmt"/>
+        <line num="28" count="37" type="stmt"/>
+        <line num="39" count="375" type="stmt"/>
+        <line num="40" count="136" type="stmt"/>
+        <line num="41" count="136" type="stmt"/>
+        <line num="42" count="135" type="cond" truecount="1" falsecount="0"/>
+        <line num="43" count="19" type="stmt"/>
+        <line num="45" count="1" type="stmt"/>
+        <line num="49" count="374" type="stmt"/>
+        <line num="53" count="13" type="stmt"/>
+        <line num="57" count="8" type="stmt"/>
+        <line num="58" count="8" type="stmt"/>
+        <line num="65" count="1" type="stmt"/>
+        <line num="72" count="9" type="stmt"/>
+        <line num="73" count="8" type="stmt"/>
+        <line num="80" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="81" count="5" type="stmt"/>
+        <line num="82" count="5" type="stmt"/>
+        <line num="87" count="13" type="stmt"/>
+        <line num="88" count="18" type="stmt"/>
+        <line num="96" count="18" type="stmt"/>
+        <line num="97" count="24" type="cond" truecount="1" falsecount="0"/>
+        <line num="98" count="14" type="stmt"/>
+        <line num="101" count="18" type="stmt"/>
+        <line num="103" count="18" type="stmt"/>
+        <line num="108" count="2" type="stmt"/>
+        <line num="120" count="25" type="stmt"/>
+        <line num="121" count="30" type="stmt"/>
+        <line num="122" count="30" type="stmt"/>
+        <line num="123" count="29" type="cond" truecount="1" falsecount="0"/>
+        <line num="124" count="2" type="stmt"/>
+        <line num="126" count="1" type="stmt"/>
+        <line num="130" count="24" type="stmt"/>
+        <line num="138" count="5" type="stmt"/>
+        <line num="139" count="6" type="stmt"/>
+        <line num="142" count="5" type="stmt"/>
+        <line num="144" count="5" type="stmt"/>
+        <line num="149" count="1" type="stmt"/>
+        <line num="158" count="1" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
