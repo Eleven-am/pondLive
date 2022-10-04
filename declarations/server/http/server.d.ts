@@ -44,6 +44,12 @@ export interface PondPatchRequest extends IncomingMessage {
     body: Record<string, any>;
 }
 
+export interface PondLiveServerOptions {
+    secret?: string;
+    cookie?: string;
+    index?: string;
+}
+
 export declare class PondServer {
     constructor();
     listen(port: number, callback: () => void): void;
@@ -58,5 +64,5 @@ export declare class PondServer {
     useAuthenticator(secret: string, cookieName?: string): void;
     useBodyParser(): void;
     useCors(): void;
-    usePondLive(routes: Route[], htmlPath?: string): PondLiveChannelManager;
+    usePondLive(routes: Route[], options?: PondLiveServerOptions): PondLiveChannelManager;
 }
