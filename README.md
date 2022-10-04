@@ -158,6 +158,16 @@ PondLive is a server side framework that can be used to render HTML pages with r
             });
         },
         
+        manageStyles(context, css) {
+            return css`
+                .counter {
+                    font-size: 2rem;
+                    font-weight: bold;
+                    color: ${context.count & 10 === 0 ? 'green': context.count & 2 === 0 ? 'red': 'blue'};
+                }
+            `;
+        },
+        
         onEvent(event, data, socket, router) {
             if (event.type === 'increment') {
                 socket.assign({
@@ -173,11 +183,11 @@ PondLive is a server side framework that can be used to render HTML pages with r
         },
         
         
-        render(socket, router) {
+        render(socket, classes) {
             return html`
                 <div>
                     <button pond-click="increment">+</button>
-                    <span>${socket.context.count}</span>
+                    <span class="${classes.counter}">${socket.context.count}</span>
                     <button pond-click="decrement">-</button>
                 </div>
             `;
