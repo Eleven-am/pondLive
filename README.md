@@ -15,7 +15,7 @@ PondSocket usage depends on the environment in which it is being used.
 #### On the server
 
 When using PondSocket, an endpoint is created. The endpoint is the gateway by which sockets actually connect to the server.
-Multiple endpoints can be created but every endpoint is independent from the other, ie sockets on one endpoint cannot communicate with sockets on another endpoint.
+Multiple endpoints can be created but every endpoint is independent of the other, ie sockets on one endpoint cannot communicate with sockets on another endpoint.
 
 ```js
   import PondSocket from "pondsocket";
@@ -83,7 +83,7 @@ It can be anything from a boolean to an instance of a class. This data cannot be
 ```
 
 When a message is sent on a channel by a user, an event is triggered. The *on* function can be used to listen for these events. If the function is specified, it is called when the message is received.
-You can choose to decline the message being sent or you can allow the message to be sent as usual. You can also do all the normal assigns to the channel, or user.
+You can choose to decline the message being sent, or you can allow the message to be sent as usual. You can also do all the normal assigns to the channel, or user.
 In case there is no *on* function, the message will be sent without any action being taken.
 
 #### On the browser
@@ -96,9 +96,9 @@ In case there is no *on* function, the message will be sent without any action b
 ```
 
 The browser compatible package can be imported from pondsocket/client.
-A url string is provided to the class along with other url params, like token.
+AN url string is provided to the class along with other url params, like token.
 
-Multiple classes can be created but it is advised to use a single class throughout the application.
+Multiple classes can be created, but it is advised to use a single class throughout the application.
 You can just create multiple channels and maintain the single socket connection.
 
 ```js
@@ -139,10 +139,143 @@ suggestions should be provided by your IDE.
     // channel.broadcastFrom broadcasts a message to everyone but the client that emitted the message
     // channel.sendMessage sends a message to clients specified in the function
 ```
+## PondLive
 
+PondLive is a framework that uses PondSocket to provide realtime functionality to your application.
+PondLive is a server side framework that can be used to render HTML pages with realtime functionality to the browser, eliminating the need for a frontend framework.
 
+```js
+    import { PondServer, LiveFactory, html } from "pondsocket";
 
-
-
-
+    const server = new PondServer();
     
+    const Counter = LiveFactory({
+        routes: [],
+        
+        mount(params, socket, router) {
+            socket.assign({
+                count: 0
+            });
+        },
+        
+        onEvent(event, data, socket, router) {
+            if (event.type === 'increment') {
+                socket.assign({
+                    count: socket.assigns.count + 1
+                });
+                
+                
+            } else if (event.type === 'decrement') {
+                socket.assign({
+                    count: socket.assigns.count - 1
+                });
+            }
+        },
+        
+        
+        render(socket, router) {
+            return html`
+                <div>
+                    <button pond-click="increment">+</button>
+                    <span>${socket.context.count}</span>
+                    <button pond-click="decrement">-</button>
+                </div>
+            `;
+        }
+    })
+
+    server.usePondLive([{
+        path: '/counter',
+        component: Counter
+    }]);
+    
+    server.listen(3000, () => {
+        console.log('Listening on port 3000');
+    });
+```
+
+The above example shows a simple counter that can be incremented and decremented.
+The component is a function that returns an object with the following properties:
+
+* routes: An array of nested routes that can be used to render nested components within the component
+* mount: A function that is called when the component is mounted. This function is called with the params, socket, router and the component instance.
+* onEvent: A function that is called when an event is received from the browser. This function is called with the event, current readonly socketContext, socket, router and the component instance.
+* render: A function that is called when the component is rendered. This returns the html that is rendered to the browser.
+
+#### Lifecycle of a component
+
+###### Mounting 
+
+When a http request is made to the server, the server checks if the request is for a static file. If it is not, the request is passed to the PondLive router.
+The router checks if the request matches any of the routes. If it does, the component is mounted and the mount function is called.
+At the stage the version of the socket available to the component is a http socket. This socket is used to send the initial html to the browser.
+This socket can not subscribe to any events or send any messages. The socket is only used to send the initial html to the browser.
+
+###### Rendering
+
+During the render process the information assigned to the socket is available to the component. The component can use this information to render the html.
+The html is sent to the browser and the browser renders the html. The browser then attempts to establish a websocket connection with the server.
+If successful, the browser also sends an event to the server to inform it that the html has been rendered.
+
+###### onRendered
+    
+When the server receives the event that the html has been rendered, the server upgrades the socket to a websocket connection.
+The server then calls the onRendered function. This function is called with the socket, router and the component instance.
+The socket is now a websocket socket and can be used to send and receive messages. This socket can also subscribe to events from the client, other clients or even other components.
+
+###### onEvent
+
+When an event is received from the client, the onEvent function is called. This function is called with the event, current readonly socketContext, socket, router and the component instance.
+The event can be used to update the socketContext and the socketContext can be used to render the html.
+
+###### onInfo
+
+When other serverside actors emit an event, the onInfo function is called. This function is called with the event, current readonly socketContext, socket, router and the component instance.
+This can be useful to modify the state of the component based on events from other actors, like a database.
+
+###### onUnmount
+
+When the component is unmounted, the onUnmount function is called. This function is called with the socket's context, and the socket.
+This function can be used to clean up any resources that were created during the mount function.
+This function does not render the component and thus does not send any html to the browser.
+
+###### manageStyles
+
+When the component is rendered, the manageStyles function is called. This function is called with the socket's context, and the socket.
+A css string is returned from this function and is used to during the render process to add the styles to the html.
+
+#### PondLive Router
+
+The router is passed through the mount, onEvent, onInfo, onUnmount and render functions.
+With the router you can navigate to other components, change the pageTitle and display a flash message
+
+```js
+    router.redirect('/counter');
+    router.replace('/counter');
+    
+    router.pageTitle = 'Counter';
+    router.flashMessage = 'Hello World';
+```
+
+#### PondLive Socket (LiveSocket)
+
+The socket holds the state of the current user on this component. The socket is passed through the mount, onEvent, onInfo, onUnmount and render functions.
+You can assign new values to the socket thus modifying the context of the user on this component.
+
+```js
+    socket.assign({
+        count: 0
+    });
+```
+
+The socket can also subscribe to channels, get data stored in these channels and also broadcast to other channels.
+
+```js
+    socket.subscribe('counter', 'increment');
+    
+    const data = await socket.getChannelData('counter');
+    
+    socket.broadcast('counter', {
+        count: 0
+    });
+```
