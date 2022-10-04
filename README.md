@@ -168,16 +168,16 @@ PondLive is a server side framework that can be used to render HTML pages with r
             `;
         },
         
-        onEvent(event, data, socket, router) {
+        onEvent(event, assigns, socket, router) {
             if (event.type === 'increment') {
                 socket.assign({
-                    count: socket.assigns.count + 1
+                    count: assigns.count + 1
                 });
-                
-                
+
+
             } else if (event.type === 'decrement') {
                 socket.assign({
-                    count: socket.assigns.count - 1
+                    count: assigns.count - 1
                 });
             }
         },
