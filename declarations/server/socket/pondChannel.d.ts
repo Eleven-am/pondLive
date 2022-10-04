@@ -1,23 +1,42 @@
-import { Anything, BaseClass, PondResponse, Subscription } from "../utils";
-import { default_t, IncomingChannelMessage, IncomingJoinMessage, PondMessage, PondPath, PondResponseAssigns, RejectPromise, SocketCache } from "../types";
-import { Channel, ChannelEvent, ChannelInfo } from "./channel";
+import {Anything, BaseClass, default_t, PondError, PondPath, PondResponse, Subscription} from "../utils";
+import {Channel, ChannelEvent, ChannelInfo, PondAssigns, PondMessage, PondPresence} from "./channel";
+import {SocketCache} from "./endpoint";
+
+export interface IncomingJoinMessage {
+    clientId: string;
+    channelName: string;
+    clientAssigns: PondAssigns;
+    joinParams: default_t;
+    params: default_t<string>;
+    query: default_t<string>;
+}
+
+export interface IncomingChannelMessage {
+    channelName: string;
+    event: string;
+    message: default_t;
+    client: {
+        clientId: string;
+        clientAssigns: PondAssigns;
+        clientPresence: PondPresence;
+    },
+    params: default_t<string>;
+    query: default_t<string>;
+}
+
 export declare type ChannelHandler = (req: IncomingJoinMessage, res: PondResponse, channel: Channel) => void;
-export declare type Subscriber = (event: ChannelEvent) => Anything<RejectPromise<{
+
+export declare type Subscriber = (event: ChannelEvent) => Anything<PondError<{
     event: string;
     channelName: string;
 }> | boolean>;
+
 export declare class PondChannel extends BaseClass {
     readonly path: PondPath;
     /**
      * @desc Gets a list of all the channels in the endpoint.
      */
     get info(): ChannelInfo[];
-    /**
-     * @desc Sends a message to a client
-     * @param socket - The socket to send the message to
-     * @param message - The message to send
-     */
-    private static _sendMessage;
     /**
      * @desc A listener for a channel event
      * @param event - The event to listen for, can be a regex

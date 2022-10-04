@@ -3,8 +3,47 @@ import { IncomingMessage, ServerResponse } from "http";
 import { NextFunction } from "./helpers/middlewares/middleWare";
 import { EndpointHandler } from '../socket';
 import {PondLiveChannelManager, Route} from "../live";
-import { PondDeleteRequest, PondGetRequest, PondPatchRequest, PondPath, PondPostRequest, PondPutRequest } from "../types";
 import { PondHTTPResponse } from "./helpers/server/pondHTTPResponse";
+import {PondPath} from "../utils";
+
+export interface PondGetRequest extends IncomingMessage {
+    params: Record<string, string>;
+    query: Record<string, string>;
+    address: string;
+    clientId?: string;
+}
+
+export interface PondPostRequest extends IncomingMessage {
+    params: Record<string, string>;
+    query: Record<string, string>;
+    address: string;
+    clientId?: string;
+    body: Record<string, any>;
+}
+
+export interface PondPutRequest extends IncomingMessage {
+    params: Record<string, string>;
+    query: Record<string, string>;
+    address: string;
+    clientId?: string;
+    body: Record<string, any>;
+}
+
+export interface PondDeleteRequest extends IncomingMessage {
+    params: Record<string, string>;
+    query: Record<string, string>;
+    address: string;
+    clientId?: string;
+}
+
+export interface PondPatchRequest extends IncomingMessage {
+    params: Record<string, string>;
+    query: Record<string, string>;
+    address: string;
+    clientId?: string;
+    body: Record<string, any>;
+}
+
 export declare class PondServer {
     constructor();
     listen(port: number, callback: () => void): void;

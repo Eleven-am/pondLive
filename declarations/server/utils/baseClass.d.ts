@@ -1,15 +1,20 @@
-import { default_t, PondPath } from "../types";
+export type default_t<T = any> = Record<string, any>
+
+export type PondPath = string | RegExp;
+
 export interface Resolver {
     params: default_t<string>;
     query: default_t<string>;
     address: string;
 }
+
 export interface EventRequest {
     params: default_t<string>;
     query: default_t<string>;
     nextPath: string;
     address: string;
 }
+
 export declare class BaseClass {
     /**
      * @desc compares string to string | regex

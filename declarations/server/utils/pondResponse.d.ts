@@ -1,5 +1,9 @@
 import { ResponsePicker } from "../enums";
-import { PondMessage, SendResponse } from "../types";
+import {PondMessage} from "../socket";
+
+export type SendResponse<T = ResponsePicker.CHANNEL> = T extends ResponsePicker.CHANNEL ? Required<PondResponseAssigns> :
+    T extends ResponsePicker.POND ? Required<Omit<PondResponseAssigns, 'presence' | 'channelData'>> : never;
+
 export declare class PondResponse<T extends ResponsePicker = ResponsePicker.CHANNEL> {
     /**
      * @desc Emits a direct message to the client

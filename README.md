@@ -23,7 +23,7 @@ Multiple endpoints can be created but every endpoint is independent from the oth
   
   const pond = new PondSocket();
  
-  const endpoint = pond.createEndpoint('/api/socket', (req, res) => {
+  const endpoint = pond.createEndpoint('/api/socket', (req, res, _endpoint) => {
        const { query } = parse(req.url || '');     
        const { token } = query;     
        if (!token)         

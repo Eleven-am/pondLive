@@ -1,21 +1,38 @@
 /// <reference types="node" />
 /// <reference types="node" />
 /// <reference types="node" />
-import { ChannelHandler, ChannelInfo, default_t, IncomingConnection, PondPath } from "../types";
-import { ResponsePicker } from "../enums";
+import {ChannelHandler, ChannelInfo, PondAssigns} from "../index";
+import {ResponsePicker, ServerActions} from "../enums";
 import internal from "stream";
 import { WebSocket } from "ws";
-import { IncomingMessage } from "http";
-import { BaseClass, PondResponse, Resolver } from "../utils";
+import {IncomingHttpHeaders, IncomingMessage} from "http";
+import {BaseClass, default_t, PondPath, PondResponse, Resolver} from "../utils";
 import { PondChannel } from "./pondChannel";
+
 export declare type EndpointHandler = (req: IncomingConnection, res: PondResponse<ResponsePicker.POND>, endpoint: Endpoint) => void;
+
+export interface IncomingConnection {
+    clientId: string;
+    params: default_t<string>;
+    query: default_t<string>;
+    headers: IncomingHttpHeaders;
+    address: string;
+}
+
+export type SocketCache = {
+    clientId: string
+    socket: WebSocket;
+    assigns: PondAssigns;
+}
+
+export type ServerMessage = {
+    action: ServerActions;
+    channelName: string;
+    payload: default_t;
+    event: string;
+}
+
 export declare class Endpoint extends BaseClass {
-    /**
-     * @desc Sends a message to a client
-     * @param socket - The socket to send the message to
-     * @param message - The message to send
-     */
-    private static _sendMessage;
     /**
      * @desc Accepts a new socket join request to the room provided using the handler function to authorise the socket
      * @param path - the pattern to accept || can also be a regex
@@ -82,42 +99,4 @@ export declare class Endpoint extends BaseClass {
      * @param message - The message to broadcast.
      */
     broadcast(event: string, message: default_t): void;
-    /**
-     * @desc Searches for a channel in the endpoint.
-     * @param name - The name of the channel to search for.
-     */
-    private _findChannel;
-    /**
-     * @desc Manages a new socket connection
-     * @param cache - The socket cache
-     * @private
-     */
-    private _manageSocket;
-    /**
-     * @desc Finds a pond channel in the endpoint.
-     * @param channelName - The name of the channel to find.
-     * @private
-     */
-    private _findPondChannel;
-    /**
-     * @desc Handles a message sent from a client
-     * @param cache - The socket cache of the client
-     * @param message - The message to handle
-     * @private
-     */
-    private _readMessage;
-    /**
-     * @desc Deals with a message sent from a client
-     * @param cache - The socket cache of the client
-     * @param message - The message to handle
-     */
-    private _handleMessage;
-    /**
-     * @desc Handles a channel action by finding the channel and executing the callback.
-     * @param channelName - The name of the channel to find.
-     * @param event - The event to execute.
-     * @param action - The action to execute.
-     * @private
-     */
-    private _channelAction;
 }

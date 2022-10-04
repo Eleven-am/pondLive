@@ -1,13 +1,13 @@
 /// <reference types="node" />
 /// <reference types="node" />
 /// <reference types="node" />
-import { BaseClass } from "../utils";
+import {BaseClass, PondPath} from "../utils";
 import { IncomingMessage, Server as HTTPServer } from "http";
 import { WebSocketServer } from "ws";
-import { PondPath } from "../types";
 import { Endpoint, EndpointHandler } from "./endpoint";
 import internal from "stream";
 import { NextFunction } from "../http";
+
 export declare class PondSocket extends BaseClass {
     constructor(server?: HTTPServer, socketServer?: WebSocketServer);
     /**

@@ -1,22 +1,34 @@
-import { Anything, BaseClass, PondDocument, Subscription } from "../utils";
-import { NewUser, PondAssigns, PondChannelData, PondMessage, PondPresence, RejectPromise, ServerMessage } from "../types";
+import {Anything, BaseClass, default_t, PondError, Subscription} from "../utils";
 import { PondSenders } from "../enums";
+import { ServerMessage } from "./endpoint";
+
 export interface ChannelInfo {
     name: string;
     channelData: PondChannelData;
     presence: PondPresence[];
     assigns: Record<string, PondAssigns>;
 }
+
 export interface ChannelEvent extends ServerMessage {
     clientId: string | PondSenders;
     clientAssigns: PondAssigns;
     clientPresence: PondPresence;
     channel: Channel;
 }
-export interface PondUser {
-    presence: PondDocument<PondPresence>;
+
+export type PondAssigns = default_t;
+export type PondPresence = default_t;
+export type PondChannelData = default_t;
+export type PondMessage = default_t;
+
+export interface NewUser {
+    client: Omit<SocketCache, 'assigns' | 'socket'>;
     assigns: PondAssigns;
+    presence: PondPresence;
+    channelData: PondChannelData;
 }
+
+
 export declare class Channel extends BaseClass {
     readonly name: string;
     /**
@@ -88,7 +100,7 @@ export declare class Channel extends BaseClass {
     /**
      * @desc Subscribes to a channel event
      */
-    subscribe(callback: (message: ChannelEvent) => Anything<RejectPromise<{
+    subscribe(callback: (message: ChannelEvent) => Anything<PondError<{
         event: string;
         channelName: string;
     }> | boolean>): Subscription;
