@@ -289,3 +289,6 @@ The socket can also subscribe to channels, get data stored in these channels and
         count: 0
     });
 ```
+
+#### Examples
+* [Spotify Widget](https://github.com/Eleven-am/SpotifyWidget)
