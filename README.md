@@ -163,7 +163,7 @@ PondLive is a server side framework that can be used to render HTML pages with r
                 .counter {
                     font-size: 2rem;
                     font-weight: bold;
-                    color: ${context.count & 10 === 0 ? 'green': context.count & 2 === 0 ? 'red': 'blue'};
+                    color: ${context.count % 10 === 0 ? 'green': context.count % 2 === 0 ? 'red': 'blue'};
                 }
             `;
         },
@@ -196,7 +196,7 @@ PondLive is a server side framework that can be used to render HTML pages with r
 
     server.usePondLive([{
         path: '/counter',
-        component: Counter
+        Component: Counter
     }]);
     
     server.listen(3000, () => {
