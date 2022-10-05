@@ -1,5 +1,5 @@
 import { LiveSocket } from "./liveSocket";
-import { HtmlSafeString } from "../../pondserver";
+import {CSSGenerator, CSSOutput, HtmlSafeString} from "../../pondserver";
 import { LiveRouter } from "./liveRouter";
 interface Constructor<T> {
     new (...args: any[]): T;
@@ -20,11 +20,6 @@ export interface RenderContext<LiveContext> {
     context: Readonly<LiveContext>;
     renderRoutes: () => HtmlSafeString;
 }
-export declare type CSSOutput = {
-    string: HtmlSafeString;
-    classes: Record<string, string>;
-};
-export declare type CSSGenerator = (statics: TemplateStringsArray, ...dynamics: unknown[]) => CSSOutput;
 export interface LiveComponent<LiveContext extends Object = any, LiveEvent = any, LiveInfo = any> {
     routes: Route[];
     /**
