@@ -98,7 +98,8 @@ var ComponentManager = /** @class */ (function () {
     function ComponentManager(path, component, props) {
         var _this = this;
         this._base = new utils_1.BaseClass();
-        this._path = path;
+        this._path = path.replace('//', '/')
+            .replace(/\/$/, '');
         this._parentId = props.parentId;
         this._componentId = this._base.nanoId();
         this._component = component;
