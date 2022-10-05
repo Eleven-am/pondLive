@@ -210,7 +210,7 @@ var LiveSocket = /** @class */ (function () {
      */
     LiveSocket.prototype.emit = function (event, data) {
         if (this._channel)
-            this._channel.broadcast(event, data);
+            this._channel.broadcast('emit', { event: event, data: data });
     };
     LiveSocket.prototype.destroy = function () {
         this._subscriptions.forEach(function (s) { return s.sub.unsubscribe(); });
