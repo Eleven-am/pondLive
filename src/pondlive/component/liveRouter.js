@@ -57,7 +57,7 @@ var LiveRouter = /** @class */ (function () {
      * @desc Navigates the client to a new page
      * @param path - The path to navigate to
      */
-    LiveRouter.prototype.navigate = function (path) {
+    LiveRouter.prototype.navigateTo = function (path) {
         if (this._response instanceof pondsocket_1.PondResponse) {
             var message = {
                 action: 'redirect',

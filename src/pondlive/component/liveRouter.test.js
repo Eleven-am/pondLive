@@ -67,7 +67,7 @@ describe('liveRouter', function () {
             end: jest.fn(),
         };
         var router = new liveRouter_1.LiveRouter(response);
-        router.redirect('/test');
+        router.navigateTo('/test');
         expect(response.writeHead).toBeCalledWith(302, {
             Location: '/test',
         });
@@ -78,7 +78,7 @@ describe('liveRouter', function () {
             end: jest.fn(),
         };
         var router2 = new liveRouter_1.LiveRouter(response2, 'client-router');
-        router2.redirect('/test');
+        router2.navigateTo('/test');
         expect(response2.setHeader).toBeCalledWith('x-router-action', 'redirect');
         expect(response2.setHeader).toBeCalledWith('x-router-path', '/test');
         var assigns = {
@@ -89,7 +89,7 @@ describe('liveRouter', function () {
         var resolver = jest.fn();
         var response3 = new pondsocket_1.PondResponse({}, assigns, resolver);
         var router3 = new liveRouter_1.LiveRouter(response3);
-        router3.redirect('/test');
+        router3.navigateTo('/test');
         expect(resolver).toBeCalled();
     });
     it('should be capable of replacing', function () {
@@ -129,18 +129,18 @@ describe('liveRouter', function () {
             end: jest.fn(),
         };
         var router = new liveRouter_1.LiveRouter(response);
-        router.redirect('/test');
+        router.navigateTo('/test');
         expect(router.sentResponse).toBe(true);
-        expect(function () { return router.redirect('/test'); }).toThrow();
+        expect(function () { return router.navigateTo('/test'); }).toThrow();
         var response2 = {
             writeHead: jest.fn(),
             setHeader: jest.fn(),
             end: jest.fn(),
         };
         var router2 = new liveRouter_1.LiveRouter(response2, 'client-router');
-        router2.redirect('/test');
+        router2.navigateTo('/test');
         expect(router2.sentResponse).toBe(true);
-        expect(function () { return router2.redirect('/test'); }).toThrow();
+        expect(function () { return router2.navigateTo('/test'); }).toThrow();
         var assigns = {
             assigns: {},
             presence: {},
@@ -149,8 +149,8 @@ describe('liveRouter', function () {
         var resolver = jest.fn();
         var response3 = new pondsocket_1.PondResponse({}, assigns, resolver);
         var router3 = new liveRouter_1.LiveRouter(response3);
-        router3.redirect('/test');
+        router3.navigateTo('/test');
         expect(router3.sentResponse).toBe(true);
-        expect(function () { return router3.redirect('/test'); }).toThrow();
+        expect(function () { return router3.navigateTo('/test'); }).toThrow();
     });
 });
