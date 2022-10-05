@@ -25,16 +25,16 @@
     "url": "git+https://github.com/Eleven-am/pondSocket.git"
   },
   "exports": {
-    ".": "./server/index.js",
-    "./client": "./client/index.js"
+    ".": "./src/server.js",
+    "./client": "./src/client.js"
   },
   "typesVersions": {
     "*": {
       "*": [
-        "./declarations/server/index.d.ts"
+        "./declarations/src/server.d.ts"
       ],
       "client": [
-        "./declarations/client/index.d.ts"
+        "./declarations/src/client.d.ts"
       ]
     }
   },
