@@ -173,7 +173,7 @@ var EventPubSub = /** @class */ (function () {
     EventPubSub.prototype.subscribeAll = function (handler) {
         var _this = this;
         var subscriber = function (eventData) {
-            return handler(eventData.data);
+            return handler(eventData);
         };
         this._subscribers.add(subscriber);
         return {
