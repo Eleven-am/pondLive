@@ -1,6 +1,6 @@
 {
   "name": "pondsocket",
-  "version": "0.1.89",
+  "version": "0.1.90",
   "description": "PondSocket is a fast simple socket server",
   "keywords": [
     "socket",
