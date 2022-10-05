@@ -52,4 +52,10 @@ export declare class LiveSocket<LiveContext extends Object> {
      * @param name - The name of the channel.
      */
     subscribeAll(name: string): void;
+    /**
+     * @desc Emits an event on the browser window.
+     * @param event - The event name.
+     * @param data - The data to emit.
+     */
+    emit<EmitData>(event: string, data: EmitData): void;
 }

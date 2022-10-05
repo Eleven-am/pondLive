@@ -203,6 +203,15 @@ var LiveSocket = /** @class */ (function () {
         }); });
         this._subscriptions.push({ name: name, sub: sub });
     };
+    /**
+     * @desc Emits an event on the browser window.
+     * @param event - The event name.
+     * @param data - The data to emit.
+     */
+    LiveSocket.prototype.emit = function (event, data) {
+        if (this._channel)
+            this._channel.broadcast(event, data);
+    };
     LiveSocket.prototype.destroy = function () {
         this._subscriptions.forEach(function (s) { return s.sub.unsubscribe(); });
         this._subscriptions.length = 0;
