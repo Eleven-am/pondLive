@@ -18,8 +18,8 @@
   },
   "author": "Roy OSSAI",
   "license": "GPL-3.0",
-  "main": "./server/index.js",
-  "types": "./declarations/server/index.d.ts",
+  "main": "src/server.js",
+  "types": "declarations/src/server.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Eleven-am/pondSocket.git"
