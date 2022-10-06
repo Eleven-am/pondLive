@@ -48,7 +48,7 @@ export interface LiveComponent<LiveContext extends Object = any> {
      * @param socket - The socket of user connection.
      * @param router - The router of this instance of the connection.
      */
-    onContextChange?<ContextType>(name: string, provider: ContextType, socketContext: LiveContext, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
+    onContextChange?(name: string, provider: any, socketContext: LiveContext, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
     /**
      * @desc Called when the component is connected to the server over websockets.
      * @param context - The context of the component.
@@ -133,6 +133,15 @@ export declare class Component<LiveContext extends Object = any> implements Live
      * @param socket - The socket of user connection.
      */
     onUnmount(context: Readonly<LiveContext>, socket: LiveSocket<LiveContext>): void;
+    /**
+     * @desc Called when the value of a provided context changes.
+     * @param name - The name of the context that changed.
+     * @param provider - The context of the component.
+     * @param socketContext - The context of the socket.
+     * @param socket - The socket of user connection.
+     * @param router - The router of this instance of the connection.
+     */
+    onContextChange?(name: string, provider: any, socketContext: LiveContext, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
     /**
      * @desc Called on every render to generate the HTML for the component.
      * @param context - The context of the component.
