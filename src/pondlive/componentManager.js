@@ -287,7 +287,7 @@ var ComponentManager = /** @class */ (function () {
                             return [2 /*return*/];
                         _a = document.doc.socket.createResponse(), router = _a.router, response = _a.response;
                         if (!this._component.onContextChange) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this._component.onContextChange(context, contextName, document.doc.socket.context, document.doc.socket, router)];
+                        return [4 /*yield*/, this._component.onContextChange(contextName, context, document.doc.socket.context, document.doc.socket, router)];
                     case 1:
                         _b.sent();
                         _b.label = 2;
