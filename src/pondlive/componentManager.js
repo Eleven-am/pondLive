@@ -128,13 +128,12 @@ var ComponentManager = /** @class */ (function () {
         }); });
     }
     ComponentManager.prototype.render = function (data, clientId, router) {
-        var e_1, _a;
         return __awaiter(this, void 0, void 0, function () {
-            var document, mountContext, innerHtml, _b, _c, manager, event_1, rendered, e_2_1, renderRoutes, socket, _d, _e, provider, ctx, e_1_1, rendered;
-            var e_2, _f;
+            var document, mountContext, innerHtml, _a, _b, manager, event_1, rendered, e_1_1, renderRoutes, socket, rendered;
+            var e_1, _c;
             var _this = this;
-            return __generator(this, function (_g) {
-                switch (_g.label) {
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         document = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
                         if (!document)
@@ -158,92 +157,59 @@ var ComponentManager = /** @class */ (function () {
                         if (!this._component.mount) return [3 /*break*/, 2];
                         return [4 /*yield*/, this._component.mount(mountContext, document.doc.socket, router)];
                     case 1:
-                        _g.sent();
-                        _g.label = 2;
+                        _d.sent();
+                        _d.label = 2;
                     case 2:
                         innerHtml = null;
-                        _g.label = 3;
+                        _d.label = 3;
                     case 3:
-                        _g.trys.push([3, 8, 9, 10]);
-                        _b = __values(this._innerManagers), _c = _b.next();
-                        _g.label = 4;
+                        _d.trys.push([3, 8, 9, 10]);
+                        _a = __values(this._innerManagers), _b = _a.next();
+                        _d.label = 4;
                     case 4:
-                        if (!!_c.done) return [3 /*break*/, 7];
-                        manager = _c.value;
+                        if (!!_b.done) return [3 /*break*/, 7];
+                        manager = _b.value;
                         event_1 = this._base.getLiveRequest(manager._path, data.address);
                         if (!event_1) return [3 /*break*/, 6];
                         return [4 /*yield*/, manager.render(event_1, clientId, router)];
                     case 5:
-                        rendered = _g.sent();
+                        rendered = _d.sent();
                         if (rendered) {
                             innerHtml = rendered;
                             return [3 /*break*/, 7];
                         }
-                        _g.label = 6;
+                        _d.label = 6;
                     case 6:
-                        _c = _b.next();
+                        _b = _a.next();
                         return [3 /*break*/, 4];
                     case 7: return [3 /*break*/, 10];
                     case 8:
-                        e_2_1 = _g.sent();
-                        e_2 = { error: e_2_1 };
+                        e_1_1 = _d.sent();
+                        e_1 = { error: e_1_1 };
                         return [3 /*break*/, 10];
                     case 9:
                         try {
-                            if (_c && !_c.done && (_f = _b.return)) _f.call(_b);
+                            if (_b && !_b.done && (_c = _a.return)) _c.call(_a);
                         }
-                        finally { if (e_2) throw e_2.error; }
+                        finally { if (e_1) throw e_1.error; }
                         return [7 /*endfinally*/];
                     case 10:
                         if (router.sentResponse)
                             return [2 /*return*/, null];
                         renderRoutes = function () { return (0, clientRouter_1.clientRouter)(_this._componentId, (innerHtml === null || innerHtml === void 0 ? void 0 : innerHtml.path) || '', (innerHtml === null || innerHtml === void 0 ? void 0 : innerHtml.rendered) || (0, pondserver_1.html)(templateObject_2 || (templateObject_2 = __makeTemplateObject([""], [""])))); };
-                        if (!document.doc.socket) return [3 /*break*/, 26];
+                        if (!document.doc.socket) return [3 /*break*/, 13];
                         socket = document.doc.socket;
-                        if (!this._component.onContextChange) return [3 /*break*/, 24];
-                        _g.label = 11;
+                        return [4 /*yield*/, this._manageContext(socket, router)];
                     case 11:
-                        _g.trys.push([11, 18, 19, 24]);
-                        _d = __asyncValues(this._providers);
-                        _g.label = 12;
-                    case 12: return [4 /*yield*/, _d.next()];
-                    case 13:
-                        if (!(_e = _g.sent(), !_e.done)) return [3 /*break*/, 17];
-                        provider = _e.value;
-                        return [4 /*yield*/, provider.getData(socket)];
-                    case 14:
-                        ctx = _g.sent();
-                        if (!ctx) return [3 /*break*/, 16];
-                        return [4 /*yield*/, this._component.onContextChange(ctx.name, ctx.data, socket.context, socket, router)];
-                    case 15:
-                        _g.sent();
-                        _g.label = 16;
-                    case 16: return [3 /*break*/, 12];
-                    case 17: return [3 /*break*/, 24];
-                    case 18:
-                        e_1_1 = _g.sent();
-                        e_1 = { error: e_1_1 };
-                        return [3 /*break*/, 24];
-                    case 19:
-                        _g.trys.push([19, , 22, 23]);
-                        if (!(_e && !_e.done && (_a = _d.return))) return [3 /*break*/, 21];
-                        return [4 /*yield*/, _a.call(_d)];
-                    case 20:
-                        _g.sent();
-                        _g.label = 21;
-                    case 21: return [3 /*break*/, 23];
-                    case 22:
-                        if (e_1) throw e_1.error;
-                        return [7 /*endfinally*/];
-                    case 23: return [7 /*endfinally*/];
-                    case 24: return [4 /*yield*/, this._renderComponent(document, renderRoutes)];
-                    case 25:
-                        rendered = _g.sent();
+                        _d.sent();
+                        return [4 /*yield*/, this._renderComponent(document, renderRoutes)];
+                    case 12:
+                        rendered = _d.sent();
                         return [2 /*return*/, {
                                 path: this._componentId,
                                 rendered: rendered
                             }];
-                    case 26: return [2 /*return*/, null];
+                    case 13: return [2 /*return*/, null];
                 }
             });
         });
@@ -283,12 +249,15 @@ var ComponentManager = /** @class */ (function () {
                                 switch (_a.label) {
                                     case 0:
                                         socket.upgradeToWebsocket(channel);
-                                        if (!this._component.onRendered) return [3 /*break*/, 2];
-                                        return [4 /*yield*/, this._component.onRendered(socket.context, socket, router)];
+                                        return [4 /*yield*/, this._manageContext(socket, router)];
                                     case 1:
                                         _a.sent();
-                                        _a.label = 2;
-                                    case 2: return [2 /*return*/];
+                                        if (!this._component.onRendered) return [3 /*break*/, 3];
+                                        return [4 /*yield*/, this._component.onRendered(socket.context, socket, router)];
+                                    case 2:
+                                        _a.sent();
+                                        _a.label = 3;
+                                    case 3: return [2 /*return*/];
                                 }
                             });
                         }); })];
@@ -377,6 +346,54 @@ var ComponentManager = /** @class */ (function () {
                     return resolve("\n                            <!DOCTYPE html>\n                            <html lang=\"en\">\n                                <head>\n                                    <meta charset=\"UTF-8\">\n                                    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n                                    <title>".concat(headers.pageTitle || 'PondLive', "</title>\n                                    <script>window.token = \"").concat(token, "\";</script>\n                                </head>\n                                <body>\n                                    ").concat(renderedHtml.toString(), "\n                                    <script src=\"/pondLive.js\" defer=\"\"></script>\n                                </body>\n                            </html>"));
                 resolve(data.replace(/<title>(.*?)<\/title>/, " <title>".concat(headers.pageTitle || 'PondLive', "</title>\n                        <script>window.token = \"").concat(token, "\";</script>"))
                     .replace('<body>', "<body>\n                                    ".concat(renderedHtml.toString(), "\n                                    <script src=\"/pondLive.js\" defer=\"\"></script>\n                               ")));
+            });
+        });
+    };
+    ComponentManager.prototype._manageContext = function (socket, router) {
+        var e_2, _a;
+        return __awaiter(this, void 0, void 0, function () {
+            var _b, _c, provider, ctx, e_2_1;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        if (!this._component.onContextChange) return [3 /*break*/, 14];
+                        _d.label = 1;
+                    case 1:
+                        _d.trys.push([1, 8, 9, 14]);
+                        _b = __asyncValues(this._providers);
+                        _d.label = 2;
+                    case 2: return [4 /*yield*/, _b.next()];
+                    case 3:
+                        if (!(_c = _d.sent(), !_c.done)) return [3 /*break*/, 7];
+                        provider = _c.value;
+                        return [4 /*yield*/, provider.getData(socket)];
+                    case 4:
+                        ctx = _d.sent();
+                        if (!ctx) return [3 /*break*/, 6];
+                        return [4 /*yield*/, this._component.onContextChange(ctx.name, ctx.data, socket.context, socket, router)];
+                    case 5:
+                        _d.sent();
+                        _d.label = 6;
+                    case 6: return [3 /*break*/, 2];
+                    case 7: return [3 /*break*/, 14];
+                    case 8:
+                        e_2_1 = _d.sent();
+                        e_2 = { error: e_2_1 };
+                        return [3 /*break*/, 14];
+                    case 9:
+                        _d.trys.push([9, , 12, 13]);
+                        if (!(_c && !_c.done && (_a = _b.return))) return [3 /*break*/, 11];
+                        return [4 /*yield*/, _a.call(_b)];
+                    case 10:
+                        _d.sent();
+                        _d.label = 11;
+                    case 11: return [3 /*break*/, 13];
+                    case 12:
+                        if (e_2) throw e_2.error;
+                        return [7 /*endfinally*/];
+                    case 13: return [7 /*endfinally*/];
+                    case 14: return [2 /*return*/];
+                }
             });
         });
     };
