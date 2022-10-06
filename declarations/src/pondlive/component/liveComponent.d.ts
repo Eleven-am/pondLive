@@ -21,6 +21,10 @@ export interface MountContext {
 
 export interface RenderContext<LiveContext> {
     context: Readonly<LiveContext>;
+
+    /**
+     * @deac Renders the nested routes of the component in the specified position
+     */
     renderRoutes: () => HtmlSafeString;
 }
 
