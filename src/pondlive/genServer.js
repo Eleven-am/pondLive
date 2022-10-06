@@ -45,6 +45,7 @@ var GenerateLiveServer = function (routes, server, chain, props) {
         htmlPath: props === null || props === void 0 ? void 0 : props.htmlPath,
         chain: chain,
         parentId: pondId,
+        providers: (props === null || props === void 0 ? void 0 : props.providers) || [],
         pondLive: new pondLiveChannel_1.PondLiveChannelManager(),
     };
     routes.map(function (route) {

@@ -16,6 +16,7 @@ function LiveFactory(props) {
     return /** @class */ (function () {
         function LiveComponentImpl() {
             this.routes = props.routes;
+            this.providers = props.providers || [];
             this.mount = props.mount;
             this.onRendered = props.onRendered;
             this.onEvent = props.onEvent;
@@ -31,6 +32,7 @@ exports.LiveFactory = LiveFactory;
 var Component = /** @class */ (function () {
     function Component() {
         this.routes = [];
+        this.providers = [];
     }
     /**
      * @desc Called on every render to generate the CSS for the component.

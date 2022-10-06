@@ -107,12 +107,17 @@ var ComponentManager = /** @class */ (function () {
         this._initialiseManager();
         this._htmlPath = props.htmlPath;
         this._pondLive = props.pondLive;
+        var contexts = props.providers.concat(this._component.providers || []);
+        if (this._component.onContextChange)
+            contexts.forEach(function (context) { return context.subscribe(_this); });
+        this._providers = contexts;
         this._innerManagers = component.routes.map(function (route) { return new ComponentManager("".concat(path).concat(route.path), new route.Component(), {
             parentId: _this._componentId,
             pond: _this._pond,
             chain: _this._chain,
             htmlPath: props.htmlPath,
-            pondLive: props.pondLive
+            pondLive: props.pondLive,
+            providers: contexts
         }); });
     }
     ComponentManager.prototype.render = function (data, clientId, router) {
@@ -271,6 +276,29 @@ var ComponentManager = /** @class */ (function () {
             });
         });
     };
+    ComponentManager.prototype.handleContextChange = function (context, contextName, clientId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var document, _a, router, response;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        document = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
+                        if (!document || !document.doc.socket.isWebsocket)
+                            return [2 /*return*/];
+                        _a = document.doc.socket.createResponse(), router = _a.router, response = _a.response;
+                        if (!this._component.onContextChange) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this._component.onContextChange(context, contextName, document.doc.socket.context, document.doc.socket, router)];
+                    case 1:
+                        _b.sent();
+                        _b.label = 2;
+                    case 2: return [4 /*yield*/, this._pushToClient(router, document, 'updated', response)];
+                    case 3:
+                        _b.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
     ComponentManager.prototype.handleUnmount = function (clientId) {
         return __awaiter(this, void 0, void 0, function () {
             var socket, timer;
@@ -290,6 +318,7 @@ var ComponentManager = /** @class */ (function () {
                             socket.doc.socket.destroy();
                         }, 10000);
                         socket.updateDoc(__assign(__assign({}, socket.doc), { timer: timer }));
+                        this._providers.forEach(function (context) { return context.deleteClient(socket.doc.socket); });
                         return [2 /*return*/];
                 }
             });

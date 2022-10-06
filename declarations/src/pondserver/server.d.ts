@@ -6,11 +6,15 @@ import { PondHTTPResponse } from "./helpers/server/pondHTTPResponse";
 import { PondPath } from "../pondbase";
 import { PondDeleteRequest, PondGetRequest, PondPatchRequest, PondPostRequest, PondPutRequest } from "./types";
 import { Route } from "../pondlive";
+import {ContextProvider} from "../pondlive/contextManager";
+
 export interface PondLiveServerOptions {
     secret?: string;
     cookie?: string;
     index?: string;
+    providers?: ContextProvider[];
 }
+
 export declare class PondServer {
     constructor();
     listen(port: number, callback: () => void): void;

@@ -219,6 +219,11 @@ var LiveSocket = /** @class */ (function () {
         this._subscriptions.length = 0;
         this._remove();
     };
+    LiveSocket.prototype.createResponse = function () {
+        var response = this._createPondResponse();
+        var router = new liveRouter_1.LiveRouter(response);
+        return { response: response, router: router };
+    };
     LiveSocket.prototype._createPondResponse = function () {
         var _this = this;
         if (!this._channel)

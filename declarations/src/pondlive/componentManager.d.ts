@@ -4,13 +4,17 @@ import { PondLiveChannelManager } from "./component/pondLiveChannel";
 import { Chain, HtmlSafeString } from "../pondserver";
 import { Resolver } from "../pondbase";
 import { Channel, PondChannel, PondResponse } from "../pondsocket";
+import {ContextProvider} from "./contextManager";
+
 export interface IComponentManagerProps {
     parentId: string;
     pond: PondChannel;
     chain: Chain;
     pondLive: PondLiveChannelManager;
     htmlPath?: string;
+    providers?: ContextProvider[];
 }
+
 interface RenderedComponent {
     path: string;
     rendered: HtmlSafeString;

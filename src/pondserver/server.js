@@ -67,7 +67,8 @@ var PondServer = /** @class */ (function () {
             pondSocket: this._pondSocket,
             htmlPath: options.index,
             secret: options.secret,
-            cookie: options.cookie
+            cookie: options.cookie,
+            providers: options.providers
         });
         return data.manager;
     };
