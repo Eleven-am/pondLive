@@ -27,7 +27,7 @@ var ContextManager = /** @class */ (function () {
         var db = this._database.find(function (doc) { return doc.clientId === socket.clientId; });
         var newDoc;
         if (db) {
-            newDoc = __assign(__assign({}, db.doc.data), assigns);
+            newDoc = Object.assign(db.doc.data, assigns);
             db.updateDoc({ clientId: db.doc.clientId, data: newDoc });
         }
         else {
@@ -53,7 +53,7 @@ var ContextManager = /** @class */ (function () {
         var db = this._database.find(function (doc) { return doc.clientId === socket.clientId; });
         if (db) {
             var data = __assign({}, db.doc.data);
-            return { name: this._name, data: data };
+            return { name: this._name, data: Object.freeze(data) };
         }
         return null;
     };

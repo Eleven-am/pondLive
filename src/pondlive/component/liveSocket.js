@@ -190,7 +190,6 @@ var LiveSocket = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        console.log('subscribeAll', data);
                         if (!(data.sender !== this.clientId)) return [3 /*break*/, 2];
                         response = this._createPondResponse();
                         router = new liveRouter_1.LiveRouter(response);
