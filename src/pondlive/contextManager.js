@@ -49,6 +49,14 @@ var ContextManager = /** @class */ (function () {
         if (doc)
             doc.removeDoc();
     };
+    ContextManager.prototype.getData = function (socket) {
+        var db = this._database.find(function (doc) { return doc.clientId === socket.clientId; });
+        if (db) {
+            var data = __assign({}, db.doc.data);
+            return { name: this._name, data: data };
+        }
+        return null;
+    };
     return ContextManager;
 }());
 exports.ContextManager = ContextManager;
@@ -61,7 +69,8 @@ function createContext(contextId) {
         },
         {
             subscribe: contextManager.subscribe.bind(contextManager),
-            deleteClient: contextManager.deleteClient.bind(contextManager)
+            deleteClient: contextManager.deleteClient.bind(contextManager),
+            getData: contextManager.getData.bind(contextManager)
         }
     ];
 }

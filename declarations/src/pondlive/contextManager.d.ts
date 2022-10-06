@@ -9,6 +9,7 @@ export declare class ContextConsumer<ContextType> {
 export declare class ContextProvider {
     subscribe: (manager: ComponentManager) => void;
     deleteClient: (socket: LiveSocket<any>) => void;
+    getData: (socket: LiveSocket<any>) => PeakData<any> | null;
 }
 
 declare type ContextFactoryType<ContextType> = [ContextConsumer<ContextType>, ContextProvider];
