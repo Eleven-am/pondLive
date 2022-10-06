@@ -332,7 +332,6 @@ var ComponentManager = /** @class */ (function () {
                             socket.doc.socket.destroy();
                         }, 10000);
                         socket.updateDoc(__assign(__assign({}, socket.doc), { timer: timer }));
-                        this._providers.forEach(function (context) { return context.deleteClient(socket.doc.socket); });
                         return [2 /*return*/];
                 }
             });
@@ -554,8 +553,10 @@ var ComponentManager = /** @class */ (function () {
                     case 1:
                         _a.sent();
                         channel.subscribe(function (data) {
-                            if (data.action === pondsocket_1.ServerActions.PRESENCE && data.event === 'LEAVE_CHANNEL')
+                            if (data.action === pondsocket_1.ServerActions.PRESENCE && data.event === 'LEAVE_CHANNEL') {
                                 _this.handleUnmount(req.client.clientAssigns.clientId);
+                                _this._providers.forEach(function (context) { return context.deleteClient(req.client.clientAssigns.clientId); });
+                            }
                         });
                         return [2 /*return*/];
                 }
