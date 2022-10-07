@@ -260,7 +260,7 @@ The router is passed through the mount, onEvent, onInfo, onUnmount and render fu
 With the router you can navigate to other components, change the pageTitle and display a flash message
 
 ```js
-    router.redirect('/counter');
+    router.navigateTo('/counter');
     router.replace('/counter');
     
     router.pageTitle = 'Counter';
@@ -290,5 +290,8 @@ The socket can also subscribe to channels, get data stored in these channels and
     });
 ```
 
+#### PondLive Contexts (GlobalContext, ComponentContext, SocketContext)
+
 #### Examples
-* [Spotify Widget](https://github.com/Eleven-am/SpotifyWidget)
+* Todo App [Github](https://github.com/Eleven-am/PondLiveTodo) - [liveDemo](https://todo.tutorial.maix.ovh)
+* Spotify Widget (PondLive) [Github](https://github.com/Eleven-am/SpotifyWidget) - [liveDemo](https://spotify.tutorial.maix.ovh)
