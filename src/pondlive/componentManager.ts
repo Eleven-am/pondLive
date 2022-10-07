@@ -203,7 +203,7 @@ export class ComponentManager {
                                 </head>
                                 <body>
                                     ${renderedHtml.toString()}
-                                    <script src="/src/pondlive/client/pondLive.js" defer=""></script>
+                                    <script src="/pondLive.js" defer=""></script>
                                 </body>
                             </html>`);
 
