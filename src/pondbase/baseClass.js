@@ -17,6 +17,7 @@ var __read = (this && this.__read) || function (o, n) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseClass = void 0;
+var buffer_1 = require("buffer");
 var BaseClass = /** @class */ (function () {
     function BaseClass() {
     }
@@ -108,7 +109,8 @@ var BaseClass = /** @class */ (function () {
         var textToChars = function (text) { return text.split("").map(function (c) { return c.charCodeAt(0); }); };
         var applySaltToChar = function (code) { return textToChars(salt).reduce(function (a, b) { return a ^ b; }, code); };
         try {
-            var response = JSON.parse((atob(encoded).toString().match(/.{1,2}/g))
+            var response = JSON.parse((buffer_1.Buffer.from(encoded, 'base64').toString()
+                .match(/.{1,2}/g))
                 .map(function (hex) { return parseInt(hex, 16); })
                 .map(applySaltToChar)
                 .map(function (charCode) { return String.fromCharCode(charCode); })
@@ -134,7 +136,7 @@ var BaseClass = /** @class */ (function () {
             .map(applySaltToChar)
             .map(byteHex)
             .join("");
-        return btoa(token).toString();
+        return buffer_1.Buffer.from(token).toString('base64');
     };
     /**
      * @desc Creates an object from the params of a path
