@@ -22,7 +22,7 @@
   "author": "Roy OSSAI",
   "license": "GPL-3.0",
   "main": "bin/server.js",
-  "types": "bin/server.d.ts",
+  "types": "types/server.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Eleven-am/pondSocket.git"
@@ -34,10 +34,10 @@
   "typesVersions": {
     "*": {
       "*": [
-        "./bin/server.d.ts"
+        "./types/server.d.ts"
       ],
       "client": [
-        "./bin/client.d.ts"
+        "./types/client.d.ts"
       ]
     }
   },
