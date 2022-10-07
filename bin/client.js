@@ -15,5 +15,5 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./pondclient"), exports);
-var socket_1 = require("./pondclient/socket");
-exports.default = socket_1.PondClientSocket;
+var pondclient_1 = require("./pondclient");
+exports.default = pondclient_1.PondClientSocket;

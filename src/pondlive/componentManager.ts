@@ -203,7 +203,7 @@ export class ComponentManager {
                                 </head>
                                 <body>
                                     ${renderedHtml.toString()}
-                                    <script src="/pondLive.js" defer=""></script>
+                                    <script src="/src/pondlive/client/pondLive.js" defer=""></script>
                                 </body>
                             </html>`);
 
@@ -212,7 +212,7 @@ export class ComponentManager {
                         <script>window.token = "${token}";</script>`)
                         .replace('<body>', `<body>
                                     ${renderedHtml.toString()}
-                                    <script src="/pondLive.js" defer=""></script>
+                                    <script src="/src/pondlive/client/pondLive.js" defer=""></script>
                                `)
                 );
             });
