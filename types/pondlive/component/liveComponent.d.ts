@@ -20,6 +20,12 @@ export interface MountContext {
 
 export declare type RenderContext = () => HtmlSafeString;
 
+export interface LiveEvent<Events extends string> {
+    type: Events;
+    value: string | null;
+    dataId: string | null;
+}
+
 export interface LiveBuilder<LiveContext extends Object = any> {
     routes?: Route[];
     providers?: ContextProvider[];
@@ -61,7 +67,7 @@ export interface LiveBuilder<LiveContext extends Object = any> {
      * @param socket - The socket of user connection.
      * @param router - The router of this instance of the connection.
      */
-    onEvent?(this: LiveContext, event: any, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
+    onEvent?(this: LiveContext, event: LiveEvent, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
 
     /**
      * @desc Called when the component receives an info from the server.
