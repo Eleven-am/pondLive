@@ -24,21 +24,21 @@ var ComponentClass = /** @class */ (function () {
     return ComponentClass;
 }());
 exports.ComponentClass = ComponentClass;
-function LiveFactory(props) {
+function LiveFactory(context) {
     return /** @class */ (function (_super) {
         __extends(Impl, _super);
         function Impl() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.routes = props.routes || [];
-            _this.providers = props.providers || [];
-            _this.mount = props.mount;
-            _this.onContextChange = props.onContextChange;
-            _this.onRendered = props.onRendered;
-            _this.onEvent = props.onEvent;
-            _this.onInfo = props.onInfo;
-            _this.onUnmount = props.onUnmount;
-            _this.render = props.render;
-            _this.manageStyles = props.manageStyles;
+            _this.routes = context.routes || [];
+            _this.providers = context.providers || [];
+            _this.mount = context.mount;
+            _this.onContextChange = context.onContextChange;
+            _this.onRendered = context.onRendered;
+            _this.onEvent = context.onEvent;
+            _this.onInfo = context.onInfo;
+            _this.onUnmount = context.onUnmount;
+            _this.render = context.render;
+            _this.manageStyles = context.manageStyles;
             return _this;
         }
         return Impl;

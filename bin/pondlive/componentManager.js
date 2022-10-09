@@ -287,23 +287,22 @@ var ComponentManager = /** @class */ (function () {
         });
     };
     ComponentManager.prototype.handleContextChange = function (context, contextName, clientId) {
+        var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var document, _a, router, response;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var document, _b, router, response;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         document = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
                         if (!document || !document.doc.socket.isWebsocket)
                             return [2 /*return*/];
-                        _a = document.doc.socket.createResponse(), router = _a.router, response = _a.response;
-                        if (!this._component.onContextChange) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this._component.onContextChange(contextName, context, document.doc.socket.context, document.doc.socket, router)];
+                        _b = document.doc.socket.createResponse(), router = _b.router, response = _b.response;
+                        return [4 /*yield*/, ((_a = this._component.onContextChange) === null || _a === void 0 ? void 0 : _a.call(document.doc.socket.context, contextName, context, document.doc.socket, router))];
                     case 1:
-                        _b.sent();
-                        _b.label = 2;
-                    case 2: return [4 /*yield*/, this._pushToClient(router, document, 'updated', response)];
-                    case 3:
-                        _b.sent();
+                        _c.sent();
+                        return [4 /*yield*/, this._pushToClient(router, document, 'updated', response)];
+                    case 2:
+                        _c.sent();
                         return [2 /*return*/];
                 }
             });
@@ -349,43 +348,41 @@ var ComponentManager = /** @class */ (function () {
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
-                        if (!this._component.onContextChange) return [3 /*break*/, 14];
+                        if (!this._component.onContextChange) return [3 /*break*/, 13];
                         _d.label = 1;
                     case 1:
-                        _d.trys.push([1, 8, 9, 14]);
+                        _d.trys.push([1, 7, 8, 13]);
                         _b = __asyncValues(this._providers);
                         _d.label = 2;
                     case 2: return [4 /*yield*/, _b.next()];
                     case 3:
-                        if (!(_c = _d.sent(), !_c.done)) return [3 /*break*/, 7];
+                        if (!(_c = _d.sent(), !_c.done)) return [3 /*break*/, 6];
                         provider = _c.value;
                         return [4 /*yield*/, provider.getData(socket)];
                     case 4:
                         ctx = _d.sent();
-                        if (!ctx) return [3 /*break*/, 6];
-                        return [4 /*yield*/, this._component.onContextChange(ctx.name, ctx.data, socket.context, socket, router)];
-                    case 5:
-                        _d.sent();
-                        _d.label = 6;
-                    case 6: return [3 /*break*/, 2];
-                    case 7: return [3 /*break*/, 14];
-                    case 8:
+                        if (ctx)
+                            this._component.onContextChange.call(socket.context, ctx.name, ctx.data, socket, router);
+                        _d.label = 5;
+                    case 5: return [3 /*break*/, 2];
+                    case 6: return [3 /*break*/, 13];
+                    case 7:
                         e_2_1 = _d.sent();
                         e_2 = { error: e_2_1 };
-                        return [3 /*break*/, 14];
-                    case 9:
-                        _d.trys.push([9, , 12, 13]);
-                        if (!(_c && !_c.done && (_a = _b.return))) return [3 /*break*/, 11];
+                        return [3 /*break*/, 13];
+                    case 8:
+                        _d.trys.push([8, , 11, 12]);
+                        if (!(_c && !_c.done && (_a = _b.return))) return [3 /*break*/, 10];
                         return [4 /*yield*/, _a.call(_b)];
-                    case 10:
+                    case 9:
                         _d.sent();
-                        _d.label = 11;
-                    case 11: return [3 /*break*/, 13];
-                    case 12:
+                        _d.label = 10;
+                    case 10: return [3 /*break*/, 12];
+                    case 11:
                         if (e_2) throw e_2.error;
                         return [7 /*endfinally*/];
-                    case 13: return [7 /*endfinally*/];
-                    case 14: return [2 /*return*/];
+                    case 12: return [7 /*endfinally*/];
+                    case 13: return [2 /*return*/];
                 }
             });
         });

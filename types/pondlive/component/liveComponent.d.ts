@@ -12,6 +12,12 @@ export interface Route {
     Component: LiveComponent;
 }
 
+export interface LiveEvent<Events extends string = string> {
+    type: Events;
+    value: string | null;
+    dataId: string | null;
+}
+
 export interface MountContext {
     path: string;
     params: Record<string, string>;
@@ -19,12 +25,6 @@ export interface MountContext {
 }
 
 export declare type RenderContext = () => HtmlSafeString;
-
-export interface LiveEvent<Events extends string> {
-    type: Events;
-    value: string | null;
-    dataId: string | null;
-}
 
 export interface LiveBuilder<LiveContext extends Object = any> {
     routes?: Route[];
@@ -48,11 +48,10 @@ export interface LiveBuilder<LiveContext extends Object = any> {
      * @desc Called when the value of a provided context changes.
      * @param name - The name of the context that changed.
      * @param provider - The context of the component.
-     * @param socketContext - The context of the socket.
      * @param socket - The socket of user connection.
      * @param router - The router of this instance of the connection.
      */
-    onContextChange?(this: LiveContext, name: string, provider: any, socketContext: LiveContext, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
+    onContextChange?(this: LiveContext, name: string, provider: any, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
 
     /**
      * @desc Called when the component is connected to the server over websockets.
@@ -99,7 +98,7 @@ export declare abstract class ComponentClass<LiveContext extends Object = any> i
 
     abstract mount?(context: MountContext, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
 
-    abstract onContextChange?(name: string, provider: any, socketContext: LiveContext, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
+    abstract onContextChange?(name: string, provider: any, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
 
     abstract onRendered?(socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
 
@@ -112,4 +111,4 @@ export declare abstract class ComponentClass<LiveContext extends Object = any> i
     abstract render(routes: RenderContext, classes: Record<string, string>): HtmlSafeString;
 }
 
-export declare function LiveFactory<LiveContext extends Object>(props: LiveBuilder<LiveContext>): LiveComponent<LiveContext>;
+export declare function LiveFactory<LiveContext extends Object>(context: LiveBuilder<LiveContext>): LiveComponent<LiveContext>;
