@@ -24,7 +24,6 @@ var ContextManager = /** @class */ (function () {
         this._managers.add(manager);
     };
     ContextManager.prototype.assign = function (socket, assigns) {
-        var _this = this;
         var db = this._database.find(function (doc) { return doc.clientId === socket.clientId; });
         var newDoc;
         if (db) {
@@ -35,7 +34,11 @@ var ContextManager = /** @class */ (function () {
             newDoc = Object.assign(this._initialValue, assigns);
             this._database.set({ clientId: socket.clientId, data: newDoc });
         }
-        this._managers.forEach(function (manager) { return manager.handleContextChange(newDoc, _this._name, socket.clientId); });
+        var data = {
+            contextId: this._name,
+            data: Object.freeze(__assign({}, newDoc))
+        };
+        this._managers.forEach(function (manager) { return manager.handleContextChange(data, socket.clientId); });
     };
     ContextManager.prototype.get = function (socket) {
         var db = this._database.find(function (doc) { return doc.clientId === socket.clientId; });
@@ -55,20 +58,25 @@ var ContextManager = /** @class */ (function () {
         var db = this._database.find(function (doc) { return doc.clientId === socket.clientId; });
         if (db) {
             var data = __assign({}, db.doc.data);
-            return { name: this._name, data: Object.freeze(data) };
+            return { contextId: this._name, data: Object.freeze(data) };
         }
         var unfrozen = __assign({}, this._initialValue);
-        return { name: this._name, data: Object.freeze(unfrozen) };
+        return { contextId: this._name, data: Object.freeze(unfrozen) };
     };
     return ContextManager;
 }());
 exports.ContextManager = ContextManager;
-function createContext(contextId, initialValue) {
+function createContext(initialValue) {
+    var contextId = Math.random().toString(36).substring(7);
     var contextManager = new ContextManager(contextId, initialValue);
     return [
         {
             assign: contextManager.assign.bind(contextManager),
-            get: contextManager.get.bind(contextManager)
+            get: contextManager.get.bind(contextManager),
+            handleContextChange: function (context, handler) {
+                if (context.contextId === contextId)
+                    handler(context.data);
+            }
         },
         {
             subscribe: contextManager.subscribe.bind(contextManager),

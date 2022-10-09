@@ -1,7 +1,7 @@
 import {LiveSocket} from "./liveSocket";
 import {CSSGenerator, CSSOutput, HtmlSafeString} from "../../pondserver";
 import {LiveRouter} from "./liveRouter";
-import {ContextProvider} from "../contextManager";
+import {ContextProvider, PeakData} from "../contextManager";
 
 export declare type LiveComponent<LiveContext extends Object = any> = {
     new(...args: any[]): ComponentClass<LiveContext>;
@@ -46,12 +46,11 @@ export interface LiveBuilder<LiveContext extends Object = any> {
 
     /**
      * @desc Called when the value of a provided context changes.
-     * @param name - The name of the context that changed.
-     * @param provider - The context of the component.
+     * @param context - The changed context.
      * @param socket - The socket of user connection.
      * @param router - The router of this instance of the connection.
      */
-    onContextChange?(this: LiveContext, name: string, provider: any, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
+    onContextChange?(this: LiveContext, context: PeakData<any>, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
 
     /**
      * @desc Called when the component is connected to the server over websockets.
@@ -98,7 +97,7 @@ export declare abstract class ComponentClass<LiveContext extends Object = any> i
 
     abstract mount?(context: MountContext, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
 
-    abstract onContextChange?(name: string, provider: any, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
+    abstract onContextChange?(context: PeakData<any>, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
 
     abstract onRendered?(socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
 

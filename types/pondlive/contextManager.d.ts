@@ -1,24 +1,24 @@
 import {ComponentManager} from "./componentManager";
 import {LiveSocket} from "./component/liveSocket";
 
-interface PeakData<DataType> {
-    name: string;
-    data: DataType;
+export interface PeakData<DataType> {
+    contextId: string;
+    data: Readonly<DataType>;
 }
 
-export declare class ContextConsumer<ContextType> {
+export declare type ContextConsumer<ContextType> = {
     assign: (socket: LiveSocket<any>, assigns: Partial<ContextType>) => void;
     get: (socket: LiveSocket<any>) => Readonly<ContextType>;
-}
-
-export declare class ContextProvider {
+    handleContextChange: (context: PeakData<any>, handler: (data: Readonly<ContextType>) => void) => void;
+};
+export declare type ContextProvider = {
     subscribe: (manager: ComponentManager) => void;
     deleteClient: (socket: LiveSocket<any>) => void;
-    getData: (socket: LiveSocket<any>) => PeakData<any> | null;
-}
+    getData: (socket: LiveSocket<any>) => PeakData<any>;
+};
 
 declare type ContextFactoryType<ContextType> = [ContextConsumer<ContextType>, ContextProvider];
 
-export declare function createContext<ContextType extends Object>(contextId: string, initialValue: ContextType): ContextFactoryType<ContextType>;
+export declare function createContext<ContextType extends Object>(initialValue: ContextType): ContextFactoryType<ContextType>;
 
 export {};

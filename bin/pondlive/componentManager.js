@@ -286,7 +286,7 @@ var ComponentManager = /** @class */ (function () {
             });
         });
     };
-    ComponentManager.prototype.handleContextChange = function (context, contextName, clientId) {
+    ComponentManager.prototype.handleContextChange = function (context, clientId) {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
             var document, _b, router, response;
@@ -297,7 +297,7 @@ var ComponentManager = /** @class */ (function () {
                         if (!document || !document.doc.socket.isWebsocket)
                             return [2 /*return*/];
                         _b = document.doc.socket.createResponse(), router = _b.router, response = _b.response;
-                        return [4 /*yield*/, ((_a = this._component.onContextChange) === null || _a === void 0 ? void 0 : _a.call(document.doc.socket.context, contextName, context, document.doc.socket, router))];
+                        return [4 /*yield*/, ((_a = this._component.onContextChange) === null || _a === void 0 ? void 0 : _a.call(document.doc.socket.context, context, document.doc.socket, router))];
                     case 1:
                         _c.sent();
                         return [4 /*yield*/, this._pushToClient(router, document, 'updated', response)];
@@ -343,40 +343,40 @@ var ComponentManager = /** @class */ (function () {
     };
     ComponentManager.prototype._manageContext = function (socket, router) {
         var e_2, _a;
+        var _b;
         return __awaiter(this, void 0, void 0, function () {
-            var _b, _c, provider, ctx, e_2_1;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var _c, _d, provider, context_1, e_2_1;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
                         if (!this._component.onContextChange) return [3 /*break*/, 13];
-                        _d.label = 1;
+                        _e.label = 1;
                     case 1:
-                        _d.trys.push([1, 7, 8, 13]);
-                        _b = __asyncValues(this._providers);
-                        _d.label = 2;
-                    case 2: return [4 /*yield*/, _b.next()];
+                        _e.trys.push([1, 7, 8, 13]);
+                        _c = __asyncValues(this._providers);
+                        _e.label = 2;
+                    case 2: return [4 /*yield*/, _c.next()];
                     case 3:
-                        if (!(_c = _d.sent(), !_c.done)) return [3 /*break*/, 6];
-                        provider = _c.value;
+                        if (!(_d = _e.sent(), !_d.done)) return [3 /*break*/, 6];
+                        provider = _d.value;
                         return [4 /*yield*/, provider.getData(socket)];
                     case 4:
-                        ctx = _d.sent();
-                        if (ctx)
-                            this._component.onContextChange.call(socket.context, ctx.name, ctx.data, socket, router);
-                        _d.label = 5;
+                        context_1 = _e.sent();
+                        (_b = this._component.onContextChange) === null || _b === void 0 ? void 0 : _b.call(socket.context, context_1, socket, router);
+                        _e.label = 5;
                     case 5: return [3 /*break*/, 2];
                     case 6: return [3 /*break*/, 13];
                     case 7:
-                        e_2_1 = _d.sent();
+                        e_2_1 = _e.sent();
                         e_2 = { error: e_2_1 };
                         return [3 /*break*/, 13];
                     case 8:
-                        _d.trys.push([8, , 11, 12]);
-                        if (!(_c && !_c.done && (_a = _b.return))) return [3 /*break*/, 10];
-                        return [4 /*yield*/, _a.call(_b)];
+                        _e.trys.push([8, , 11, 12]);
+                        if (!(_d && !_d.done && (_a = _c.return))) return [3 /*break*/, 10];
+                        return [4 /*yield*/, _a.call(_c)];
                     case 9:
-                        _d.sent();
-                        _d.label = 10;
+                        _e.sent();
+                        _e.label = 10;
                     case 10: return [3 /*break*/, 12];
                     case 11:
                         if (e_2) throw e_2.error;

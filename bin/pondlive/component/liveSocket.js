@@ -96,17 +96,6 @@ var LiveSocket = /** @class */ (function () {
     LiveSocket.prototype.getChannel = function (name) {
         return this._pond.getChannel(name);
     };
-    Object.defineProperty(LiveSocket.prototype, "context", {
-        /**
-         * @desc Gets the live context.
-         */
-        get: function () {
-            var result = __assign({}, this._liveContext);
-            return Object.freeze(result);
-        },
-        enumerable: false,
-        configurable: true
-    });
     /**
      * @desc Assigns data to the current context.
      * @param assigns - The data to assign.
@@ -213,6 +202,14 @@ var LiveSocket = /** @class */ (function () {
         if (this._channel)
             this._channel.broadcast('emit', { event: event, data: data });
     };
+    Object.defineProperty(LiveSocket.prototype, "context", {
+        get: function () {
+            var result = __assign({}, this._liveContext);
+            return Object.freeze(result);
+        },
+        enumerable: false,
+        configurable: true
+    });
     LiveSocket.prototype.destroy = function () {
         this._subscriptions.forEach(function (s) { return s.sub.unsubscribe(); });
         this._subscriptions.length = 0;
