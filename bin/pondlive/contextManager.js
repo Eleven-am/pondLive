@@ -14,10 +14,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createContext = exports.ContextManager = void 0;
 var pondbase_1 = require("../pondbase");
 var ContextManager = /** @class */ (function () {
-    function ContextManager(name) {
+    function ContextManager(name, initialData) {
         this._name = name;
         this._database = new pondbase_1.PondBase();
         this._managers = new Set();
+        this._initialValue = initialData;
     }
     ContextManager.prototype.subscribe = function (manager) {
         this._managers.add(manager);
@@ -31,7 +32,7 @@ var ContextManager = /** @class */ (function () {
             db.updateDoc({ clientId: db.doc.clientId, data: newDoc });
         }
         else {
-            newDoc = __assign({}, assigns);
+            newDoc = Object.assign(this._initialValue, assigns);
             this._database.set({ clientId: socket.clientId, data: newDoc });
         }
         this._managers.forEach(function (manager) { return manager.handleContextChange(newDoc, _this._name, socket.clientId); });
@@ -42,7 +43,8 @@ var ContextManager = /** @class */ (function () {
             var data = __assign({}, db.doc.data);
             return Object.freeze(data);
         }
-        return {};
+        var unfrozen = __assign({}, this._initialValue);
+        return Object.freeze(unfrozen);
     };
     ContextManager.prototype.deleteClient = function (socket) {
         var doc = this._database.find(function (doc) { return doc.clientId === socket.clientId; });
@@ -55,13 +57,14 @@ var ContextManager = /** @class */ (function () {
             var data = __assign({}, db.doc.data);
             return { name: this._name, data: Object.freeze(data) };
         }
-        return null;
+        var unfrozen = __assign({}, this._initialValue);
+        return { name: this._name, data: Object.freeze(unfrozen) };
     };
     return ContextManager;
 }());
 exports.ContextManager = ContextManager;
-function createContext(contextId) {
-    var contextManager = new ContextManager(contextId);
+function createContext(contextId, initialValue) {
+    var contextManager = new ContextManager(contextId, initialValue);
     return [
         {
             assign: contextManager.assign.bind(contextManager),

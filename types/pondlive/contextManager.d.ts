@@ -16,8 +16,9 @@ export declare class ContextProvider {
     deleteClient: (socket: LiveSocket<any>) => void;
     getData: (socket: LiveSocket<any>) => PeakData<any> | null;
 }
+
 declare type ContextFactoryType<ContextType> = [ContextConsumer<ContextType>, ContextProvider];
 
-export declare function createContext<ContextType extends Object>(contextId: string): ContextFactoryType<ContextType>;
+export declare function createContext<ContextType extends Object>(contextId: string, initialValue: ContextType): ContextFactoryType<ContextType>;
 
 export {};
