@@ -3,17 +3,6 @@ var __makeTemplateObject = (this && this.__makeTemplateObject) || function (cook
     if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
     return cooked;
 };
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -114,6 +103,7 @@ var ComponentManager = /** @class */ (function () {
         this._initialiseManager();
         this._htmlPath = props.htmlPath;
         this._pondLive = props.pondLive;
+        this._timeOuts = new Map();
         var contexts = props.providers.concat(this._component.providers || []);
         if (this._component.onContextChange)
             contexts.forEach(function (context) { return context.subscribe(_this); });
@@ -135,6 +125,7 @@ var ComponentManager = /** @class */ (function () {
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
+                        this._clearShutDown(clientId);
                         document = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
                         if (!document)
                             document = this._sockets.createDocument(function (doc) {
@@ -144,11 +135,8 @@ var ComponentManager = /** @class */ (function () {
                                     timer: null,
                                 };
                             });
-                        else if (document.doc.socket) {
-                            document.doc.timer && clearTimeout(document.doc.timer);
+                        else if (document.doc.socket)
                             document.doc.socket.downgrade();
-                            document.updateDoc(__assign(__assign({}, document.doc), { timer: null }));
-                        }
                         mountContext = {
                             params: data.params,
                             path: data.address,
@@ -272,6 +260,7 @@ var ComponentManager = /** @class */ (function () {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        this._clearShutDown(socket.clientId);
                         document = this._sockets.find(function (c) { return c.socket.clientId === socket.clientId; });
                         if (!document)
                             return [2 /*return*/, socket.destroy()];
@@ -294,6 +283,7 @@ var ComponentManager = /** @class */ (function () {
                 switch (_c.label) {
                     case 0:
                         document = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
+                        this._clearShutDown(clientId);
                         if (!document || !document.doc.socket.isWebsocket)
                             return [2 /*return*/];
                         _b = document.doc.socket.createResponse(), router = _b.router, response = _b.response;
@@ -311,20 +301,18 @@ var ComponentManager = /** @class */ (function () {
     ComponentManager.prototype.handleUnmount = function (clientId) {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var socket, timer;
+            var socket;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
+                        this._clearShutDown(clientId);
                         socket = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
                         if (!socket)
                             return [2 /*return*/];
                         return [4 /*yield*/, ((_a = this._component.onUnmount) === null || _a === void 0 ? void 0 : _a.call(socket.doc.socket.context, socket.doc.socket))];
                     case 1:
                         _b.sent();
-                        timer = setTimeout(function () {
-                            socket.doc.socket.destroy();
-                        }, 10000);
-                        socket.updateDoc(__assign(__assign({}, socket.doc), { timer: timer }));
+                        this._shutDown(socket);
                         return [2 /*return*/];
                 }
             });
@@ -393,13 +381,10 @@ var ComponentManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        this._clearShutDown(clientId);
                         document = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
                         if (!document)
                             throw new pondbase_1.PondError('Client not found', 404, clientId);
-                        if (document.doc.timer) {
-                            clearTimeout(document.doc.timer);
-                            document.updateDoc(__assign(__assign({}, document.doc), { timer: null }));
-                        }
                         return [4 /*yield*/, callback(document.doc.socket)];
                     case 1:
                         _a.sent();
@@ -459,7 +444,6 @@ var ComponentManager = /** @class */ (function () {
                 document.updateDoc({
                     socket: document.doc.socket,
                     rendered: finalHtml,
-                    timer: document.doc.timer
                 });
                 return [2 /*return*/, finalHtml];
             });
@@ -607,6 +591,25 @@ var ComponentManager = /** @class */ (function () {
     ComponentManager.prototype._initialiseManager = function () {
         this._initialiseHTTPManager();
         this._initialiseSocketManager();
+    };
+    ;
+    ComponentManager.prototype._shutDown = function (context) {
+        var _this = this;
+        var oldTimer = this._timeOuts.get(context.doc.socket.context.clientId);
+        if (oldTimer)
+            clearTimeout(oldTimer);
+        this._timeOuts.delete(context.doc.socket.context.clientId);
+        var timer = setTimeout(function () {
+            context.doc.socket.destroy();
+            _this._timeOuts.delete(context.doc.socket.context.clientId);
+        }, 1000 * 10);
+        this._timeOuts.set(context.doc.socket.clientId, timer);
+    };
+    ComponentManager.prototype._clearShutDown = function (clientId) {
+        var timer = this._timeOuts.get(clientId);
+        if (timer)
+            clearTimeout(timer);
+        this._timeOuts.delete(clientId);
     };
     return ComponentManager;
 }());
