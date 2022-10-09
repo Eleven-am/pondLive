@@ -118,7 +118,7 @@ var ComponentManager = /** @class */ (function () {
         if (this._component.onContextChange)
             contexts.forEach(function (context) { return context.subscribe(_this); });
         this._providers = contexts;
-        this._innerManagers = component.routes.map(function (route) { return new ComponentManager("".concat(path).concat(route.path), new route.Component(), {
+        this._innerManagers = (component.routes || []).map(function (route) { return new ComponentManager("".concat(path).concat(route.path), new route.Component(), {
             parentId: _this._componentId,
             pond: _this._pond,
             chain: _this._chain,
@@ -457,16 +457,13 @@ var ComponentManager = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var renderContext, css, styleObject, rendered, finalHtml;
             return __generator(this, function (_a) {
-                renderContext = {
-                    context: document.doc.socket.context,
-                    renderRoutes: renderRoutes
-                };
+                renderContext = renderRoutes;
                 css = (0, pondserver_1.CssGenerator)(this._parentId);
-                styleObject = this._component.manageStyles ? this._component.manageStyles(document.doc.socket.context, css) : {
+                styleObject = this._component.manageStyles ? this._component.manageStyles.call(document.doc.socket.context, css) : {
                     string: (0, pondserver_1.html)(templateObject_4 || (templateObject_4 = __makeTemplateObject([""], [""]))),
                     classes: {}
                 };
-                rendered = this._component.render(renderContext, styleObject.classes);
+                rendered = this._component.render.call(document.doc.socket.context, renderContext, styleObject.classes);
                 finalHtml = (0, pondserver_1.html)(templateObject_5 || (templateObject_5 = __makeTemplateObject(["", "", ""], ["", "", ""])), styleObject.string, rendered);
                 document.updateDoc({
                     socket: document.doc.socket,
