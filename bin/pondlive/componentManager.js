@@ -592,7 +592,6 @@ var ComponentManager = /** @class */ (function () {
         this._initialiseHTTPManager();
         this._initialiseSocketManager();
     };
-    ;
     ComponentManager.prototype._shutDown = function (context) {
         if (context.doc.timer)
             clearTimeout(context.doc.timer);
