@@ -103,7 +103,6 @@ var ComponentManager = /** @class */ (function () {
         this._initialiseManager();
         this._htmlPath = props.htmlPath;
         this._pondLive = props.pondLive;
-        this._timeOuts = new Map();
         var contexts = props.providers.concat(this._component.providers || []);
         if (this._component.onContextChange)
             contexts.forEach(function (context) { return context.subscribe(_this); });
@@ -125,7 +124,6 @@ var ComponentManager = /** @class */ (function () {
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
-                        this._clearShutDown(clientId);
                         document = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
                         if (!document)
                             document = this._sockets.createDocument(function (doc) {
@@ -135,8 +133,10 @@ var ComponentManager = /** @class */ (function () {
                                     timer: null,
                                 };
                             });
-                        else if (document.doc.socket)
+                        else if (document.doc.socket) {
+                            this._clearShutDown(document);
                             document.doc.socket.downgrade();
+                        }
                         mountContext = {
                             params: data.params,
                             path: data.address,
@@ -260,10 +260,10 @@ var ComponentManager = /** @class */ (function () {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        this._clearShutDown(socket.clientId);
                         document = this._sockets.find(function (c) { return c.socket.clientId === socket.clientId; });
                         if (!document)
                             return [2 /*return*/, socket.destroy()];
+                        this._clearShutDown(document);
                         return [4 /*yield*/, ((_a = this._component.onInfo) === null || _a === void 0 ? void 0 : _a.call(socket.context, info, socket, router))];
                     case 1:
                         _b.sent();
@@ -283,9 +283,9 @@ var ComponentManager = /** @class */ (function () {
                 switch (_c.label) {
                     case 0:
                         document = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
-                        this._clearShutDown(clientId);
                         if (!document || !document.doc.socket.isWebsocket)
                             return [2 /*return*/];
+                        this._clearShutDown(document);
                         _b = document.doc.socket.createResponse(), router = _b.router, response = _b.response;
                         return [4 /*yield*/, ((_a = this._component.onContextChange) === null || _a === void 0 ? void 0 : _a.call(document.doc.socket.context, context, document.doc.socket, router))];
                     case 1:
@@ -305,7 +305,6 @@ var ComponentManager = /** @class */ (function () {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        this._clearShutDown(clientId);
                         socket = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
                         if (!socket)
                             return [2 /*return*/];
@@ -381,10 +380,10 @@ var ComponentManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        this._clearShutDown(clientId);
                         document = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
                         if (!document)
                             throw new pondbase_1.PondError('Client not found', 404, clientId);
+                        this._clearShutDown(document);
                         return [4 /*yield*/, callback(document.doc.socket)];
                     case 1:
                         _a.sent();
@@ -444,6 +443,7 @@ var ComponentManager = /** @class */ (function () {
                 document.updateDoc({
                     socket: document.doc.socket,
                     rendered: finalHtml,
+                    timer: document.doc.timer
                 });
                 return [2 /*return*/, finalHtml];
             });
@@ -594,22 +594,26 @@ var ComponentManager = /** @class */ (function () {
     };
     ;
     ComponentManager.prototype._shutDown = function (context) {
-        var _this = this;
-        var oldTimer = this._timeOuts.get(context.doc.socket.context.clientId);
-        if (oldTimer)
-            clearTimeout(oldTimer);
-        this._timeOuts.delete(context.doc.socket.context.clientId);
+        if (context.doc.timer)
+            clearTimeout(context.doc.timer);
         var timer = setTimeout(function () {
             context.doc.socket.destroy();
-            _this._timeOuts.delete(context.doc.socket.context.clientId);
         }, 1000 * 10);
-        this._timeOuts.set(context.doc.socket.clientId, timer);
+        context.updateDoc({
+            socket: context.doc.socket,
+            rendered: context.doc.rendered,
+            timer: timer
+        });
     };
-    ComponentManager.prototype._clearShutDown = function (clientId) {
-        var timer = this._timeOuts.get(clientId);
-        if (timer)
-            clearTimeout(timer);
-        this._timeOuts.delete(clientId);
+    ComponentManager.prototype._clearShutDown = function (context) {
+        if (context.doc.timer) {
+            clearTimeout(context.doc.timer);
+            context.updateDoc({
+                socket: context.doc.socket,
+                rendered: context.doc.rendered,
+                timer: null
+            });
+        }
     };
     return ComponentManager;
 }());
