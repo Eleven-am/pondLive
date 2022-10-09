@@ -148,49 +148,49 @@ PondLive is a server side framework that can be used to render HTML pages with r
     import { PondServer, LiveFactory, html } from "pondsocket";
 
     const server = new PondServer();
-    
+
     const Counter = LiveFactory({
         routes: [],
-        
+    
         mount(params, socket, router) {
             socket.assign({
                 count: 0
             });
         },
-        
-        manageStyles(context, css) {
+    
+        manageStyles(css) {
             return css`
-                .counter {
-                    font-size: 2rem;
-                    font-weight: bold;
-                    color: ${context.count % 10 === 0 ? 'green': context.count % 2 === 0 ? 'red': 'blue'};
-                }
-            `;
+                    .counter {
+                        font-size: 2rem;
+                        font-weight: bold;
+                        color: ${this.count % 10 === 0 ? 'green': this.count % 2 === 0 ? 'red': 'blue'};
+                    }
+                `;
         },
-        
-        onEvent(event, assigns, socket, router) {
+    
+        onEvent(event, socket, router) {
             if (event.type === 'increment') {
                 socket.assign({
-                    count: assigns.count + 1
+                    count: this.count + 1
                 });
-
-
+    
+    
             } else if (event.type === 'decrement') {
                 socket.assign({
-                    count: assigns.count - 1
+                    count: this.count - 1
                 });
             }
         },
-        
-        
-        render(socket, classes) {
+            
+        render(renderRoutes, classes) {
             return html`
-                <div>
-                    <button pond-click="increment">+</button>
-                    <span class="${classes.counter}">${socket.context.count}</span>
-                    <button pond-click="decrement">-</button>
-                </div>
-            `;
+                    <div>
+                        <button pond-click="increment">+</button>
+                        <span class="${classes.counter}">${this.count}</span>
+                        <button pond-click="decrement">-</button>
+                    </div>
+                    ${renderRoutes()}
+                `;
         }
     })
 

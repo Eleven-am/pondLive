@@ -220,15 +220,13 @@ var ComponentManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this._onEvent(clientId, router, res, 'updated', function (socket) { return __awaiter(_this, void 0, void 0, function () {
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        if (!this._component.onEvent) return [3 /*break*/, 2];
-                                        return [4 /*yield*/, this._component.onEvent(event, socket.context, socket, router)];
+                            var _a;
+                            return __generator(this, function (_b) {
+                                switch (_b.label) {
+                                    case 0: return [4 /*yield*/, ((_a = this._component.onEvent) === null || _a === void 0 ? void 0 : _a.call(socket.context, event, socket, router))];
                                     case 1:
-                                        _a.sent();
-                                        _a.label = 2;
-                                    case 2: return [2 /*return*/];
+                                        _b.sent();
+                                        return [2 /*return*/];
                                 }
                             });
                         }); })];
@@ -245,19 +243,18 @@ var ComponentManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this._onEvent(clientId, router, res, 'rendered', function (socket) { return __awaiter(_this, void 0, void 0, function () {
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
+                            var _a;
+                            return __generator(this, function (_b) {
+                                switch (_b.label) {
                                     case 0:
                                         socket.upgradeToWebsocket(channel);
                                         return [4 /*yield*/, this._manageContext(socket, router)];
                                     case 1:
-                                        _a.sent();
-                                        if (!this._component.onRendered) return [3 /*break*/, 3];
-                                        return [4 /*yield*/, this._component.onRendered(socket.context, socket, router)];
+                                        _b.sent();
+                                        return [4 /*yield*/, ((_a = this._component.onRendered) === null || _a === void 0 ? void 0 : _a.call(socket.context, socket, router))];
                                     case 2:
-                                        _a.sent();
-                                        _a.label = 3;
-                                    case 3: return [2 /*return*/];
+                                        _b.sent();
+                                        return [2 /*return*/];
                                 }
                             });
                         }); })];
@@ -269,22 +266,21 @@ var ComponentManager = /** @class */ (function () {
         });
     };
     ComponentManager.prototype.handleInfo = function (info, socket, router, res) {
+        var _a;
         return __awaiter(this, void 0, void 0, function () {
             var document;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         document = this._sockets.find(function (c) { return c.socket.clientId === socket.clientId; });
                         if (!document)
                             return [2 /*return*/, socket.destroy()];
-                        if (!this._component.onInfo) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this._component.onInfo(info, socket.context, socket, router)];
+                        return [4 /*yield*/, ((_a = this._component.onInfo) === null || _a === void 0 ? void 0 : _a.call(socket.context, info, socket, router))];
                     case 1:
-                        _a.sent();
-                        _a.label = 2;
-                    case 2: return [4 /*yield*/, this._pushToClient(router, document, 'updated', res)];
-                    case 3:
-                        _a.sent();
+                        _b.sent();
+                        return [4 /*yield*/, this._pushToClient(router, document, 'updated', res)];
+                    case 2:
+                        _b.sent();
                         return [2 /*return*/];
                 }
             });
@@ -314,20 +310,18 @@ var ComponentManager = /** @class */ (function () {
         });
     };
     ComponentManager.prototype.handleUnmount = function (clientId) {
+        var _a;
         return __awaiter(this, void 0, void 0, function () {
             var socket, timer;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         socket = this._sockets.find(function (c) { return c.socket.clientId === clientId; });
                         if (!socket)
                             return [2 /*return*/];
-                        if (!this._component.onUnmount) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this._component.onUnmount(socket.doc.socket.context, socket.doc.socket)];
+                        return [4 /*yield*/, ((_a = this._component.onUnmount) === null || _a === void 0 ? void 0 : _a.call(socket.doc.socket.context, socket.doc.socket))];
                     case 1:
-                        _a.sent();
-                        _a.label = 2;
-                    case 2:
+                        _b.sent();
                         timer = setTimeout(function () {
                             socket.doc.socket.destroy();
                         }, 10000);
