@@ -11,6 +11,7 @@ var createComponentManager = function () {
             use: jest.fn(),
         },
         parentId: 'test',
+        secret: 'test',
         providers: [],
         pondLive: new pondLiveChannel_1.PondLiveChannelManager(),
     };

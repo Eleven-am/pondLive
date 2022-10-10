@@ -103,6 +103,7 @@ var ComponentManager = /** @class */ (function () {
         this._initialiseManager();
         this._htmlPath = props.htmlPath;
         this._pondLive = props.pondLive;
+        this._secret = props.secret;
         var contexts = props.providers.concat(this._component.providers || []);
         if (this._component.onContextChange)
             contexts.forEach(function (context) { return context.subscribe(_this); });
@@ -113,7 +114,8 @@ var ComponentManager = /** @class */ (function () {
             chain: _this._chain,
             htmlPath: props.htmlPath,
             pondLive: props.pondLive,
-            providers: contexts
+            providers: contexts,
+            secret: props.secret
         }); });
     }
     ComponentManager.prototype.render = function (data, clientId, router) {
@@ -317,13 +319,13 @@ var ComponentManager = /** @class */ (function () {
             });
         });
     };
-    ComponentManager.prototype._renderHtml = function (renderedHtml, token, headers) {
+    ComponentManager.prototype._renderHtml = function (renderedHtml, headers) {
         var _this = this;
         return new Promise(function (resolve) {
             fs.readFile(_this._htmlPath || '', "utf8", function (err, data) {
                 if (err)
-                    return resolve("\n                            <!DOCTYPE html>\n                            <html lang=\"en\">\n                                <head>\n                                    <meta charset=\"UTF-8\">\n                                    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n                                    <title>".concat(headers.pageTitle || 'PondLive', "</title>\n                                    <script>window.token = \"").concat(token, "\";</script>\n                                </head>\n                                <body>\n                                    ").concat(renderedHtml.toString(), "\n                                    <script src=\"/pondLive.js\" defer=\"\"></script>\n                                </body>\n                            </html>"));
-                resolve(data.replace(/<title>(.*?)<\/title>/, " <title>".concat(headers.pageTitle || 'PondLive', "</title>\n                        <script>window.token = \"").concat(token, "\";</script>"))
+                    return resolve("\n                            <!DOCTYPE html>\n                            <html lang=\"en\">\n                                <head>\n                                    <meta charset=\"UTF-8\">\n                                    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n                                    <title>".concat(headers.pageTitle || 'PondLive', "</title>\n                                </head>\n                                <body>\n                                    ").concat(renderedHtml.toString(), "\n                                    <script src=\"/pondLive.js\" defer=\"\"></script>\n                                </body>\n                            </html>"));
+                resolve(data.replace(/<title>(.*?)<\/title>/, " <title>".concat(headers.pageTitle || 'PondLive', "</title>"))
                     .replace('<body>', "<body>\n                                    ".concat(renderedHtml.toString(), "\n                                    <script src=\"/pondLive.js\" defer=\"\"></script>\n                               ")));
             });
         });
@@ -417,12 +419,13 @@ var ComponentManager = /** @class */ (function () {
                                 return [2 /*return*/];
                             res.send(responseEvent, { rendered: difference, path: this._componentId, headers: router.headers });
                         }
-                        else
+                        else {
                             res.send(responseEvent, {
                                 rendered: htmlData.getParts(),
                                 path: this._componentId,
                                 headers: router.headers
                             });
+                        }
                         return [2 /*return*/];
                 }
             });
@@ -452,7 +455,7 @@ var ComponentManager = /** @class */ (function () {
     ComponentManager.prototype._initialiseHTTPManager = function () {
         var _this = this;
         this._chain.use(function (req, response, next) { return __awaiter(_this, void 0, void 0, function () {
-            var csrfToken, method, eventRequest, resolver, htmlData, res, router, headers, html_1, headers, html_2, htmlString;
+            var csrfToken, method, eventRequest, resolver, htmlData, res, router, data, headers, html_1, headers, html_2, htmlString;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -464,28 +467,28 @@ var ComponentManager = /** @class */ (function () {
                         htmlData = null;
                         res = new pondserver_1.PondHTTPResponse(response);
                         router = new liveRouter_1.LiveRouter(res);
-                        if (!(resolver && csrfToken === req.token)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.render(resolver, req.clientId, router)];
+                        if (!(eventRequest && !csrfToken)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.render(eventRequest, req.clientId, router)];
                     case 1:
                         htmlData = _a.sent();
                         if (router.sentResponse)
                             return [2 /*return*/];
                         return [3 /*break*/, 5];
                     case 2:
-                        if (!(eventRequest && !csrfToken)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this.render(eventRequest, req.clientId, router)];
+                        if (!(resolver && csrfToken)) return [3 /*break*/, 5];
+                        data = this._base.decrypt(this._secret, csrfToken);
+                        if (!(data && data.clientId === req.clientId)) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this.render(resolver, req.clientId, router)];
                     case 3:
                         htmlData = _a.sent();
                         if (router.sentResponse)
                             return [2 /*return*/];
                         return [3 /*break*/, 5];
                     case 4:
-                        if (csrfToken !== req.token && resolver) {
-                            res.status(403, 'Invalid CSRF Token')
-                                .json({
-                                error: 'Invalid CSRF token'
-                            });
-                        }
+                        res.status(403, 'Invalid CSRF Token')
+                            .json({
+                            error: 'Invalid CSRF token'
+                        });
                         _a.label = 5;
                     case 5:
                         if (!htmlData) return [3 /*break*/, 8];
@@ -501,7 +504,7 @@ var ComponentManager = /** @class */ (function () {
                     case 6:
                         headers = router.headers;
                         html_2 = (0, clientRouter_1.clientRouter)(this._parentId, htmlData.path, htmlData.rendered);
-                        return [4 /*yield*/, this._renderHtml(html_2, req.token, headers)];
+                        return [4 /*yield*/, this._renderHtml(html_2, headers)];
                     case 7:
                         htmlString = _a.sent();
                         return [2 /*return*/, res.html(htmlString)];

@@ -66,7 +66,14 @@ var HtmlSafeString = /** @class */ (function () {
     HtmlSafeString.prototype.toString = function () {
         var result = this.statics[0];
         for (var i = 0; i < this.dynamics.length; i++) {
-            result += escapeHTML(this.dynamics[i]) + this.statics[i + 1];
+            if (this.dynamics[i] instanceof HtmlSafeString)
+                result += this.dynamics[i].toString() + this.statics[i + 1];
+            else if (Array.isArray(this.dynamics[i]))
+                result += join(this.dynamics[i], '').toString() + this.statics[i + 1];
+            else if (typeof this.dynamics[i] === 'object')
+                result += this.parsedHtmlToString(this.dynamics[i]) + this.statics[i + 1];
+            else
+                result += escapeHTML(this.dynamics[i]) + this.statics[i + 1];
         }
         return result;
     };
@@ -79,19 +86,19 @@ var HtmlSafeString = /** @class */ (function () {
                 result[i] = this.dynamics[i].getParts();
             else if (Array.isArray(this.dynamics[i]))
                 result[i] = join(this.dynamics[i], '').getParts();
-            else {
-                if (this.dynamics[i] === undefined)
-                    result[i] = null;
+            else if (this.dynamics[i] === undefined)
+                result[i] = null;
+            else
                 result[i] = this.dynamics[i];
-            }
         return result;
     };
     HtmlSafeString.prototype.parsedHtmlToString = function (parsed) {
+        var _a;
         var data = parsed;
         var result = '';
         if (Array.isArray(data))
             return join(data, '').toString();
-        if (data && data.s) {
+        if (((_a = data === null || data === void 0 ? void 0 : data.s) === null || _a === void 0 ? void 0 : _a.length) > 0) {
             var stat = data.s.filter(function (s) { return s !== undefined && s !== null; });
             result = data.s[0];
             for (var i = 0; i < stat.length - 1; i++) {

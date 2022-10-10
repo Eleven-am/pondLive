@@ -108,6 +108,17 @@ var PondClientSocket = /** @class */ (function () {
         return newChannel;
     };
     /**
+     * @desc An event that is triggered when the socket receives a message.
+     * @param callback - The callback to be called when the event is triggered.
+     */
+    PondClientSocket.prototype.onMessage = function (callback) {
+        var _a;
+        (_a = this.socket) === null || _a === void 0 ? void 0 : _a.subscribe(function (data) {
+            if (data.event)
+                callback(data.event, data.payload);
+        });
+    };
+    /**
      * @desc Disconnects the socket from the server.
      */
     PondClientSocket.prototype.disconnect = function () {

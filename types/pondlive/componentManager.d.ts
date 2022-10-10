@@ -5,7 +5,6 @@ import {Resolver} from "../pondbase";
 import {Channel, PondResponse} from "../pondsocket";
 import {PeakData} from "./contextManager";
 
-
 interface RenderedComponent {
     path: string;
     rendered: HtmlSafeString;
@@ -25,5 +24,3 @@ export declare class ComponentManager {
 
     handleUnmount(clientId: string): Promise<void>;
 }
-
-export {};

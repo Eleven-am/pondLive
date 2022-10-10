@@ -19,7 +19,6 @@ var getChanges = function (diffedObject) {
 exports.getChanges = getChanges;
 // merge two objects together by updating the first object with the second object
 var mergeObjects = function (obj1, obj2) {
-    console.log(obj1, obj2);
     if (obj1 === undefined)
         return obj2;
     if (obj2 === undefined)
