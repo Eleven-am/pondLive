@@ -4,7 +4,9 @@ exports.mergeObjects = exports.getChanges = void 0;
 var getChanges = function (diffedObject) {
     var changed = {};
     for (var key in diffedObject) {
-        if (diffedObject[key].type === "created" || diffedObject[key].type === "updated")
+        if (diffedObject[key] === undefined || diffedObject[key] === null)
+            continue;
+        else if (diffedObject[key].type === "created" || diffedObject[key].type === "updated")
             changed[key] = diffedObject[key].data;
         else if (diffedObject[key].type === "deleted")
             changed[key] = null;
