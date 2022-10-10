@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GenerateLiveServer = void 0;
 var pondserver_1 = require("../pondserver");
@@ -6,6 +9,7 @@ var pondsocket_1 = require("../pondsocket");
 var pondbase_1 = require("../pondbase");
 var componentManager_1 = require("./componentManager");
 var pondLiveChannel_1 = require("./component/pondLiveChannel");
+var path_1 = __importDefault(require("path"));
 var GenerateLiveServer = function (routes, server, chain, props) {
     var _a;
     var pondServer = (_a = props === null || props === void 0 ? void 0 : props.pondSocket) !== null && _a !== void 0 ? _a : new pondsocket_1.PondSocket(server);
@@ -14,12 +18,12 @@ var GenerateLiveServer = function (routes, server, chain, props) {
     var cookieName = (props === null || props === void 0 ? void 0 : props.cookie) || 'pondLive';
     var pondPath = (props === null || props === void 0 ? void 0 : props.pondPath) || '';
     var pondId = base.nanoId();
-    // const handler = FileRouter(path.join(__dirname, './client/'));
+    var handler = (0, pondserver_1.FileRouter)(path_1.default.join(__dirname, './client/'));
     var authenticator = (0, pondserver_1.AuthenticateRequest)(secret, cookieName);
     var socketAuthenticator = (0, pondserver_1.AuthenticateUpgrade)(secret, cookieName);
     pondServer.useOnUpgrade(socketAuthenticator);
     chain.use(authenticator);
-    // chain.use(handler);
+    chain.use(handler);
     var endpoint = pondServer.createEndpoint('/live', function (req, res) {
         var _a;
         var token = (0, pondserver_1.parseCookies)(req.headers)[cookieName] || '';
