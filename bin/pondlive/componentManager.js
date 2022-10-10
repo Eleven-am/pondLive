@@ -514,6 +514,7 @@ var ComponentManager = /** @class */ (function () {
     };
     ComponentManager.prototype._initialiseSocketManager = function () {
         var _this = this;
+        var subscription = null;
         this._pond.on("mount/".concat(this._componentId), function (req, res, channel) { return __awaiter(_this, void 0, void 0, function () {
             var router;
             var _this = this;
@@ -524,7 +525,7 @@ var ComponentManager = /** @class */ (function () {
                         return [4 /*yield*/, this.handleRendered(req.client.clientAssigns.clientId, router, res, channel)];
                     case 1:
                         _a.sent();
-                        channel.subscribe(function (data) {
+                        subscription = channel.subscribe(function (data) {
                             if (data.action === pondsocket_1.ServerActions.PRESENCE && data.event === 'LEAVE_CHANNEL') {
                                 _this.handleUnmount(req.client.clientAssigns.clientId);
                                 _this._providers.forEach(function (context) { return context.deleteClient(req.client.clientAssigns.clientId); });
@@ -579,6 +580,8 @@ var ComponentManager = /** @class */ (function () {
                         return [4 /*yield*/, this.handleUnmount(req.client.clientAssigns.clientId)];
                     case 1:
                         _a.sent();
+                        if (subscription)
+                            subscription.unsubscribe();
                         return [3 /*break*/, 3];
                     case 2:
                         e_5 = _a.sent();
@@ -597,7 +600,7 @@ var ComponentManager = /** @class */ (function () {
             clearTimeout(context.doc.timer);
         var timer = setTimeout(function () {
             context.doc.socket.destroy();
-        }, 1000 * 10);
+        }, 1000);
         context.updateDoc({
             socket: context.doc.socket,
             rendered: context.doc.rendered,
