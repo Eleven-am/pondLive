@@ -28,7 +28,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.html = exports.HtmlSafeString = exports.safe = exports.join = void 0;
 var deepDiff_1 = require("./deepDiff");
 var getChanged_1 = require("./getChanged");
-var pondbase_1 = require("../../../pondbase");
 var ENTITIES = {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;', '`': '&#x60;', '=': '&#x3D;'
 };
@@ -82,7 +81,7 @@ var HtmlSafeString = /** @class */ (function () {
                 result[i] = join(this.dynamics[i], '').getParts();
             else {
                 if (this.dynamics[i] === undefined)
-                    throw new pondbase_1.PondError('undefined value in html', 500, 'render');
+                    result[i] = null;
                 result[i] = this.dynamics[i];
             }
         return result;
@@ -92,8 +91,8 @@ var HtmlSafeString = /** @class */ (function () {
         var result = '';
         if (Array.isArray(data))
             return join(data, '').toString();
-        if (data.s) {
-            var stat = data.s.filter(function (s) { return s !== undefined; });
+        if (data && data.s) {
+            var stat = data.s.filter(function (s) { return s !== undefined && s !== null; });
             result = data.s[0];
             for (var i = 0; i < stat.length - 1; i++) {
                 if (typeof data[i] === 'object')
@@ -109,6 +108,17 @@ var HtmlSafeString = /** @class */ (function () {
         var oldParsed = this.getParts();
         var mapped = (0, deepDiff_1.DeepDiffMapper)(oldParsed, newParsed);
         return (0, getChanged_1.getChanges)(mapped);
+    };
+    HtmlSafeString.prototype.reconstruct = function (changes) {
+        var data = (0, getChanged_1.mergeObjects)(this.getParts(), changes);
+        return this.parse(data);
+    };
+    HtmlSafeString.prototype.parse = function (parts) {
+        var data = parts;
+        var statics = data.s || [""];
+        delete data.s;
+        var dynamics = Object.values(data).filter(function (d) { return d !== undefined && d !== null; });
+        return new HtmlSafeString(statics, dynamics);
     };
     return HtmlSafeString;
 }());
