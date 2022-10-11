@@ -34,17 +34,19 @@ var GenerateLiveServer = function (routes, server, chain, props) {
                 timestamp: Date.now()
             };
             var csrfToken = base.encrypt(secret, newToken);
-            return res.send('token', { csrfToken: csrfToken }, {
+            var nanoId = base.nanoId();
+            return res.send('token', { csrfToken: csrfToken, nanoId: nanoId }, {
                 assigns: {
                     csrfToken: csrfToken,
-                    clientId: clientId
+                    clientId: clientId,
+                    nanoId: nanoId,
                 },
             });
         }
         res.reject('Unauthorized');
     });
-    var channel = endpoint.createChannel('/live', function (req, res) {
-        if (req.joinParams.clientId === req.clientAssigns.csrfToken)
+    var channel = endpoint.createChannel('/:nanoId', function (req, res) {
+        if (req.joinParams.clientId === req.clientAssigns.csrfToken && req.params.nanoId === req.clientAssigns.nanoId)
             res.accept();
         else
             res.reject('Unauthorized', 401);
