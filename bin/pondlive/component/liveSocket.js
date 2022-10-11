@@ -52,10 +52,9 @@ var liveRouter_1 = require("./liveRouter");
 var pondbase_1 = require("../../pondbase");
 var pondsocket_1 = require("../../pondsocket");
 var LiveSocket = /** @class */ (function () {
-    function LiveSocket(clientId, pond, manager, remove) {
+    function LiveSocket(clientId, manager, remove) {
         this._liveContext = {};
         this.clientId = clientId;
-        this._pond = pond;
         this._subscriptions = [];
         this._manager = manager;
         this._channel = null;
@@ -63,135 +62,11 @@ var LiveSocket = /** @class */ (function () {
         this._remove = remove;
     }
     /**
-     * @desc This method is called when a websocket connection is established ont his context.
-     * @param channel - The channel that was created.
+     * @desc Assigns a value to the live context.
+     * @param assign - The data to assign.
      */
-    LiveSocket.prototype.upgradeToWebsocket = function (channel) {
-        this._isWebsocket = true;
-        this._channel = channel;
-    };
-    /**
-     * @desc This method is called when the websocket connection is closed.
-     */
-    LiveSocket.prototype.downgrade = function () {
-        this._isWebsocket = false;
-        this._channel = null;
-        this._subscriptions.forEach(function (s) { return s.sub.unsubscribe(); });
-        this._subscriptions.length = 0;
-    };
-    Object.defineProperty(LiveSocket.prototype, "isWebsocket", {
-        /**
-         * @desc Checks it the current context is a websocket connection.
-         */
-        get: function () {
-            return this._isWebsocket;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    /**
-     * @desc Gets a specific pub/sub channel from the pond.
-     * @param name - The name of the channel.
-     */
-    LiveSocket.prototype.getChannel = function (name) {
-        return this._pond.getChannel(name);
-    };
-    /**
-     * @desc Assigns data to the current context.
-     * @param assigns - The data to assign.
-     */
-    LiveSocket.prototype.assign = function (assigns) {
-        this._liveContext = Object.assign(this._liveContext, assigns);
-    };
-    /**
-     * @desc Assigns data to a pub/sub channel.
-     * @param name - The name of the channel.
-     * @param assigns - The data to assign.
-     */
-    LiveSocket.prototype.assignToChannel = function (name, assigns) {
-        var channel = this.getChannel(name);
-        if (channel)
-            channel.assign(assigns);
-    };
-    /**
-     * @desc Broadcasts data to a pub/sub channel.
-     * @param channel - The name of the channel.
-     * @param event - The event name.
-     * @param data - The data to broadcast.
-     */
-    LiveSocket.prototype.broadcast = function (channel, event, data) {
-        var payload = __assign(__assign({}, data), { sender: this.clientId });
-        this._pond.broadcast(channel, event, payload);
-    };
-    /**
-     * @desc Gets data assigned to a pub/sub channel.
-     * @param name - The name of the channel.
-     */
-    LiveSocket.prototype.getChannelData = function (name) {
-        var channel = this.getChannel(name);
-        if (channel)
-            return channel.data;
-        return null;
-    };
-    /**
-     * @desc Subscribes to a pub/sub channel.
-     * @param name - The name of the channel.
-     * @param event - The event name.
-     */
-    LiveSocket.prototype.subscribe = function (name, event) {
-        var _this = this;
-        var sub = this._pond.subscribe(name, event, function (data) { return __awaiter(_this, void 0, void 0, function () {
-            var response, router, info;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!(data.sender !== this.clientId)) return [3 /*break*/, 2];
-                        response = this._createPondResponse();
-                        router = new liveRouter_1.LiveRouter(response);
-                        info = (data === null || data === void 0 ? void 0 : data.payload) || data;
-                        return [4 /*yield*/, this._manager.handleInfo(info, this, router, response)];
-                    case 1:
-                        _a.sent();
-                        _a.label = 2;
-                    case 2: return [2 /*return*/];
-                }
-            });
-        }); });
-        this._subscriptions.push({ name: name, sub: sub });
-    };
-    /**
-     * @desc Unsubscribes from a pub/sub channel.
-     * @param name - The name of the channel.
-     */
-    LiveSocket.prototype.unsubscribe = function (name) {
-        var subs = this._subscriptions.filter(function (s) { return s.name === name; });
-        this._subscriptions = this._subscriptions.filter(function (s) { return s.name !== name; });
-        subs.forEach(function (s) { return s.sub.unsubscribe(); });
-    };
-    /**
-     * @desc Subscribes to all events on a pub/sub channel.
-     * @param name - The name of the channel.
-     */
-    LiveSocket.prototype.subscribeAll = function (name) {
-        var _this = this;
-        var sub = this._pond.subscribeAll(name, function (data) { return __awaiter(_this, void 0, void 0, function () {
-            var response, router, info;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!(data.sender !== this.clientId)) return [3 /*break*/, 2];
-                        response = this._createPondResponse();
-                        router = new liveRouter_1.LiveRouter(response);
-                        info = (data === null || data === void 0 ? void 0 : data.payload) || data;
-                        return [4 /*yield*/, this._manager.handleInfo(info, this, router, response)];
-                    case 1:
-                        _a.sent();
-                        _a.label = 2;
-                    case 2: return [2 /*return*/];
-                }
-            });
-        }); });
-        this._subscriptions.push({ name: name, sub: sub });
+    LiveSocket.prototype.assign = function (assign) {
+        this._liveContext = Object.assign(this._liveContext, assign);
     };
     /**
      * @desc Emits an event on the browser window.
@@ -203,6 +78,9 @@ var LiveSocket = /** @class */ (function () {
             this._channel.broadcast('emit', { event: event, data: data });
     };
     Object.defineProperty(LiveSocket.prototype, "context", {
+        /**
+         * @desc The live context.
+         */
         get: function () {
             var result = __assign({}, this._liveContext);
             return Object.freeze(result);
@@ -210,16 +88,75 @@ var LiveSocket = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    /**
+     * @desc Destroys the live socket.
+     */
     LiveSocket.prototype.destroy = function () {
         this._subscriptions.forEach(function (s) { return s.sub.unsubscribe(); });
         this._subscriptions.length = 0;
         this._remove();
     };
+    /**
+     * @desc Creates a socket response object.
+     */
     LiveSocket.prototype.createResponse = function () {
         var response = this._createPondResponse();
         var router = new liveRouter_1.LiveRouter(response);
         return { response: response, router: router };
     };
+    /**
+     * @desc Upgrades the live socket to a websocket.
+     * @param channel - The websocket channel.
+     */
+    LiveSocket.prototype.upgradeToWebsocket = function (channel) {
+        this._isWebsocket = true;
+        this._channel = channel;
+    };
+    /**
+     * @desc Downgrades the live socket to a http request.
+     */
+    LiveSocket.prototype.downgrade = function () {
+        this._isWebsocket = false;
+        this._channel = null;
+        this._subscriptions.forEach(function (s) { return s.sub.unsubscribe(); });
+        this._subscriptions.length = 0;
+    };
+    /**
+     * @desc Handles a message from a subscriber.
+     * @param info - The message info.
+     */
+    LiveSocket.prototype.onMessage = function (info) {
+        return __awaiter(this, void 0, void 0, function () {
+            var response, router;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        response = this._createPondResponse();
+                        router = new liveRouter_1.LiveRouter(response);
+                        return [4 /*yield*/, this._manager.handleInfo(info, this, router, response)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Object.defineProperty(LiveSocket.prototype, "isWebsocket", {
+        /**
+         * @desc The type of the live socket.
+         */
+        get: function () {
+            return this._isWebsocket;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    LiveSocket.prototype.addSubscription = function (sub) {
+        this._subscriptions.push({ sub: sub });
+    };
+    /**
+     * @desc Creates a socket response object.
+     */
     LiveSocket.prototype._createPondResponse = function () {
         var _this = this;
         if (!this._channel)

@@ -93,7 +93,7 @@ var ComponentManager = /** @class */ (function () {
     function ComponentManager(path, component, props) {
         var _this = this;
         this._base = new pondbase_1.BaseClass();
-        this._path = path.replace('//', '/');
+        this._path = path.replace(/\/{2,}/g, '/');
         this._parentId = props.parentId;
         this._componentId = this._base.nanoId();
         this._component = component;
@@ -102,7 +102,6 @@ var ComponentManager = /** @class */ (function () {
         this._sockets = new pondbase_1.PondBase();
         this._initialiseManager();
         this._htmlPath = props.htmlPath;
-        this._pondLive = props.pondLive;
         this._secret = props.secret;
         var contexts = props.providers.concat(this._component.providers || []);
         if (this._component.onContextChange)
@@ -113,7 +112,6 @@ var ComponentManager = /** @class */ (function () {
             pond: _this._pond,
             chain: _this._chain,
             htmlPath: props.htmlPath,
-            pondLive: props.pondLive,
             providers: contexts,
             secret: props.secret
         }); });
@@ -130,7 +128,7 @@ var ComponentManager = /** @class */ (function () {
                         if (!document)
                             document = this._sockets.createDocument(function (doc) {
                                 return {
-                                    socket: new liveSocket_1.LiveSocket(clientId, _this._pondLive, _this, doc.removeDoc.bind(doc)),
+                                    socket: new liveSocket_1.LiveSocket(clientId, _this, doc.removeDoc.bind(doc)),
                                     rendered: (0, pondserver_1.html)(templateObject_1 || (templateObject_1 = __makeTemplateObject([""], [""]))),
                                     timer: null,
                                 };

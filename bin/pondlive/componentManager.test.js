@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var componentManager_1 = require("./componentManager");
-var pondLiveChannel_1 = require("./component/pondLiveChannel");
 var createComponentManager = function () {
     var test = {
         pond: {
@@ -13,7 +12,6 @@ var createComponentManager = function () {
         parentId: 'test',
         secret: 'test',
         providers: [],
-        pondLive: new pondLiveChannel_1.PondLiveChannelManager(),
     };
     var context = {
         routes: [],

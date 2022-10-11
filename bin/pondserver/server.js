@@ -63,14 +63,13 @@ var PondServer = /** @class */ (function () {
     };
     PondServer.prototype.usePondLive = function (routes, options) {
         if (options === void 0) { options = {}; }
-        var data = (0, pondlive_1.GenerateLiveServer)(routes, this._server, this._middlewareChain, {
+        return (0, pondlive_1.GenerateLiveServer)(routes, this._server, this._middlewareChain, {
             pondSocket: this._pondSocket,
             htmlPath: options.index,
             secret: options.secret,
             cookie: options.cookie,
             providers: options.providers
         });
-        return data.manager;
     };
     return PondServer;
 }());

@@ -12,7 +12,7 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createContext = exports.ContextManager = void 0;
-var pondbase_1 = require("../pondbase");
+var pondbase_1 = require("../../pondbase");
 var ContextManager = /** @class */ (function () {
     function ContextManager(name, initialData) {
         this._name = name;
@@ -31,7 +31,8 @@ var ContextManager = /** @class */ (function () {
             db.updateDoc({ clientId: db.doc.clientId, data: newDoc });
         }
         else {
-            newDoc = Object.assign(this._initialValue, assigns);
+            var temp = __assign({}, this._initialValue);
+            newDoc = Object.assign(temp, assigns);
             this._database.set({ clientId: socket.clientId, data: newDoc });
         }
         var data = {

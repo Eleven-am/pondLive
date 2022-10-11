@@ -8,7 +8,6 @@ var pondserver_1 = require("../pondserver");
 var pondsocket_1 = require("../pondsocket");
 var pondbase_1 = require("../pondbase");
 var componentManager_1 = require("./componentManager");
-var pondLiveChannel_1 = require("./component/pondLiveChannel");
 var path_1 = __importDefault(require("path"));
 var GenerateLiveServer = function (routes, server, chain, props) {
     var _a;
@@ -57,13 +56,11 @@ var GenerateLiveServer = function (routes, server, chain, props) {
         parentId: pondId,
         secret: secret,
         providers: (props === null || props === void 0 ? void 0 : props.providers) || [],
-        pondLive: new pondLiveChannel_1.PondLiveChannelManager(),
     };
     routes.map(function (route) {
         var path = "".concat(pondPath).concat(route.path);
         return new componentManager_1.ComponentManager(path, new route.Component(), managerProps);
     });
-    var manager = managerProps.pondLive;
-    return { pondServer: pondServer, manager: manager };
+    return pondServer;
 };
 exports.GenerateLiveServer = GenerateLiveServer;

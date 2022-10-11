@@ -1,7 +1,8 @@
 import {LiveSocket} from "./liveSocket";
 import {CSSGenerator, CSSOutput, HtmlSafeString} from "../../pondserver";
 import {LiveRouter} from "./liveRouter";
-import {ContextProvider, PeakData} from "../contextManager";
+import {ContextProvider, PeakData} from "../broadcasters/contextManager";
+import {BroadcastEvent} from "../broadcasters/broadcaster";
 
 export declare type LiveComponent<LiveContext extends Object = any> = {
     new(...args: any[]): ComponentClass<LiveContext>;
@@ -50,7 +51,7 @@ export interface LiveBuilder<LiveContext extends Object = any> {
      * @param socket - The socket of user connection.
      * @param router - The router of this instance of the connection.
      */
-    onContextChange?(this: LiveContext, context: PeakData<any>, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
+    onContextChange?(this: LiveContext, context: PeakData, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
 
     /**
      * @desc Called when the component is connected to the server over websockets.
@@ -73,7 +74,7 @@ export interface LiveBuilder<LiveContext extends Object = any> {
      * @param socket - The socket of user connection.
      * @param router - The router of this instance of the connection.
      */
-    onInfo?(this: LiveContext, info: any, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
+    onInfo?(this: LiveContext, info: BroadcastEvent, socket: LiveSocket<LiveContext>, router: LiveRouter): void | Promise<void>;
 
     /**
      * @desc Called when the component is disconnected from the server.

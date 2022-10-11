@@ -20,5 +20,5 @@ __exportStar(require("./component/liveComponent"), exports);
 __exportStar(require("./component/liveSocket"), exports);
 __exportStar(require("./componentManager"), exports);
 __exportStar(require("./genServer"), exports);
-__exportStar(require("./component/pondLiveChannel"), exports);
-__exportStar(require("./contextManager"), exports);
+__exportStar(require("./broadcasters/contextManager"), exports);
+__exportStar(require("./broadcasters/broadcaster"), exports);
