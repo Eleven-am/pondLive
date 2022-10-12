@@ -1,19 +1,9 @@
-import {ComponentClass} from "./component/liveComponent";
 import {LiveSocket} from "./component/liveSocket";
 import {LiveRouter} from "./component/liveRouter";
-import {Chain, HtmlSafeString} from "../pondserver";
+import {HtmlSafeString} from "../pondserver";
 import {Resolver} from "../pondbase";
-import {Channel, PondChannel, PondResponse} from "../pondsocket";
-import {ContextProvider, PeakData} from "./broadcasters/contextManager";
-
-export interface IComponentManagerProps {
-    parentId: string;
-    pond: PondChannel;
-    chain: Chain;
-    secret: string;
-    htmlPath?: string;
-    providers: ContextProvider[];
-}
+import {Channel, PondResponse} from "../pondsocket";
+import {PeakData} from "./broadcasters/contextManager";
 
 interface RenderedComponent {
     path: string;
@@ -21,7 +11,6 @@ interface RenderedComponent {
 }
 
 export declare class ComponentManager {
-
     render(data: Resolver, clientId: string, router: LiveRouter): Promise<RenderedComponent | null>;
 
     handleEvent(event: any, clientId: string, router: LiveRouter, res: PondResponse): Promise<void>;
@@ -35,4 +24,3 @@ export declare class ComponentManager {
     handleUnmount(clientId: string): Promise<void>;
 }
 
-export {};

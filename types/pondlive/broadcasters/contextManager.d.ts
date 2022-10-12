@@ -1,5 +1,5 @@
-import {ComponentManager} from "../componentManager";
 import {LiveSocket} from "../component/liveSocket";
+import {ComponentManager} from "../componentManager";
 
 export interface PeakData<DataType = any> {
     contextId: string;
@@ -11,14 +11,12 @@ export declare type ContextConsumer<ContextType> = {
     get: (socket: LiveSocket<any>) => Readonly<ContextType>;
     handleContextChange: (context: PeakData, handler: (data: Readonly<ContextType>) => void) => void;
 };
+
 export declare type ContextProvider = {
+    mount: (socket: LiveSocket<any>, componentId: string) => void;
     subscribe: (manager: ComponentManager) => void;
-    deleteClient: (socket: LiveSocket<any>) => void;
-    getData: (socket: LiveSocket<any>) => PeakData;
 };
 
-declare type ContextFactoryType<ContextType> = [ContextConsumer<ContextType>, ContextProvider];
+export declare type GlobalContext<ContextData> = [ContextConsumer<ContextData>, ContextProvider];
 
-export declare function createContext<ContextType extends Object>(initialValue: ContextType): ContextFactoryType<ContextType>;
-
-export {};
+export declare function createContext<ContextData>(initialData: ContextData): GlobalContext<ContextData>;

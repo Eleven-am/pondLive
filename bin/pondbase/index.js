@@ -20,3 +20,4 @@ __exportStar(require("./pondBase"), exports);
 __exportStar(require("./pubSub"), exports);
 __exportStar(require("./types"), exports);
 __exportStar(require("./enums"), exports);
+__exportStar(require("./simpleBase"), exports);

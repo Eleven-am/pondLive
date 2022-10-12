@@ -16,7 +16,7 @@ var pondbase_1 = require("../../pondbase");
 var Broadcaster = /** @class */ (function () {
     function Broadcaster(initialData) {
         this._channelData = initialData;
-        this._database = new pondbase_1.PondBase();
+        this._database = new pondbase_1.SimpleBase();
         this._name = Math.random().toString(36).substring(7);
     }
     Object.defineProperty(Broadcaster.prototype, "channelData", {
@@ -31,10 +31,10 @@ var Broadcaster = /** @class */ (function () {
         this._channelData = Object.assign(this._channelData, assigns);
     };
     Broadcaster.prototype.subscribe = function (socket) {
-        var pondDoc = this._database.find(function (doc) { return doc.clientId === socket.clientId; });
+        var pondDoc = this._database.get(socket.clientId);
         if (pondDoc)
             pondDoc.removeDoc();
-        var doc = this._database.set(socket);
+        var doc = this._database.set(socket.clientId, socket);
         var subscription = {
             unsubscribe: function () {
                 doc.removeDoc();
