@@ -49,18 +49,22 @@ var getContentType = function (extension) {
             return 'text/plain';
     }
 };
-var modifyUrl = function (url) {
-    if (url === '/') {
-        return '/index.html';
+// check if file exist and is not a directory
+var fileExist = function (filePath) {
+    try {
+        return fs.existsSync(filePath) && !fs.lstatSync(filePath).isDirectory();
     }
-    return url || '';
+    catch (err) {
+        return false;
+    }
 };
 var FileRouter = function (absolutePath) { return function (request, response, next) {
+    var _a, _b;
     if (request.method !== "GET")
         return next();
-    var modifiedUrl = modifyUrl(request.url);
+    var modifiedUrl = (_b = (_a = request.url) === null || _a === void 0 ? void 0 : _a.replace(/%20/g, " ")) !== null && _b !== void 0 ? _b : "";
     var filePath = path_1.default.join(absolutePath, modifiedUrl);
-    if (!fs.existsSync(filePath))
+    if (!fileExist(filePath))
         return next();
     var extension = path_1.default.extname(modifiedUrl);
     var contentType = getContentType(extension);

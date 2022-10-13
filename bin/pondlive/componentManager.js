@@ -62,6 +62,31 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 var __values = (this && this.__values) || function(o) {
     var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
@@ -96,9 +121,8 @@ var ComponentManager = /** @class */ (function () {
         this._initialiseManager();
         this._htmlPath = props.htmlPath;
         this._secret = props.secret;
-        var contexts = props.providers.concat(this.component.providers || []);
-        if (this.component.onContextChange)
-            contexts.forEach(function (context) { return context.subscribe(_this); });
+        var contexts = __spreadArray(__spreadArray([], __read(component.providers), false), __read(props.providers), false);
+        contexts.forEach(function (context) { return context.subscribe(_this); });
         this._providers = contexts;
         this._innerManagers = (component.routes || []).map(function (route) { return new ComponentManager("".concat(path).concat(route.path), new route.Component(), {
             parentId: _this.componentId,
@@ -111,7 +135,7 @@ var ComponentManager = /** @class */ (function () {
     }
     ComponentManager.prototype.render = function (data, clientId, router) {
         return __awaiter(this, void 0, void 0, function () {
-            var document, mountContext, innerHtml, _a, _b, manager, event_1, rendered_1, e_1_1, renderRoutes, socket, rendered;
+            var document, socket, mountContext, innerHtml, _a, _b, manager, event_1, rendered_1, e_1_1, renderRoutes, rendered;
             var e_1, _c;
             var _this = this;
             return __generator(this, function (_d) {
@@ -125,14 +149,15 @@ var ComponentManager = /** @class */ (function () {
                             };
                         });
                         this._clearShutDown(document);
-                        document.doc.socket.downgrade();
+                        socket = document.doc.socket;
+                        this._providers.forEach(function (context) { return context.mount(socket, _this.componentId); });
                         mountContext = {
                             params: data.params,
                             path: data.address,
                             query: data.query
                         };
                         if (!this.component.mount) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.component.mount(mountContext, document.doc.socket, router)];
+                        return [4 /*yield*/, this.component.mount(mountContext, socket, router)];
                     case 1:
                         _d.sent();
                         _d.label = 2;
@@ -174,8 +199,6 @@ var ComponentManager = /** @class */ (function () {
                         if (router.sentResponse)
                             return [2 /*return*/, null];
                         renderRoutes = function () { return (0, clientRouter_1.clientRouter)(_this.componentId, (innerHtml === null || innerHtml === void 0 ? void 0 : innerHtml.path) || '', (innerHtml === null || innerHtml === void 0 ? void 0 : innerHtml.rendered) || (0, pondserver_1.html)(templateObject_2 || (templateObject_2 = __makeTemplateObject([""], [""])))); };
-                        socket = document.doc.socket;
-                        this._providers.forEach(function (context) { return context.mount(socket, _this.componentId); });
                         return [4 /*yield*/, this._renderComponent(document, renderRoutes)];
                     case 11:
                         rendered = _d.sent();
@@ -457,9 +480,8 @@ var ComponentManager = /** @class */ (function () {
     };
     ComponentManager.prototype._initialiseSocketManager = function () {
         var _this = this;
-        var subscription = null;
         this._pond.on("mount/".concat(this.componentId), function (req, res, channel) { return __awaiter(_this, void 0, void 0, function () {
-            var router;
+            var router, sub;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -468,9 +490,11 @@ var ComponentManager = /** @class */ (function () {
                         return [4 /*yield*/, this.handleRendered(req.client.clientAssigns.clientId, router, res, channel)];
                     case 1:
                         _a.sent();
-                        subscription = channel.subscribe(function (data) {
-                            if (data.action === pondsocket_1.ServerActions.PRESENCE && data.event === 'LEAVE_CHANNEL')
+                        sub = channel.subscribe(function (data) {
+                            if ((data.action === pondsocket_1.ServerActions.PRESENCE && data.event === 'LEAVE_CHANNEL') || (data.event === "unmount/".concat(_this.componentId))) {
                                 _this.handleUnmount(req.client.clientAssigns.clientId);
+                                sub.unsubscribe();
+                            }
                         });
                         return [2 /*return*/];
                 }
@@ -508,25 +532,6 @@ var ComponentManager = /** @class */ (function () {
                     case 2:
                         e_3 = _a.sent();
                         throw e_3;
-                    case 3: return [2 /*return*/];
-                }
-            });
-        }); });
-        this._pond.on("unmount/".concat(this.componentId), function (req) { return __awaiter(_this, void 0, void 0, function () {
-            var e_4;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, this.handleUnmount(req.client.clientAssigns.clientId)];
-                    case 1:
-                        _a.sent();
-                        if (subscription)
-                            subscription.unsubscribe();
-                        return [3 /*break*/, 3];
-                    case 2:
-                        e_4 = _a.sent();
-                        throw e_4;
                     case 3: return [2 /*return*/];
                 }
             });

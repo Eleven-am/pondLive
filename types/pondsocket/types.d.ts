@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { default_t, ResponsePicker } from "../pondbase";
-import { ClientActions, ServerActions } from "./enums";
+import { ServerActions } from "./enums";
 import { WebSocket } from "ws";
 import { IncomingHttpHeaders } from "http";
 export interface NewUser {
@@ -56,22 +56,4 @@ export interface PondResponseAssigns {
     presence?: PondPresence;
     channelData?: PondChannelData;
 }
-export declare type ClientMessage = {
-    action: ClientActions;
-    channelName: string;
-    event: string;
-    payload: default_t;
-    addresses?: string[];
-};
 export declare type SendResponse<T = ResponsePicker.CHANNEL> = T extends ResponsePicker.CHANNEL ? Required<PondResponseAssigns> : T extends ResponsePicker.POND ? Required<Omit<PondResponseAssigns, 'presence' | 'channelData'>> : never;
-export interface ResponseResolver<T = ResponsePicker.CHANNEL> {
-    assigns: SendResponse<T>;
-    message?: {
-        event: string;
-        payload: PondMessage;
-    };
-    error?: {
-        errorMessage: string;
-        errorCode: number;
-    };
-}

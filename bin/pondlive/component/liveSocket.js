@@ -109,6 +109,7 @@ var LiveSocket = /** @class */ (function () {
      * @param channel - The websocket channel.
      */
     LiveSocket.prototype.upgradeToWebsocket = function (channel) {
+        this.downgrade();
         this._isWebsocket = true;
         this._channel = channel;
     };
@@ -151,6 +152,10 @@ var LiveSocket = /** @class */ (function () {
         enumerable: false,
         configurable: true
     });
+    /**
+     * @desc Receives a subscription from a subscriber.
+     * @param sub - The subscription.
+     */
     LiveSocket.prototype.addSubscription = function (sub) {
         this._subscriptions.push({ sub: sub });
     };

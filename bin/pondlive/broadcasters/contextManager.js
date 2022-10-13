@@ -73,6 +73,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createContext = exports.ContextManager = void 0;
+var liveSocket_1 = require("../component/liveSocket");
 var pondbase_1 = require("../../pondbase");
 var ContextManager = /** @class */ (function () {
     function ContextManager(initialData) {
@@ -83,18 +84,23 @@ var ContextManager = /** @class */ (function () {
     }
     ContextManager.prototype.mount = function (socket, componentId) {
         return __awaiter(this, void 0, void 0, function () {
-            var doc, sub, ids;
+            var manager, doc, sub, ids;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        manager = this._managers.get(componentId);
+                        if (manager === null)
+                            return [2 /*return*/];
                         doc = this._database.getOrCreate(socket.clientId, function () {
                             return {
                                 clientId: socket.clientId,
                                 componentIds: [componentId],
-                                data: _this._initialValue
+                                data: _this._initialValue,
+                                timer: null
                             };
                         });
+                        doc.doc.timer && clearTimeout(doc.doc.timer);
                         sub = this._generateUnSubscribe(socket, componentId);
                         socket.addSubscription(sub);
                         ids = __spreadArray([], __read(doc.doc.componentIds), false).filter(function (id) { return id !== componentId; });
@@ -102,7 +108,8 @@ var ContextManager = /** @class */ (function () {
                         doc.updateDoc({
                             clientId: doc.doc.clientId,
                             componentIds: ids,
-                            data: doc.doc.data
+                            data: doc.doc.data,
+                            timer: null
                         });
                         return [4 /*yield*/, this._broadcastToComponentId(socket.clientId, componentId, doc.doc.data)];
                     case 1:
@@ -113,7 +120,23 @@ var ContextManager = /** @class */ (function () {
         });
     };
     ContextManager.prototype.subscribe = function (manager) {
-        this._managers.set(manager.componentId, manager);
+        var _this = this;
+        var _a;
+        var liveSocket = new liveSocket_1.LiveSocket('context', manager, function () { });
+        var router = {
+            navigateTo: function () { },
+            replace: function () { },
+            pageTitle: '',
+            flashMessage: '',
+        };
+        var verify = {
+            contextId: this._name,
+            data: this._initialValue,
+            listensFor: []
+        };
+        (_a = manager.component.onContextChange) === null || _a === void 0 ? void 0 : _a.call({}, verify, liveSocket, router);
+        if (verify.listensFor.some(function (id) { return id === _this._name; }))
+            this._managers.set(manager.componentId, manager);
     };
     ContextManager.prototype.assign = function (socket, assigns) {
         return __awaiter(this, void 0, void 0, function () {
@@ -122,14 +145,10 @@ var ContextManager = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        db = this._database.find(function (doc) { return doc.clientId === socket.clientId; });
+                        db = this._getDoc(socket.clientId);
                         if (!db) return [3 /*break*/, 2];
                         newDoc_1 = Object.assign(__assign({}, db.doc.data), assigns);
-                        db.updateDoc({
-                            clientId: db.doc.clientId,
-                            componentIds: db.doc.componentIds,
-                            data: newDoc_1
-                        });
+                        db.updateDoc(__assign(__assign({}, db.doc), { data: newDoc_1 }));
                         return [4 /*yield*/, Promise.all(db.doc.componentIds.map(function (id) { return _this._broadcastToComponentId(socket.clientId, id, newDoc_1); }))];
                     case 1:
                         _a.sent();
@@ -140,32 +159,32 @@ var ContextManager = /** @class */ (function () {
         });
     };
     ContextManager.prototype.get = function (socket) {
-        var db = this._database.find(function (doc) { return doc.clientId === socket.clientId; });
-        if (db) {
+        var db = this._getDoc(socket.clientId);
+        if (db)
             return Object.freeze(__assign({}, db.doc.data));
-        }
         return this._initialValue;
     };
     ContextManager.prototype.handleContextChange = function (context, handler) {
-        if (context.contextId === this._name) {
+        if (context.listensFor)
+            context.listensFor.push(this._name);
+        else if (context.contextId === this._name)
             handler(context.data);
-        }
     };
     ContextManager.prototype._generateUnSubscribe = function (socket, componentId) {
         var _this = this;
         return {
             unsubscribe: function () {
-                var doc = _this._database.get(socket.clientId);
+                var doc = _this._getDoc(socket.clientId);
                 if (doc) {
                     var ids = __spreadArray([], __read(doc.doc.componentIds), false).filter(function (id) { return id !== componentId; });
-                    if (ids.length === 0)
-                        doc.removeDoc();
+                    if (ids.length === 0) {
+                        var timer = setTimeout(function () {
+                            doc.removeDoc();
+                        }, 10000);
+                        doc.updateDoc(__assign(__assign({}, doc.doc), { timer: timer }));
+                    }
                     else {
-                        doc.updateDoc({
-                            clientId: doc.doc.clientId,
-                            componentIds: ids,
-                            data: doc.doc.data
-                        });
+                        doc.updateDoc(__assign(__assign({}, doc.doc), { componentIds: ids }));
                     }
                 }
             }
@@ -191,6 +210,15 @@ var ContextManager = /** @class */ (function () {
                 }
             });
         });
+    };
+    ContextManager.prototype._getDoc = function (clientId) {
+        var doc = this._database.get(clientId);
+        if (doc) {
+            doc.doc.timer && clearTimeout(doc.doc.timer);
+            doc.updateDoc(__assign(__assign({}, doc.doc), { timer: null }));
+            return doc;
+        }
+        return null;
     };
     return ContextManager;
 }());
