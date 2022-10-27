@@ -180,6 +180,8 @@ There are two types of contexts. A global context and a local context. The globa
 This context can be used to share information between components like the current user or the current language.
 
 ```js
+    import { createContext } from 'pondlive';    
+
     const [consumer, provider] = createContext({ username: 'John Doe' });
 ```
 
@@ -260,6 +262,8 @@ Any socket can subscribe to a broadcast channel, but since the messages can be e
 It is thus advised to subscribe to a broadcast channel in the onRendered function.
 
 ```js
+    import { BroadcastChannel } from 'pondlive';
+
     const counterChannel = new BroadcastChannel({
         count: 0
     });
