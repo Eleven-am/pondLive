@@ -108,8 +108,8 @@ describe('Broadcaster', () => {
             manageSocketRender: (_a, b, _c, cb) => {
                 cb({
                     onInfo: (data) => {
-                        broadcaster.handleEvent(data, mockInfo);
-                        broadcaster2.handleEvent(data, mockInfo2);
+                        broadcaster.handleInfo(data, mockInfo);
+                        broadcaster2.handleInfo(data, mockInfo2);
                     }
                 }, b);
             }

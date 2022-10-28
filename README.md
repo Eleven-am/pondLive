@@ -283,7 +283,7 @@ It is thus advised to subscribe to a broadcast channel in the onRendered functio
         },
     
         onInfo(info, socket, router) {
-            counterChannel.handleEvent(info, data => {
+            counterChannel.handleInfo(info, data => {
                 // do something with data
                 socket.assign({
                     count: data.newCount

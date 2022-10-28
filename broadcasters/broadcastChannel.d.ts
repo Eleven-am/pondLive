@@ -43,5 +43,5 @@ export declare class BroadcastChannel<ContextType extends Object, InnerData exte
      * @param data - The data of the event
      * @param callback - The callback to call when the event is handled
      */
-    handleEvent(data: BroadcastEvent, callback: (payload: ContextType) => void): void;
+    handleInfo(data: BroadcastEvent, callback: (payload: ContextType) => void): void;
 }

@@ -37,7 +37,7 @@ class BroadcastChannel {
         this._database.filter(doc => doc.clientId !== socket.clientId)
             .forEach(doc => doc.doc.onMessage({ event: this._contextId, payload }));
     }
-    handleEvent(data, callback) {
+    handleInfo(data, callback) {
         if (data.event === this._contextId)
             callback(data.payload);
     }
