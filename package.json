@@ -1,6 +1,6 @@
 {
   "name": "@eleven-am/pondlive",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "PondLive is a simple, lightweight, and easy to use Web framework",
   "keywords": [
     "socket",
