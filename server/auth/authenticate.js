@@ -1,29 +1,29 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAuthorizer = exports.AuthorizeUpgrade = exports.AuthorizeRequest = exports.pondAuthorizer = exports.parseCookies = void 0;
-var response_1 = require("../expressConfig/response");
-var baseClass_1 = require("../../utils/baseClass");
-var parseCookies = function (headers) {
-    var list = {}, rc = headers.cookie;
+const response_1 = require("../expressConfig/response");
+const baseClass_1 = require("../../utils/baseClass");
+const parseCookies = (headers) => {
+    const list = {}, rc = headers.cookie;
     rc && rc.split(';').forEach(function (cookie) {
         var _a;
-        var parts = cookie.split('=');
+        const parts = cookie.split('=');
         list[((_a = parts.shift()) === null || _a === void 0 ? void 0 : _a.trim()) || ''] = decodeURI(parts.join('='));
     });
     return list;
 };
 exports.parseCookies = parseCookies;
-var pondAuthorizer = function (secret, cookie) {
-    return function (request) {
+const pondAuthorizer = (secret, cookie) => {
+    return (request) => {
         var _a;
-        var token = (0, exports.parseCookies)(request)[cookie] || null;
-        var clientId = ((_a = new baseClass_1.BaseClass().decrypt(secret, token || '')) === null || _a === void 0 ? void 0 : _a.time) || null;
+        let token = (0, exports.parseCookies)(request)[cookie] || null;
+        let clientId = ((_a = new baseClass_1.BaseClass().decrypt(secret, token || '')) === null || _a === void 0 ? void 0 : _a.time) || null;
         if (!clientId) {
             if (token)
                 return { clientId: null, token: null, clearToken: true };
             clientId = Date.now().toString();
             token = new baseClass_1.BaseClass().encrypt(secret, { time: clientId });
-            return { clientId: clientId, token: token, setToken: true };
+            return { clientId, token, setToken: true };
         }
         if (Date.now() - parseInt(clientId) > 1000 * 60 * 60 * 2)
             return {
@@ -32,16 +32,15 @@ var pondAuthorizer = function (secret, cookie) {
                 valid: false,
                 clearToken: true,
             };
-        return { clientId: clientId, token: token };
+        return { clientId, token };
     };
 };
 exports.pondAuthorizer = pondAuthorizer;
-var AuthorizeRequest = function (secret, cookie, authorizer) {
-    if (authorizer === void 0) { authorizer = (0, exports.pondAuthorizer)(secret, cookie); }
-    return function (req, res, next) {
+const AuthorizeRequest = (secret, cookie, authorizer = (0, exports.pondAuthorizer)(secret, cookie)) => {
+    return (req, res, next) => {
         req.auth = { clientId: null, token: null };
         res = (0, response_1.applyResponse)(res);
-        var _a = authorizer(req.headers), clientId = _a.clientId, token = _a.token, setToken = _a.setToken, clearToken = _a.clearToken;
+        const { clientId, token, setToken, clearToken } = authorizer(req.headers);
         if (clearToken) {
             res.clearCookie(cookie);
             return res.status(401).json({ message: 'Unauthorized' });
@@ -62,29 +61,26 @@ var AuthorizeRequest = function (secret, cookie, authorizer) {
     };
 };
 exports.AuthorizeRequest = AuthorizeRequest;
-var AuthorizeUpgrade = function (secret, cookie, authorizer) {
-    if (authorizer === void 0) { authorizer = (0, exports.pondAuthorizer)(secret, cookie); }
-    var base = new baseClass_1.BaseClass();
-    return function (req, response) {
-        var clientId = authorizer(req.headers).clientId;
+const AuthorizeUpgrade = (secret, cookie, authorizer = (0, exports.pondAuthorizer)(secret, cookie)) => {
+    const base = new baseClass_1.BaseClass();
+    return (req, response) => {
+        const { clientId } = authorizer(req.headers);
         if (!clientId)
             return response.reject('Unauthorized', 401);
-        var newToken = {
+        const newToken = {
             token: base.uuid(), clientId: clientId, timestamp: Date.now()
         };
-        var csrfToken = base.encrypt(secret, newToken);
-        var nanoId = base.nanoId();
-        return response.send('token', { csrfToken: csrfToken, nanoId: nanoId }, {
+        const csrfToken = base.encrypt(secret, newToken);
+        const nanoId = base.nanoId();
+        return response.send('token', { csrfToken, nanoId }, {
             assigns: {
-                csrfToken: csrfToken,
-                clientId: clientId,
-                nanoId: nanoId
+                csrfToken, clientId, nanoId
             },
         });
     };
 };
 exports.AuthorizeUpgrade = AuthorizeUpgrade;
-var getAuthorizer = function (secret, cookie, authorizer) {
+const getAuthorizer = (secret, cookie, authorizer) => {
     return authorizer || (0, exports.pondAuthorizer)(secret, cookie);
 };
 exports.getAuthorizer = getAuthorizer;
