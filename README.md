@@ -190,7 +190,7 @@ This means the provider should be passed to only the root component of the tree 
 
 ```js
     const Counter = LiveFactory({   
-        provider: [provider],
+        providers: [provider],
     
         mount(params, socket, router) {
             // do something
@@ -218,7 +218,7 @@ This function requires that the consumer intercepts the onContextChange function
 
 ```js
     const Counter = LiveFactory({   
-        provider: [provider],
+        providers: [provider],
     
         onContextChange(context, socket, router) {
             consumer.handleContextChange(context, data => {
@@ -232,7 +232,7 @@ The second way is to use the consumer to get the context.
 
 ```js
     const Counter = LiveFactory({   
-        provider: [provider],
+        providers: [provider],
     
         mount(params, socket, router) {
             const data = consumer.getContext(socket);
@@ -294,7 +294,10 @@ It is thus advised to subscribe to a broadcast channel in the onRendered functio
             });
             
             counterChannel.assign({
-                count: count + 1 // This state would be saved for processing but not sent to any clients
+                count: count + 1 // The channel assigns are never broadcasted. 
+                // They can be viewed as auxilary data held by the channel
+                // This data can be accessed by all sockets that are subscribed to the channel
+                // broadcastChannel.channelData will return the data
             });
         },
     
@@ -311,6 +314,179 @@ It is thus advised to subscribe to a broadcast channel in the onRendered functio
             return html`
                 <div>
                     <h1> Number of clicks: ${this.count} </h1>
+                </div>
+            `;
+        },
+    })
+```
+
+#### PondLive Events
+
+PondLive events are a way to communicate between a component and the server. PondLive events are emitted by the client and are handled by the server.
+These events are triggered by most of the classic HTML events like click, change, input, submit, etc. The events are triggered by adding the pond- prefix to the event name.
+When this event fires on the client it will send a message to the server with the event type as the value of the pond- prefix.
+
+```js
+    const Counter = LiveFactory({   
+        render(socket, router) {
+            return html`
+                <div>
+                    <button pond-click="increment">Increment</button>
+                    <div>${this.count}</div>
+                </div>
+            `;
+        },
+    
+        onEvent(event, socket, router) {
+            if (event.type === 'increment') {
+                socket.assign({
+                    count: this.count + 1
+                });
+            }
+        },
+    })
+```
+
+There also some custom events like the pond-upload event. This event can be added to a form and on submit, will send the files to the server.
+The pond-upload event can also be added to an input of type file and will send the file to the server. There are some caveats to this event.
+Because of how PondLive prevents against cross site scripting attacks, the pond-upload event can only work with components that implement both the onUpload and onUploadRequest functions.
+The onUploadRequest function is called when the server receives a pond-upload event. The event contains a list of files with some metadata.
+These request can then be accepted or rejected by the server. If the request is accepted, the files will be sent to the server and the onUpload function will be called.
+
+```js
+    const Counter = LiveFactory({   
+        onUploadRequest(event, socket, router) {
+            event.message.files.forEach(file => {
+                if (file.type === 'image/png') {
+                    file.acceptUpload()
+                } else {
+                    file.declineUpload();
+                }
+            });
+            
+            // All the files can be accepted or declined at once
+            // event.message.authoriseAll();
+            // event.message.sendError('Something went wrong');
+        },
+    
+        onUpload(event, socket, router) {
+            event.files.map(file => {
+                // The files can be moved to a different location or destroyed
+                file.move('/path/to/new/location');
+                // file.destroy(); // this will delete the file
+            });
+        },
+    
+        render(socket, router) {
+            return html`
+                <div>
+                    <form pond-upload>
+                        <input type="file" pond-upload>
+                        <button type="submit">Upload</button>
+                    </form>
+                </div>
+            `;
+        },
+    })
+```
+
+To implement a drag and drop upload system, the pond-drop-upload event can be used. This event listener can be added to any element and will trigger when files are dropped on the element.
+When the event is triggered, the whole process is repeated as earlier.
+
+```js
+    const Counter = LiveFactory({   
+        onUploadRequest(event, socket, router) {
+            event.message.files.forEach(file => {
+                if (file.type === 'image/png') {
+                    file.acceptUpload()
+                } else {
+                    file.declineUpload();
+                }
+            });
+            
+            // All the files can be accepted or declined at once
+            // event.message.authoriseAll();
+            // event.message.sendError('Something went wrong');
+            socket.assign({
+                count: event.message.files.length
+            });
+        },
+    
+        onUpload(event, socket, router) {
+            event.files.map(file => {
+                // The files can be moved to a different location or destroyed
+                file.move('/path/to/new/location');
+                // file.destroy(); // this will delete the file
+            });
+        },
+    
+        render(socket, router) {
+            return html`
+                <div>
+                    <span>${this.count} files selected</span>
+                    <div pond-drop-upload="upload">
+                        Drop files here
+                    </div>
+                </div>
+            `;
+        },
+    })
+```
+
+#### Misc
+
+The entry PondLive function takes in an instance of the express app as the first argument. It returns an extended version of the express app.
+
+```js
+    const app = express();
+    const pond = PondLive(app);
+```
+
+This app introduces two new functions, the usePondLive function and upgrade function.
+Since PondLive is built on top of PondSocket, it also has all the features of PondSocket.
+To take advantage of these features, the upgrade function can be used to add PondSocket middleware to the express app.
+The upgrade function defines a websocket route that client's can connect to. This route provides features like channels, rooms and presence
+
+```js
+    pond.upgrade('/pond', (req, res, endpoint) => {
+        // This function is called when a client connects to the websocket route
+        // The endpoint object contains all the features of PondSocket
+        // The request object is and IncomingConnection object
+        // The response object is defines the action to takt when the client connects
+        // You can either accept, reject, or send a response to the client(this would also accept the connection)
+    });
+```
+
+For more information on the upgrade function, check out the [PondSocket documentation](https://github.com/Eleven-am/pondSocket#pondsocket).
+
+The usePondLive function is used to add PondLive components to the express app. This function takes an array of Route objects as the first argument.
+
+```js
+    pond.usePondLive([
+        { 
+            path: '/',
+            component: Counter 
+        },
+    ]);
+```
+
+The Route object contains the path and the component to render when the path is requested.
+Since PondLive supports nested routes, a component can also have its own routes.
+
+```js
+    const Counter = LiveFactory({   
+        routes: [
+            { 
+                path: '/',
+                component: Counter 
+            },
+        ],
+    
+        render(renderRoutes) {
+            return html`
+                <div>
+                    <h1> Number of clicks: ${this.count} </h1>
+                    ${renderRoutes() /* This will render the nested routes*/ }
                 </div>
             `;
         },

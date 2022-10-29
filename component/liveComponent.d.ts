@@ -7,14 +7,6 @@ export declare type LiveComponent<LiveContext extends Object = any> = {
     new(...args: any[]): ComponentClass<LiveContext>;
 };
 
-export interface FileMetaData {
-    name: string;
-    size: number;
-    type: string;
-    lastModified: number;
-    lastModifiedDate: Date;
-}
-
 export interface DragData {
     top: number;
     left: number;
@@ -27,18 +19,11 @@ export interface Route {
     Component: LiveComponent;
 }
 
-export interface MetaData {
-    type: 'UPLOAD_REQUEST' | 'UPLOAD_SUCCESS' | 'UPLOAD_FAILURE';
-    identifier: string;
-}
-
 export interface LiveEvent<Events extends string = string> {
     type: Events;
     value: string | null;
     dataId: string | null;
-    files?: FileMetaData[];
     dragData?: DragData;
-    metadata?: MetaData;
     formData?: FormData;
 }
 
