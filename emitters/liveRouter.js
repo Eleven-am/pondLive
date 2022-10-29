@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LiveRouter = void 0;
-const pondsocket_1 = require("@eleven-am/pondsocket");
-class LiveRouter {
-    constructor(response, routerType = 'http') {
+var pondsocket_1 = require("@eleven-am/pondsocket");
+var LiveRouter = /** @class */ (function () {
+    function LiveRouter(response, routerType) {
+        if (routerType === void 0) { routerType = 'http'; }
         this._response = response;
         this._headers = {
             pageTitle: undefined,
@@ -18,33 +19,49 @@ class LiveRouter {
             this._responseSent = response.headersSent;
         }
     }
-    /**
-     * @desc Sets the page title for the next page
-     * @param title - The title of the page
-     */
-    set pageTitle(title) {
-        this._headers.pageTitle = title;
-    }
-    /**
-     * @desc Sets the flash message for the next page
-     * @param message - The message to display
-     */
-    set flashMessage(message) {
-        this._headers.flashMessage = message;
-    }
-    get sentResponse() {
-        return this._responseSent;
-    }
-    get headers() {
-        return this._headers;
-    }
+    Object.defineProperty(LiveRouter.prototype, "pageTitle", {
+        /**
+         * @desc Sets the page title for the next page
+         * @param title - The title of the page
+         */
+        set: function (title) {
+            this._headers.pageTitle = title;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(LiveRouter.prototype, "flashMessage", {
+        /**
+         * @desc Sets the flash message for the next page
+         * @param message - The message to display
+         */
+        set: function (message) {
+            this._headers.flashMessage = message;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(LiveRouter.prototype, "sentResponse", {
+        get: function () {
+            return this._responseSent;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(LiveRouter.prototype, "headers", {
+        get: function () {
+            return this._headers;
+        },
+        enumerable: false,
+        configurable: true
+    });
     /**
      * @desc Navigates the client to a new page
      * @param path - The path to navigate to
      */
-    navigateTo(path) {
+    LiveRouter.prototype.navigateTo = function (path) {
         if (this._response instanceof pondsocket_1.PondResponse) {
-            const message = {
+            var message = {
                 action: 'redirect',
                 path: path,
             };
@@ -55,14 +72,14 @@ class LiveRouter {
                 this._sendClientRouterResponse('redirect', path, this._response) :
                 this._sendResponse(path, this._response);
         }
-    }
+    };
     /**
      * @desc Replaces the current page with a new page
      * @param path - The path to replace with
      */
-    replace(path) {
+    LiveRouter.prototype.replace = function (path) {
         if (this._response instanceof pondsocket_1.PondResponse) {
-            const message = {
+            var message = {
                 action: 'replace',
                 path: path,
             };
@@ -73,38 +90,39 @@ class LiveRouter {
                 this._sendClientRouterResponse('replace', path, this._response) :
                 this._sendResponse(path, this._response);
         }
-    }
+    };
     /**
      * @desc Reloads the current page, only works if the client is already rendered
      */
-    reload() {
+    LiveRouter.prototype.reload = function () {
         if (this._response instanceof pondsocket_1.PondResponse) {
-            const message = {
+            var message = {
                 action: 'reload',
                 path: 'current',
             };
             this._sendPondResponse(message, this._response);
         }
-    }
-    _sendResponse(path, response) {
+    };
+    LiveRouter.prototype._sendResponse = function (path, response) {
         if (this._responseSent)
             throw new Error('Response already sent');
         this._responseSent = true;
         response.redirect(path);
-    }
-    _sendPondResponse(message, response) {
+    };
+    LiveRouter.prototype._sendPondResponse = function (message, response) {
         if (this._responseSent)
             throw new Error('Response already sent');
         this._responseSent = true;
         response.send('router', message);
-    }
-    _sendClientRouterResponse(action, path, response) {
+    };
+    LiveRouter.prototype._sendClientRouterResponse = function (action, path, response) {
         if (this._responseSent)
             throw new Error('Response already sent');
         this._responseSent = true;
         response.setHeader('x-router-action', action);
         response.setHeader('x-router-path', path);
         response.end();
-    }
-}
+    };
+    return LiveRouter;
+}());
 exports.LiveRouter = LiveRouter;

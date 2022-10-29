@@ -14,7 +14,7 @@ export declare class ContextConsumer<ContextType> {
      * @desc Retrieves the current context data
      * @param socket - The socket retrieving the data
      */
-    get(socket: LiveSocket<any>): Readonly<ContextType>;
+    getContext(socket: LiveSocket<any>): Readonly<ContextType>;
 
     /**
      * @desc Handles the reception of an event from a channel within the component

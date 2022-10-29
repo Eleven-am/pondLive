@@ -186,6 +186,7 @@ This context can be used to share information between components like the curren
 ```
 
 The provider is then passed to a component. Every component in this tree can at any time access the context.
+This means the provider should be passed to only the root component of the tree or at least to the root of all components that need access to the context.
 
 ```js
     const Counter = LiveFactory({   
@@ -195,6 +196,21 @@ The provider is then passed to a component. Every component in this tree can at 
             // do something
         },
     })
+```
+
+Global providers can be passed to the usePondLive function.
+
+```js
+    const app = Pondlive(express());
+    
+    app.usePondLive([{
+        path: '/',
+        component: Counter
+    }], {
+        providers: [provider]
+    });
+    
+    app.listen(3000);
 ```
 
 There are two ways to access the context. The first way is to listen to the onContextChange function.
@@ -219,7 +235,7 @@ The second way is to use the consumer to get the context.
         provider: [provider],
     
         mount(params, socket, router) {
-            const data = consumer.get(socket);
+            const data = consumer.getContext(socket);
             // do something with data
         },
     })

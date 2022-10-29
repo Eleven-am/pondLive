@@ -1,23 +1,27 @@
 "use strict";
+var __makeTemplateObject = (this && this.__makeTemplateObject) || function (cooked, raw) {
+    if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
+    return cooked;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const parser_1 = require("./parser");
-const cssGenerator_1 = require("./cssGenerator");
-const getChanged_1 = require("./getChanged");
-describe('html parser', () => {
-    it('should parse a simple html string', () => {
-        const className = 'test';
-        const message = 'Hello World';
-        const string = (0, parser_1.html) `<div class="${className}">${message}</div>`;
+var parser_1 = require("./parser");
+var cssGenerator_1 = require("./cssGenerator");
+var getChanged_1 = require("./getChanged");
+describe('html parser', function () {
+    it('should parse a simple html string', function () {
+        var className = 'test';
+        var message = 'Hello World';
+        var string = (0, parser_1.html)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, message);
         expect(string.getParts()).toEqual({
             0: 'test', 1: 'Hello World', s: ['<div class="', '">', '</div>']
         });
     });
-    it('should parse a html string with multiple dynamic values', () => {
-        const className = 'test';
-        const message = 'Hello World';
-        const secondClassName = 'test2';
-        const secondMessage = 'Hello again';
-        const string = (0, parser_1.html) `<div class="${className}">${message}<span class="${secondClassName}">${secondMessage}</span></div>`;
+    it('should parse a html string with multiple dynamic values', function () {
+        var className = 'test';
+        var message = 'Hello World';
+        var secondClassName = 'test2';
+        var secondMessage = 'Hello again';
+        var string = (0, parser_1.html)(templateObject_2 || (templateObject_2 = __makeTemplateObject(["<div class=\"", "\">", "<span class=\"", "\">", "</span></div>"], ["<div class=\"", "\">", "<span class=\"", "\">", "</span></div>"])), className, message, secondClassName, secondMessage);
         expect(string.getParts()).toEqual({
             0: 'test',
             1: 'Hello World',
@@ -26,14 +30,14 @@ describe('html parser', () => {
             s: ['<div class="', '">', '<span class="', '">', '</span></div>']
         });
     });
-    it('should parse a html string with nested dynamic values', () => {
-        const firsName = 'John';
-        const lastName = 'Doe';
-        const age = 42;
-        const address = '1 Park Avenue';
-        const className = 'test';
-        const secondClassName = 'test2';
-        const string = (0, parser_1.html) `<div class="${className}">${(0, parser_1.html) `<div class="${secondClassName}">${firsName} ${lastName} is ${age} years old and lives at ${address}</div>`}</div>`;
+    it('should parse a html string with nested dynamic values', function () {
+        var firsName = 'John';
+        var lastName = 'Doe';
+        var age = 42;
+        var address = '1 Park Avenue';
+        var className = 'test';
+        var secondClassName = 'test2';
+        var string = (0, parser_1.html)(templateObject_4 || (templateObject_4 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, (0, parser_1.html)(templateObject_3 || (templateObject_3 = __makeTemplateObject(["<div class=\"", "\">", " ", " is ", " years old and lives at ", "</div>"], ["<div class=\"", "\">", " ", " is ", " years old and lives at ", "</div>"])), secondClassName, firsName, lastName, age, address));
         expect(string.getParts()).toEqual({
             0: 'test', 1: {
                 0: 'test2',
@@ -45,10 +49,10 @@ describe('html parser', () => {
             }, s: ['<div class="', '">', '</div>']
         });
     });
-    it('should parse a html string with nested dynamic values and multiple dynamic values', () => {
-        const list = (name, age) => (0, parser_1.html) `<li>${name} is ${age} years old</li>`;
-        const users = [{ name: 'John', age: 42 }, { name: 'Jane', age: 43 }, { name: 'Jack', age: 44 },];
-        const string = (0, parser_1.html) `<ul>${users.map(user => list(user.name, user.age))}</ul>`;
+    it('should parse a html string with nested dynamic values and multiple dynamic values', function () {
+        var list = function (name, age) { return (0, parser_1.html)(templateObject_5 || (templateObject_5 = __makeTemplateObject(["<li>", " is ", " years old</li>"], ["<li>", " is ", " years old</li>"])), name, age); };
+        var users = [{ name: 'John', age: 42 }, { name: 'Jane', age: 43 }, { name: 'Jack', age: 44 },];
+        var string = (0, parser_1.html)(templateObject_6 || (templateObject_6 = __makeTemplateObject(["<ul>", "</ul>"], ["<ul>", "</ul>"])), users.map(function (user) { return list(user.name, user.age); }));
         expect(string.getParts()).toEqual({
             0: {
                 0: {
@@ -60,8 +64,8 @@ describe('html parser', () => {
                 }, s: ['', '', '', '']
             }, s: ['<ul>', '</ul>']
         });
-        const newUsers = users.concat([{ name: 'Jill', age: 45 }]);
-        const newString = (0, parser_1.html) `<ul>${newUsers.map(user => list(user.name, user.age))}</ul>`;
+        var newUsers = users.concat([{ name: 'Jill', age: 45 }]);
+        var newString = (0, parser_1.html)(templateObject_7 || (templateObject_7 = __makeTemplateObject(["<ul>", "</ul>"], ["<ul>", "</ul>"])), newUsers.map(function (user) { return list(user.name, user.age); }));
         expect(newString.getParts()).toEqual({
             0: {
                 0: {
@@ -76,8 +80,8 @@ describe('html parser', () => {
             }, s: ['<ul>', '</ul>']
         });
     });
-    it('should return parsed html to string', () => {
-        const parsed = {
+    it('should return parsed html to string', function () {
+        var parsed = {
             0: {
                 0: {
                     0: 'John', 1: 42, s: ['<li>', ' is ', ' years old</li>']
@@ -88,11 +92,11 @@ describe('html parser', () => {
                 }, s: ['', '', '', '']
             }, s: ['<ul>', '</ul>']
         };
-        const htmlString = (0, parser_1.html) ``;
+        var htmlString = (0, parser_1.html)(templateObject_8 || (templateObject_8 = __makeTemplateObject([""], [""])));
         expect(htmlString.parsedHtmlToString(parsed)).toEqual('<ul><li>John is 42 years old</li><li>Jane is 43 years old</li><li>Jack is 44 years old</li></ul>');
     });
-    it('should return parsed html to string with nested dynamic values', () => {
-        const parsed = {
+    it('should return parsed html to string with nested dynamic values', function () {
+        var parsed = {
             0: 'test', 1: {
                 0: 'test2',
                 1: 'John',
@@ -102,11 +106,11 @@ describe('html parser', () => {
                 s: ['<div class="', '">', ' ', ' is ', ' years old and lives at ', '</div>']
             }, s: ['<div class="', '">', '</div>']
         };
-        const htmlString = (0, parser_1.html) ``;
+        var htmlString = (0, parser_1.html)(templateObject_9 || (templateObject_9 = __makeTemplateObject([""], [""])));
         expect(htmlString.parsedHtmlToString(parsed)).toEqual('<div class="test"><div class="test2">John Doe is 42 years old and lives at 1 Park Avenue</div></div>');
     });
-    it('should return parsed html to string with nested dynamic values and multiple dynamic values', () => {
-        const parsed = {
+    it('should return parsed html to string with nested dynamic values and multiple dynamic values', function () {
+        var parsed = {
             0: {
                 0: {
                     0: 'John', 1: 42, s: ['<li>', ' is ', ' years old</li>']
@@ -119,62 +123,62 @@ describe('html parser', () => {
                 }, s: ['', '', '', '', '']
             }, s: ['<ul>', '</ul>']
         };
-        const htmlString = (0, parser_1.html) ``;
+        var htmlString = (0, parser_1.html)(templateObject_10 || (templateObject_10 = __makeTemplateObject([""], [""])));
         expect(htmlString.parsedHtmlToString(parsed)).toEqual('<ul><li>John is 42 years old</li><li>Jane is 43 years old</li><li>Jack is 44 years old</li><li>Jill is 45 years old</li></ul>');
     });
-    it('should parse a html string to plain string', () => {
-        const className = 'test';
-        const message = 'Hello World';
-        const string = (0, parser_1.html) `<div class="${className}">${message}</div>`;
+    it('should parse a html string to plain string', function () {
+        var className = 'test';
+        var message = 'Hello World';
+        var string = (0, parser_1.html)(templateObject_11 || (templateObject_11 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, message);
         expect(string.toString()).toEqual('<div class="test">Hello World</div>');
     });
-    it('should parse a html string with nested dynamic values to plain string', () => {
-        const firsName = 'John';
-        const lastName = 'Doe';
-        const age = 42;
-        const address = '1 Park Avenue';
-        const className = 'test';
-        const secondClassName = 'test2';
-        const string = (0, parser_1.html) `<div class="${className}">${(0, parser_1.html) `<div class="${secondClassName}">${firsName} ${lastName} is ${age} years old and lives at ${address}</div>`}</div>`;
+    it('should parse a html string with nested dynamic values to plain string', function () {
+        var firsName = 'John';
+        var lastName = 'Doe';
+        var age = 42;
+        var address = '1 Park Avenue';
+        var className = 'test';
+        var secondClassName = 'test2';
+        var string = (0, parser_1.html)(templateObject_13 || (templateObject_13 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, (0, parser_1.html)(templateObject_12 || (templateObject_12 = __makeTemplateObject(["<div class=\"", "\">", " ", " is ", " years old and lives at ", "</div>"], ["<div class=\"", "\">", " ", " is ", " years old and lives at ", "</div>"])), secondClassName, firsName, lastName, age, address));
         expect(string.toString()).toEqual('<div class="test"><div class="test2">John Doe is 42 years old and lives at 1 Park Avenue</div></div>');
     });
-    it('should parse a html string with nested dynamic values and multiple dynamic values to plain string', () => {
-        const list = (name, age) => (0, parser_1.html) `<li>${name} is ${age} years old</li>`;
-        const users = [{ name: 'John', age: 42 }, { name: 'Jane', age: 43 }, { name: 'Jack', age: 44 },];
-        const string = (0, parser_1.html) `<ul>${users.map(user => list(user.name, user.age))}</ul>`;
+    it('should parse a html string with nested dynamic values and multiple dynamic values to plain string', function () {
+        var list = function (name, age) { return (0, parser_1.html)(templateObject_14 || (templateObject_14 = __makeTemplateObject(["<li>", " is ", " years old</li>"], ["<li>", " is ", " years old</li>"])), name, age); };
+        var users = [{ name: 'John', age: 42 }, { name: 'Jane', age: 43 }, { name: 'Jack', age: 44 },];
+        var string = (0, parser_1.html)(templateObject_15 || (templateObject_15 = __makeTemplateObject(["<ul>", "</ul>"], ["<ul>", "</ul>"])), users.map(function (user) { return list(user.name, user.age); }));
         expect(string.toString()).toEqual('<ul><li>John is 42 years old</li><li>Jane is 43 years old</li><li>Jack is 44 years old</li></ul>');
     });
-    it('should be able to tell the difference between two html strings', () => {
-        const className = 'test';
-        const message = 'Hello World';
-        const message2 = 'Hello World 2';
-        const string = (0, parser_1.html) `<div class="${className}">${message}</div>`;
-        const string2 = (0, parser_1.html) `<div class="${className}">${message2}</div>`;
+    it('should be able to tell the difference between two html strings', function () {
+        var className = 'test';
+        var message = 'Hello World';
+        var message2 = 'Hello World 2';
+        var string = (0, parser_1.html)(templateObject_16 || (templateObject_16 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, message);
+        var string2 = (0, parser_1.html)(templateObject_17 || (templateObject_17 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, message2);
         expect(string.differentiate(string2)).toEqual({
             1: 'Hello World 2'
         });
     });
-    it('should be able to tell the difference between two html strings with nested dynamic values', () => {
-        const firsName = 'John';
-        const lastName = 'Doe';
-        const age = 42;
-        const address = '1 Park Avenue';
-        const secondAddress = '2 Park Avenue';
-        const className = 'test';
-        const secondClassName = 'test2';
-        const string = (0, parser_1.html) `<div class="${className}">${(0, parser_1.html) `<div class="${secondClassName}">${firsName} ${lastName} is ${age} years old and lives at ${address}</div>`}</div>`;
-        const string2 = (0, parser_1.html) `<div class="${className}">${(0, parser_1.html) `<div class="${secondClassName}">${firsName} ${lastName} is ${age} years old and lives at ${secondAddress}</div>`}</div>`;
+    it('should be able to tell the difference between two html strings with nested dynamic values', function () {
+        var firsName = 'John';
+        var lastName = 'Doe';
+        var age = 42;
+        var address = '1 Park Avenue';
+        var secondAddress = '2 Park Avenue';
+        var className = 'test';
+        var secondClassName = 'test2';
+        var string = (0, parser_1.html)(templateObject_19 || (templateObject_19 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, (0, parser_1.html)(templateObject_18 || (templateObject_18 = __makeTemplateObject(["<div class=\"", "\">", " ", " is ", " years old and lives at ", "</div>"], ["<div class=\"", "\">", " ", " is ", " years old and lives at ", "</div>"])), secondClassName, firsName, lastName, age, address));
+        var string2 = (0, parser_1.html)(templateObject_21 || (templateObject_21 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, (0, parser_1.html)(templateObject_20 || (templateObject_20 = __makeTemplateObject(["<div class=\"", "\">", " ", " is ", " years old and lives at ", "</div>"], ["<div class=\"", "\">", " ", " is ", " years old and lives at ", "</div>"])), secondClassName, firsName, lastName, age, secondAddress));
         expect(string.differentiate(string2)).toEqual({
             1: {
                 4: '2 Park Avenue'
             }
         });
     });
-    it('should be able to tell the difference between two html strings with nested dynamic values and multiple dynamic values', () => {
-        const list = (name, age) => (0, parser_1.html) `<li>${name} is ${age} years old</li>`;
-        const users = [{ name: 'John', age: 42 }, { name: 'Jane', age: 43 }, { name: 'Jack', age: 44 },];
-        const string = (0, parser_1.html) `<ul>${users.map(user => list(user.name, user.age))}</ul>`;
-        const string2 = (0, parser_1.html) `<ul>${users.map(user => list(user.name, user.age + 1))}</ul>`;
+    it('should be able to tell the difference between two html strings with nested dynamic values and multiple dynamic values', function () {
+        var list = function (name, age) { return (0, parser_1.html)(templateObject_22 || (templateObject_22 = __makeTemplateObject(["<li>", " is ", " years old</li>"], ["<li>", " is ", " years old</li>"])), name, age); };
+        var users = [{ name: 'John', age: 42 }, { name: 'Jane', age: 43 }, { name: 'Jack', age: 44 },];
+        var string = (0, parser_1.html)(templateObject_23 || (templateObject_23 = __makeTemplateObject(["<ul>", "</ul>"], ["<ul>", "</ul>"])), users.map(function (user) { return list(user.name, user.age); }));
+        var string2 = (0, parser_1.html)(templateObject_24 || (templateObject_24 = __makeTemplateObject(["<ul>", "</ul>"], ["<ul>", "</ul>"])), users.map(function (user) { return list(user.name, user.age + 1); }));
         expect(string.differentiate(string2)).toEqual({
             0: {
                 0: {
@@ -187,18 +191,18 @@ describe('html parser', () => {
             }
         });
     });
-    it('should parse a html string with array dynamic values  to plain string', () => {
-        const className = 'test';
-        const users = [{ name: 'John', age: 42 }, { name: 'Jane', age: 43 }, { name: 'Jack', age: 44 },];
-        const string = (0, parser_1.html) `<div class="${className}">${users.map(user => (0, parser_1.html) `<li>${user.name} is ${user.age} years old</li>`)}</div>`;
+    it('should parse a html string with array dynamic values  to plain string', function () {
+        var className = 'test';
+        var users = [{ name: 'John', age: 42 }, { name: 'Jane', age: 43 }, { name: 'Jack', age: 44 },];
+        var string = (0, parser_1.html)(templateObject_26 || (templateObject_26 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, users.map(function (user) { return (0, parser_1.html)(templateObject_25 || (templateObject_25 = __makeTemplateObject(["<li>", " is ", " years old</li>"], ["<li>", " is ", " years old</li>"])), user.name, user.age); }));
         expect(string.toString()).toEqual('<div class="test"><li>John is 42 years old</li><li>Jane is 43 years old</li><li>Jack is 44 years old</li></div>');
     });
-    it('should parse empty dynamic values to plain string', () => {
-        const string = (0, parser_1.html) `<div>${''}</div>`;
+    it('should parse empty dynamic values to plain string', function () {
+        var string = (0, parser_1.html)(templateObject_27 || (templateObject_27 = __makeTemplateObject(["<div>", "</div>"], ["<div>", "</div>"])), '');
         expect(string.toString()).toEqual('<div></div>');
         expect(string.getParts()).toEqual({ "0": "", "s": ["<div>", "</div>"] });
         // it should be able to tell the difference between two html strings with empty dynamic values
-        const string2 = (0, parser_1.html) `<div>${'hello'}</div>`;
+        var string2 = (0, parser_1.html)(templateObject_28 || (templateObject_28 = __makeTemplateObject(["<div>", "</div>"], ["<div>", "</div>"])), 'hello');
         expect(string2.toString()).toEqual('<div>hello</div>');
         expect(string2.getParts()).toEqual({ "0": "hello", "s": ["<div>", "</div>"] });
         expect(string.differentiate(string2)).toEqual({
@@ -208,50 +212,50 @@ describe('html parser', () => {
             0: ''
         });
     });
-    it('should detect the changes and rerender correctly', () => {
-        let value = 'Hello World';
-        const string = (0, parser_1.html) `<div>${value || ''}</div>`;
+    it('should detect the changes and rerender correctly', function () {
+        var value = 'Hello World';
+        var string = (0, parser_1.html)(templateObject_29 || (templateObject_29 = __makeTemplateObject(["<div>", "</div>"], ["<div>", "</div>"])), value || '');
         expect(string.toString()).toEqual('<div>Hello World</div>');
-        const parts = string.getParts();
+        var parts = string.getParts();
         expect(parts).toEqual({ "0": "Hello World", "s": ["<div>", "</div>"] });
         value = null;
-        const string2 = (0, parser_1.html) `<div>${value || ''}</div>`;
+        var string2 = (0, parser_1.html)(templateObject_30 || (templateObject_30 = __makeTemplateObject(["<div>", "</div>"], ["<div>", "</div>"])), value || '');
         expect(string2.toString()).toEqual('<div></div>');
         expect(string2.getParts()).toEqual({ "0": "", "s": ["<div>", "</div>"] });
-        const diff = string.differentiate(string2);
+        var diff = string.differentiate(string2);
         expect(diff).toEqual({
             0: ''
         });
-        const merge = (0, getChanged_1.mergeObjects)(parts, diff);
+        var merge = (0, getChanged_1.mergeObjects)(parts, diff);
         expect(merge).toEqual({ "0": "", "s": ["<div>", "</div>"] });
-        const htmlString = string.parsedHtmlToString(merge);
+        var htmlString = string.parsedHtmlToString(merge);
         expect(htmlString).toEqual('<div></div>');
     });
-    it('should detect the changes and rerender correctly with nested dynamic values', () => {
-        const className = 'test';
-        const message = 'Hello World';
-        const message2 = 'Hello World 2';
-        const string = (0, parser_1.html) `<div class="${className}">${message}</div>`;
-        const string2 = (0, parser_1.html) `<div class="${className}">${message2}</div>`;
+    it('should detect the changes and rerender correctly with nested dynamic values', function () {
+        var className = 'test';
+        var message = 'Hello World';
+        var message2 = 'Hello World 2';
+        var string = (0, parser_1.html)(templateObject_31 || (templateObject_31 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, message);
+        var string2 = (0, parser_1.html)(templateObject_32 || (templateObject_32 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), className, message2);
         expect(string.toString()).toEqual('<div class="test">Hello World</div>');
-        const parts = string.getParts();
+        var parts = string.getParts();
         expect(parts).toEqual({ "1": "Hello World", "0": "test", "s": ["<div class=\"", "\">", "</div>"] });
-        const diff = string.differentiate(string2);
+        var diff = string.differentiate(string2);
         expect(diff).toEqual({
             1: 'Hello World 2'
         });
-        const merge = (0, getChanged_1.mergeObjects)(parts, diff);
+        var merge = (0, getChanged_1.mergeObjects)(parts, diff);
         expect(merge).toEqual({ "1": "Hello World 2", "0": "test", "s": ["<div class=\"", "\">", "</div>"] });
-        const htmlString = string.parsedHtmlToString(merge);
+        var htmlString = string.parsedHtmlToString(merge);
         expect(htmlString).toEqual('<div class="test">Hello World 2</div>');
     });
-    it('should detect the changes and rerender correctly with nested dynamic values and multiple dynamic values', () => {
-        const htmlString = (0, parser_1.html) `<div class="${'test'}">${'Hello World'}</div>`;
-        const htmlString2 = (0, parser_1.html) ``;
+    it('should detect the changes and rerender correctly with nested dynamic values and multiple dynamic values', function () {
+        var htmlString = (0, parser_1.html)(templateObject_33 || (templateObject_33 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), 'test', 'Hello World');
+        var htmlString2 = (0, parser_1.html)(templateObject_34 || (templateObject_34 = __makeTemplateObject([""], [""])));
         expect(htmlString.toString()).toEqual('<div class="test">Hello World</div>');
-        const getParts = htmlString.getParts();
+        var getParts = htmlString.getParts();
         expect(getParts).toEqual({ "1": "Hello World", "0": "test", "s": ["<div class=\"", "\">", "</div>"] });
-        const diff = htmlString.differentiate(htmlString2);
+        var diff = htmlString.differentiate(htmlString2);
         expect(diff).toEqual({
             "0": null,
             "1": null,
@@ -261,18 +265,18 @@ describe('html parser', () => {
                 "2": null
             }
         });
-        const merge = (0, getChanged_1.mergeObjects)(getParts, diff);
+        var merge = (0, getChanged_1.mergeObjects)(getParts, diff);
         expect(merge).toEqual({
             "s": [""]
         });
     });
-    it('should be able to reconstruct the html string from the parsed html object', () => {
-        const htmlString = (0, parser_1.html) `<div class="${'test'}">${'Hello World'}</div>`;
-        const htmlString2 = (0, parser_1.html) ``;
+    it('should be able to reconstruct the html string from the parsed html object', function () {
+        var htmlString = (0, parser_1.html)(templateObject_35 || (templateObject_35 = __makeTemplateObject(["<div class=\"", "\">", "</div>"], ["<div class=\"", "\">", "</div>"])), 'test', 'Hello World');
+        var htmlString2 = (0, parser_1.html)(templateObject_36 || (templateObject_36 = __makeTemplateObject([""], [""])));
         expect(htmlString.toString()).toEqual('<div class="test">Hello World</div>');
-        const getParts = htmlString.getParts();
+        var getParts = htmlString.getParts();
         expect(getParts).toEqual({ "1": "Hello World", "0": "test", "s": ["<div class=\"", "\">", "</div>"] });
-        const diff = htmlString.differentiate(htmlString2);
+        var diff = htmlString.differentiate(htmlString2);
         expect(diff).toEqual({
             "0": null,
             "1": null,
@@ -282,68 +286,69 @@ describe('html parser', () => {
                 "2": null
             }
         });
-        const merge = htmlString.reconstruct(diff);
-        expect(merge).toEqual((0, parser_1.html) ``);
+        var merge = htmlString.reconstruct(diff);
+        expect(merge).toEqual((0, parser_1.html)(templateObject_37 || (templateObject_37 = __makeTemplateObject([""], [""]))));
     });
 });
-describe('CssGenerator', () => {
-    it('should generate a record object from a string', () => {
-        const css = (0, cssGenerator_1.CssGenerator)('hello');
-        const data = css `.body { color: red; }`;
+describe('CssGenerator', function () {
+    it('should generate a record object from a string', function () {
+        var css = (0, cssGenerator_1.CssGenerator)('hello');
+        var data = css(templateObject_38 || (templateObject_38 = __makeTemplateObject([".body { color: red; }"], [".body { color: red; }"])));
         expect(data.classes).toEqual({ body: 'body-hello' });
     });
-    it('should generate a record object from a string with multiple classes', () => {
-        const css = (0, cssGenerator_1.CssGenerator)('hello');
-        const data = css `.body { color: red; } .test { color: blue; }`;
+    it('should generate a record object from a string with multiple classes', function () {
+        var css = (0, cssGenerator_1.CssGenerator)('hello');
+        var data = css(templateObject_39 || (templateObject_39 = __makeTemplateObject([".body { color: red; } .test { color: blue; }"], [".body { color: red; } .test { color: blue; }"])));
         expect(data.classes).toEqual({ body: 'body-hello', test: 'test-hello' });
     });
-    it('should generate a record object from a string with multiple classes and multiple rules', () => {
-        const css = (0, cssGenerator_1.CssGenerator)('hello');
-        const data = css `.body { color: red; } .test { color: blue; } .test2 { color: green; }`;
+    it('should generate a record object from a string with multiple classes and multiple rules', function () {
+        var css = (0, cssGenerator_1.CssGenerator)('hello');
+        var data = css(templateObject_40 || (templateObject_40 = __makeTemplateObject([".body { color: red; } .test { color: blue; } .test2 { color: green; }"], [".body { color: red; } .test { color: blue; } .test2 { color: green; }"])));
         expect(data.classes).toEqual({ body: 'body-hello', test: 'test-hello', test2: 'test2-hello' });
     });
-    it('should generate a style element from a string', () => {
-        const css = (0, cssGenerator_1.CssGenerator)('hello');
-        const data = css `.body { color: red; }`;
+    it('should generate a style element from a string', function () {
+        var css = (0, cssGenerator_1.CssGenerator)('hello');
+        var data = css(templateObject_41 || (templateObject_41 = __makeTemplateObject([".body { color: red; }"], [".body { color: red; }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello { color: red; }</style>');
     });
-    it('should generate a style element from a string with multiple classes', () => {
-        const css = (0, cssGenerator_1.CssGenerator)('hello');
-        const data = css `.body { color: red; } .test { color: blue; }`;
+    it('should generate a style element from a string with multiple classes', function () {
+        var css = (0, cssGenerator_1.CssGenerator)('hello');
+        var data = css(templateObject_42 || (templateObject_42 = __makeTemplateObject([".body { color: red; } .test { color: blue; }"], [".body { color: red; } .test { color: blue; }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello { color: red; } .test-hello { color: blue; }</style>');
     });
-    it('should generate a style element from a string with multiple classes and multiple rules', () => {
-        const css = (0, cssGenerator_1.CssGenerator)('hello');
-        const data = css `.body { color: red; } .test { color: blue; } .testDo { color: green; }`;
+    it('should generate a style element from a string with multiple classes and multiple rules', function () {
+        var css = (0, cssGenerator_1.CssGenerator)('hello');
+        var data = css(templateObject_43 || (templateObject_43 = __makeTemplateObject([".body { color: red; } .test { color: blue; } .testDo { color: green; }"], [".body { color: red; } .test { color: blue; } .testDo { color: green; }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello { color: red; } .test-hello { color: blue; } .testDo-hello { color: green; }</style>');
     });
-    it('should ignore non class styles', () => {
-        const css = (0, cssGenerator_1.CssGenerator)('hello');
-        const data = css `body { color: red; }`;
+    it('should ignore non class styles', function () {
+        var css = (0, cssGenerator_1.CssGenerator)('hello');
+        var data = css(templateObject_44 || (templateObject_44 = __makeTemplateObject(["body { color: red; }"], ["body { color: red; }"])));
         expect(data.string.toString()).toEqual('<style>body { color: red; }</style>');
-        const idData = css `#body { color: red; }`;
+        var idData = css(templateObject_45 || (templateObject_45 = __makeTemplateObject(["#body { color: red; }"], ["#body { color: red; }"])));
         expect(idData.string.toString()).toEqual('<style>#body { color: red; }</style>');
-        const elementData = css `div { color: red; }`;
+        var elementData = css(templateObject_46 || (templateObject_46 = __makeTemplateObject(["div { color: red; }"], ["div { color: red; }"])));
         expect(elementData.string.toString()).toEqual('<style>div { color: red; }</style>');
     });
-    it('should generate a style element from a string with multiple classes and multiple rules and multiple media queries', () => {
-        const css = (0, cssGenerator_1.CssGenerator)('hello');
-        const data = css `.body { color: red; } .test { color: blue; } .testDo { color: green; } @media (max-width: 600px) { .body { color: red; } .test { color: blue; } .testDo { color: green; } }`;
+    it('should generate a style element from a string with multiple classes and multiple rules and multiple media queries', function () {
+        var css = (0, cssGenerator_1.CssGenerator)('hello');
+        var data = css(templateObject_47 || (templateObject_47 = __makeTemplateObject([".body { color: red; } .test { color: blue; } .testDo { color: green; } @media (max-width: 600px) { .body { color: red; } .test { color: blue; } .testDo { color: green; } }"], [".body { color: red; } .test { color: blue; } .testDo { color: green; } @media (max-width: 600px) { .body { color: red; } .test { color: blue; } .testDo { color: green; } }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello { color: red; } .test-hello { color: blue; } .testDo-hello { color: green; } @media (max-width: 600px) { .body-hello { color: red; } .test-hello { color: blue; } .testDo-hello { color: green; } }</style>');
     });
-    it('should correctly handle pseudo classes', () => {
-        const css = (0, cssGenerator_1.CssGenerator)('hello');
-        const data = css `.body:hover { color: red; } .test:active { color: blue; } .testDo:focus { color: green; }`;
+    it('should correctly handle pseudo classes', function () {
+        var css = (0, cssGenerator_1.CssGenerator)('hello');
+        var data = css(templateObject_48 || (templateObject_48 = __makeTemplateObject([".body:hover { color: red; } .test:active { color: blue; } .testDo:focus { color: green; }"], [".body:hover { color: red; } .test:active { color: blue; } .testDo:focus { color: green; }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello:hover { color: red; } .test-hello:active { color: blue; } .testDo-hello:focus { color: green; }</style>');
     });
-    it('should correctly handle pseudo elements', () => {
-        const css = (0, cssGenerator_1.CssGenerator)('hello');
-        const data = css `.body::before { color: red; } .test::after { color: blue; } .testDo::selection { color: green; }`;
+    it('should correctly handle pseudo elements', function () {
+        var css = (0, cssGenerator_1.CssGenerator)('hello');
+        var data = css(templateObject_49 || (templateObject_49 = __makeTemplateObject([".body::before { color: red; } .test::after { color: blue; } .testDo::selection { color: green; }"], [".body::before { color: red; } .test::after { color: blue; } .testDo::selection { color: green; }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello::before { color: red; } .test-hello::after { color: blue; } .testDo-hello::selection { color: green; }</style>');
     });
-    it('should handle sibling selectors', () => {
-        const css = (0, cssGenerator_1.CssGenerator)('hello');
-        const data = css `.body + .test { color: red; } .test ~ .testDo { color: blue; }`;
+    it('should handle sibling selectors', function () {
+        var css = (0, cssGenerator_1.CssGenerator)('hello');
+        var data = css(templateObject_50 || (templateObject_50 = __makeTemplateObject([".body + .test { color: red; } .test ~ .testDo { color: blue; }"], [".body + .test { color: red; } .test ~ .testDo { color: blue; }"])));
         expect(data.string.toString()).toEqual('<style>.body-hello + .test-hello { color: red; } .test-hello ~ .testDo-hello { color: blue; }</style>');
     });
 });
+var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5, templateObject_6, templateObject_7, templateObject_8, templateObject_9, templateObject_10, templateObject_11, templateObject_12, templateObject_13, templateObject_14, templateObject_15, templateObject_16, templateObject_17, templateObject_18, templateObject_19, templateObject_20, templateObject_21, templateObject_22, templateObject_23, templateObject_24, templateObject_25, templateObject_26, templateObject_27, templateObject_28, templateObject_29, templateObject_30, templateObject_31, templateObject_32, templateObject_33, templateObject_34, templateObject_35, templateObject_36, templateObject_37, templateObject_38, templateObject_39, templateObject_40, templateObject_41, templateObject_42, templateObject_43, templateObject_44, templateObject_45, templateObject_46, templateObject_47, templateObject_48, templateObject_49, templateObject_50;

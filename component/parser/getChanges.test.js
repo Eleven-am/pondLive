@@ -1,19 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const getChanged_1 = require("./getChanged");
-describe('getChanges', () => {
-    it('should be able to get only changed properties1', () => {
-        const obj = {
+var getChanged_1 = require("./getChanged");
+describe('getChanges', function () {
+    it('should be able to get only changed properties1', function () {
+        var obj = {
             a: {
                 type: 'unchanged',
                 data: 1,
             }
         };
-        const result = (0, getChanged_1.getChanges)(obj);
+        var result = (0, getChanged_1.getChanges)(obj);
         expect(result).toEqual({});
     });
-    it('should be able to get only changed properties2', () => {
-        const obj = {
+    it('should be able to get only changed properties2', function () {
+        var obj = {
             0: {
                 a: {
                     type: 'updated',
@@ -25,11 +25,11 @@ describe('getChanges', () => {
                 data: 3,
             }
         };
-        const result = (0, getChanged_1.getChanges)(obj);
+        var result = (0, getChanged_1.getChanges)(obj);
         expect(result).toEqual({ 0: { a: 2 }, 1: 3 });
     });
-    it('should be able to get only changed properties3', () => {
-        const obj = {
+    it('should be able to get only changed properties3', function () {
+        var obj = {
             3: {
                 a: {
                     type: 'created',
@@ -49,11 +49,11 @@ describe('getChanges', () => {
                 }
             }
         };
-        const result = (0, getChanged_1.getChanges)(obj);
+        var result = (0, getChanged_1.getChanges)(obj);
         expect(result).toEqual({ 3: { a: 2, b: null, d: 5 } });
     });
-    it('should be able to get only changed properties4', () => {
-        const obj = {
+    it('should be able to get only changed properties4', function () {
+        var obj = {
             '0': { type: 'unchanged', data: 'test' },
             '1': { type: 'updated', data: 'Hello World 2' },
             s: {
@@ -62,22 +62,22 @@ describe('getChanges', () => {
                 '2': { type: 'unchanged', data: '</div>' }
             }
         };
-        const result = (0, getChanged_1.getChanges)(obj);
+        var result = (0, getChanged_1.getChanges)(obj);
         expect(result).toEqual({ '1': 'Hello World 2' });
     });
 });
-describe('mergeObjects', () => {
-    it('should be able to merge two objects1', () => {
-        const obj1 = {
+describe('mergeObjects', function () {
+    it('should be able to merge two objects1', function () {
+        var obj1 = {
             a: 1,
             b: 2,
             c: 3,
         };
-        const obj2 = {
+        var obj2 = {
             a: 2,
             d: 4,
         };
-        const result = (0, getChanged_1.mergeObjects)(obj1, obj2);
+        var result = (0, getChanged_1.mergeObjects)(obj1, obj2);
         expect(result).toEqual({
             a: 2,
             b: 2,
@@ -85,22 +85,22 @@ describe('mergeObjects', () => {
             d: 4,
         });
     });
-    it('should be able to merge two objects2', () => {
-        const obj1 = {
+    it('should be able to merge two objects2', function () {
+        var obj1 = {
             a: 1,
             b: {
                 c: 2,
                 d: 3,
             },
         };
-        const obj2 = {
+        var obj2 = {
             a: 2,
             b: {
                 c: 4,
                 e: 5,
             },
         };
-        const result = (0, getChanged_1.mergeObjects)(obj1, obj2);
+        var result = (0, getChanged_1.mergeObjects)(obj1, obj2);
         expect(result).toEqual({
             a: 2,
             b: {
@@ -110,51 +110,51 @@ describe('mergeObjects', () => {
             },
         });
     });
-    it('should be able to merge two objects3', () => {
-        const obj1 = undefined;
-        const obj2 = {
+    it('should be able to merge two objects3', function () {
+        var obj1 = undefined;
+        var obj2 = {
             a: 2,
             b: {
                 c: 4,
             }
         };
-        const result = (0, getChanged_1.mergeObjects)(obj1, obj2);
+        var result = (0, getChanged_1.mergeObjects)(obj1, obj2);
         expect(result).toEqual(obj2);
-        const result2 = (0, getChanged_1.mergeObjects)(obj2, obj1);
+        var result2 = (0, getChanged_1.mergeObjects)(obj2, obj1);
         expect(result2).toEqual(obj2);
     });
-    it('should remove null values from original object1', () => {
-        const obj1 = {
+    it('should remove null values from original object1', function () {
+        var obj1 = {
             a: 1,
             b: 2,
             c: 3,
         };
-        const obj2 = {
+        var obj2 = {
             a: 2,
             b: null,
         };
-        const result = (0, getChanged_1.mergeObjects)(obj1, obj2);
+        var result = (0, getChanged_1.mergeObjects)(obj1, obj2);
         expect(result).toEqual({
             a: 2,
             c: 3,
         });
     });
-    it('should remove null values from original object2', () => {
-        const obj1 = {
+    it('should remove null values from original object2', function () {
+        var obj1 = {
             a: 1,
             b: {
                 c: 2,
                 d: 3,
             },
         };
-        const obj2 = {
+        var obj2 = {
             a: 2,
             b: {
                 c: null,
                 e: 5,
             },
         };
-        const result = (0, getChanged_1.mergeObjects)(obj1, obj2);
+        var result = (0, getChanged_1.mergeObjects)(obj1, obj2);
         expect(result).toEqual({
             a: 2,
             b: {

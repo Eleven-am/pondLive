@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const componentManager_1 = require("./componentManager");
-const base_1 = require("@eleven-am/pondsocket/base");
-const createComponentManager = () => {
-    const test = {
+var componentManager_1 = require("./componentManager");
+var base_1 = require("@eleven-am/pondsocket/base");
+var createComponentManager = function () {
+    var test = {
         pond: {
             on: jest.fn(),
         },
@@ -16,15 +16,15 @@ const createComponentManager = () => {
         internalBus: new base_1.Broadcast(),
         providers: [],
     };
-    const context = {
+    var context = {
         routes: [],
         providers: [],
     };
     return new componentManager_1.ComponentManager('/test', context, test);
 };
-describe('ComponentManager', () => {
-    it('should be an instance of ComponentManager', () => {
-        const componentManager = createComponentManager();
+describe('ComponentManager', function () {
+    it('should be an instance of ComponentManager', function () {
+        var componentManager = createComponentManager();
         expect(componentManager).toBeInstanceOf(componentManager_1.ComponentManager);
     });
 });

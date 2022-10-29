@@ -39,6 +39,7 @@ export interface LiveEvent<Events extends string = string> {
     files?: FileMetaData[];
     dragData?: DragData;
     metadata?: MetaData;
+    formData?: FormData;
 }
 
 export interface MountContext {

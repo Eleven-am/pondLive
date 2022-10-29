@@ -1,12 +1,37 @@
 "use strict";
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.html = exports.HtmlSafeString = exports.join = void 0;
-const deepDiff_1 = require("./deepDiff");
-const getChanged_1 = require("./getChanged");
-const ENTITIES = {
+var deepDiff_1 = require("./deepDiff");
+var getChanged_1 = require("./getChanged");
+var ENTITIES = {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;', '`': '&#x60;', '=': '&#x3D;'
 };
-const ENT_REGEX = new RegExp(Object.keys(ENTITIES).join('|'), 'g');
+var ENT_REGEX = new RegExp(Object.keys(ENTITIES).join('|'), 'g');
 function join(array, separator) {
     if (separator === undefined || separator === null) {
         separator = ',';
@@ -14,7 +39,7 @@ function join(array, separator) {
     if (array.length <= 0) {
         return new HtmlSafeString([''], []);
     }
-    return new HtmlSafeString(['', ...Array(array.length - 1).fill(separator), ''], array);
+    return new HtmlSafeString(__spreadArray(__spreadArray([''], __read(Array(array.length - 1).fill(separator)), false), [''], false), array);
 }
 exports.join = join;
 function escapeHTML(unsafe) {
@@ -27,16 +52,16 @@ function escapeHTML(unsafe) {
     if (Array.isArray(unsafe)) {
         return join(unsafe, '').toString();
     }
-    return String(unsafe).replace(ENT_REGEX, (char) => ENTITIES[char]);
+    return String(unsafe).replace(ENT_REGEX, function (char) { return ENTITIES[char]; });
 }
-class HtmlSafeString {
-    constructor(statics, dynamics) {
+var HtmlSafeString = /** @class */ (function () {
+    function HtmlSafeString(statics, dynamics) {
         this.statics = statics;
         this.dynamics = dynamics;
     }
-    toString() {
-        let result = this.statics[0];
-        for (let i = 0; i < this.dynamics.length; i++) {
+    HtmlSafeString.prototype.toString = function () {
+        var result = this.statics[0];
+        for (var i = 0; i < this.dynamics.length; i++) {
             if (this.dynamics[i] instanceof HtmlSafeString)
                 result += this.dynamics[i].toString() + this.statics[i + 1];
             else if (Array.isArray(this.dynamics[i]))
@@ -47,12 +72,12 @@ class HtmlSafeString {
                 result += escapeHTML(this.dynamics[i]) + this.statics[i + 1];
         }
         return result;
-    }
-    getParts() {
-        const result = {
+    };
+    HtmlSafeString.prototype.getParts = function () {
+        var result = {
             s: this.statics
         };
-        for (let i = 0; i < this.dynamics.length; i++)
+        for (var i = 0; i < this.dynamics.length; i++)
             if (this.dynamics[i] instanceof HtmlSafeString)
                 result[i] = this.dynamics[i].getParts();
             else if (Array.isArray(this.dynamics[i]))
@@ -62,17 +87,17 @@ class HtmlSafeString {
             else
                 result[i] = this.dynamics[i];
         return result;
-    }
-    parsedHtmlToString(parsed) {
+    };
+    HtmlSafeString.prototype.parsedHtmlToString = function (parsed) {
         var _a;
-        const data = parsed;
-        let result = '';
+        var data = parsed;
+        var result = '';
         if (Array.isArray(data))
             return join(data, '').toString();
         if (((_a = data === null || data === void 0 ? void 0 : data.s) === null || _a === void 0 ? void 0 : _a.length) > 0) {
-            const stat = data.s.filter(s => s !== undefined && s !== null);
+            var stat = data.s.filter(function (s) { return s !== undefined && s !== null; });
             result = data.s[0];
-            for (let i = 0; i < stat.length - 1; i++) {
+            for (var i = 0; i < stat.length - 1; i++) {
                 if (typeof data[i] === 'object')
                     result += this.parsedHtmlToString(parsed[i]) + data.s[i + 1];
                 else
@@ -80,27 +105,32 @@ class HtmlSafeString {
             }
         }
         return result;
-    }
-    differentiate(parsed) {
-        const newParsed = parsed.getParts();
-        const oldParsed = this.getParts();
-        const mapped = (0, deepDiff_1.DeepDiffMapper)(oldParsed, newParsed);
+    };
+    HtmlSafeString.prototype.differentiate = function (parsed) {
+        var newParsed = parsed.getParts();
+        var oldParsed = this.getParts();
+        var mapped = (0, deepDiff_1.DeepDiffMapper)(oldParsed, newParsed);
         return (0, getChanged_1.getChanges)(mapped);
-    }
-    reconstruct(changes) {
-        const data = (0, getChanged_1.mergeObjects)(this.getParts(), changes);
+    };
+    HtmlSafeString.prototype.reconstruct = function (changes) {
+        var data = (0, getChanged_1.mergeObjects)(this.getParts(), changes);
         return this.parse(data);
-    }
-    parse(parts) {
-        const data = parts;
-        const statics = data.s || [""];
+    };
+    HtmlSafeString.prototype.parse = function (parts) {
+        var data = parts;
+        var statics = data.s || [""];
         delete data.s;
-        const dynamics = Object.values(data).filter(d => d !== undefined && d !== null);
+        var dynamics = Object.values(data).filter(function (d) { return d !== undefined && d !== null; });
         return new HtmlSafeString(statics, dynamics);
-    }
-}
+    };
+    return HtmlSafeString;
+}());
 exports.HtmlSafeString = HtmlSafeString;
-function html(statics, ...dynamics) {
+function html(statics) {
+    var dynamics = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        dynamics[_i - 1] = arguments[_i];
+    }
     return new HtmlSafeString(statics, dynamics);
 }
 exports.html = html;

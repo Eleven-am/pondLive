@@ -1,19 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const deepDiff_1 = require("./deepDiff");
-describe('DeepDiffMapper', () => {
-    it('should return unchanged if both objects are the same', () => {
-        const obj1 = {
+var deepDiff_1 = require("./deepDiff");
+describe('DeepDiffMapper', function () {
+    it('should return unchanged if both objects are the same', function () {
+        var obj1 = {
             a: 1,
             b: 2,
             c: 3,
         };
-        const obj2 = {
+        var obj2 = {
             a: 1,
             b: 2,
             c: 3,
         };
-        const result = (0, deepDiff_1.DeepDiffMapper)(obj1, obj2);
+        var result = (0, deepDiff_1.DeepDiffMapper)(obj1, obj2);
         expect(result).toEqual({
             a: {
                 type: 'unchanged',
@@ -29,14 +29,14 @@ describe('DeepDiffMapper', () => {
             },
         });
     });
-    it('should return created if the first object is undefined', () => {
-        const obj1 = undefined;
-        const obj2 = {
+    it('should return created if the first object is undefined', function () {
+        var obj1 = undefined;
+        var obj2 = {
             a: 1,
             b: 2,
             c: 3,
         };
-        const result = (0, deepDiff_1.DeepDiffMapper)(obj1, obj2);
+        var result = (0, deepDiff_1.DeepDiffMapper)(obj1, obj2);
         expect(result).toEqual({
             type: 'created',
             data: {
@@ -46,13 +46,13 @@ describe('DeepDiffMapper', () => {
             }
         });
     });
-    it('should return deleted if the second object is undefined', () => {
-        const obj1 = {
+    it('should return deleted if the second object is undefined', function () {
+        var obj1 = {
             a: 1,
             b: 2,
             c: 3,
         };
-        const result = (0, deepDiff_1.DeepDiffMapper)(obj1, {});
+        var result = (0, deepDiff_1.DeepDiffMapper)(obj1, {});
         expect(result).toEqual({
             a: {
                 type: 'deleted',
@@ -68,22 +68,22 @@ describe('DeepDiffMapper', () => {
             },
         });
     });
-    it('should be able to handle nested objects', () => {
-        const obj1 = {
+    it('should be able to handle nested objects', function () {
+        var obj1 = {
             a: 1,
             b: {
                 c: 2,
                 d: 3,
             },
         };
-        const obj2 = {
+        var obj2 = {
             a: 1,
             b: {
                 c: 2,
                 d: 4,
             },
         };
-        const result = (0, deepDiff_1.DeepDiffMapper)(obj1, obj2);
+        var result = (0, deepDiff_1.DeepDiffMapper)(obj1, obj2);
         expect(result).toEqual({
             a: {
                 type: 'unchanged',
@@ -101,46 +101,46 @@ describe('DeepDiffMapper', () => {
             },
         });
     });
-    it('should throw an error if 2 functions are passed', () => {
-        const obj1 = () => {
+    it('should throw an error if 2 functions are passed', function () {
+        var obj1 = function () {
         };
-        const obj2 = () => {
+        var obj2 = function () {
         };
-        expect(() => (0, deepDiff_1.DeepDiffMapper)(obj1, obj2)).toThrow('Invalid argument. Function given, object expected.');
+        expect(function () { return (0, deepDiff_1.DeepDiffMapper)(obj1, obj2); }).toThrow('Invalid argument. Function given, object expected.');
     });
-    it('should throw an error if 1 function and 1 object are passed', () => {
-        const obj1 = () => {
+    it('should throw an error if 1 function and 1 object are passed', function () {
+        var obj1 = function () {
         };
-        const obj2 = {
+        var obj2 = {
             a: 1,
         };
-        expect(() => (0, deepDiff_1.DeepDiffMapper)(obj1, obj2)).toThrow('Invalid argument. Function given, object expected.');
+        expect(function () { return (0, deepDiff_1.DeepDiffMapper)(obj1, obj2); }).toThrow('Invalid argument. Function given, object expected.');
     });
-    it('should throw an error if 1 object and 1 function are passed', () => {
-        const obj1 = {
+    it('should throw an error if 1 object and 1 function are passed', function () {
+        var obj1 = {
             a: 1,
         };
-        const obj2 = () => {
+        var obj2 = function () {
         };
-        expect(() => (0, deepDiff_1.DeepDiffMapper)(obj1, obj2)).toThrow('Invalid argument. Function given, object expected.');
+        expect(function () { return (0, deepDiff_1.DeepDiffMapper)(obj1, obj2); }).toThrow('Invalid argument. Function given, object expected.');
     });
-    it('should ignore a nested function', () => {
-        const obj1 = {
+    it('should ignore a nested function', function () {
+        var obj1 = {
             a: 1,
             b: {
                 c: 2,
-                d: () => {
+                d: function () {
                 },
             },
         };
-        const obj2 = {
+        var obj2 = {
             a: 1,
             b: {
                 c: 2,
                 d: 4,
             },
         };
-        const result = (0, deepDiff_1.DeepDiffMapper)(obj1, obj2);
+        var result = (0, deepDiff_1.DeepDiffMapper)(obj1, obj2);
         expect(result).toEqual({
             a: {
                 type: 'unchanged',
@@ -158,16 +158,16 @@ describe('DeepDiffMapper', () => {
             },
         });
     });
-    it('should compare dates', () => {
-        const obj1 = {
+    it('should compare dates', function () {
+        var obj1 = {
             a: 1,
             b: new Date('2019-01-01'),
         };
-        const obj2 = {
+        var obj2 = {
             a: 1,
             b: new Date('2019-01-02'),
         };
-        const result = (0, deepDiff_1.DeepDiffMapper)(obj1, obj2);
+        var result = (0, deepDiff_1.DeepDiffMapper)(obj1, obj2);
         expect(result).toEqual({
             a: {
                 type: 'unchanged',
@@ -179,11 +179,11 @@ describe('DeepDiffMapper', () => {
             },
         });
         // equal dates
-        const obj3 = {
+        var obj3 = {
             a: 1,
             b: new Date('2019-01-01'),
         };
-        const result2 = (0, deepDiff_1.DeepDiffMapper)(obj1, obj3);
+        var result2 = (0, deepDiff_1.DeepDiffMapper)(obj1, obj3);
         expect(result2).toEqual({
             a: {
                 type: 'unchanged',
@@ -195,16 +195,16 @@ describe('DeepDiffMapper', () => {
             }
         });
     });
-    it('should compare arrays', () => {
-        const obj1 = {
+    it('should compare arrays', function () {
+        var obj1 = {
             a: 1,
             b: [1, 2, 3],
         };
-        const obj2 = {
+        var obj2 = {
             a: 1,
             b: [1, 2, 4],
         };
-        const result = (0, deepDiff_1.DeepDiffMapper)(obj1, obj2);
+        var result = (0, deepDiff_1.DeepDiffMapper)(obj1, obj2);
         expect(result).toEqual({
             a: {
                 type: 'unchanged',
