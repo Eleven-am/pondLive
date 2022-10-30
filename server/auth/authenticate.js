@@ -25,13 +25,11 @@ const pondAuthorizer = (secret, cookie) => {
             token = new baseClass_1.BaseClass().encrypt(secret, { time: clientId });
             return { clientId, token, setToken: true };
         }
-        if (Date.now() - parseInt(clientId) > 1000 * 60 * 60 * 2)
-            return {
-                clientId: null,
-                token: null,
-                valid: false,
-                clearToken: true,
-            };
+        if (Date.now() - parseInt(clientId) > 1000 * 60 * 60 * 2) {
+            clientId = Date.now().toString();
+            token = new baseClass_1.BaseClass().encrypt(secret, { time: clientId });
+            return { clientId, token: token, setToken: true };
+        }
         return { clientId, token };
     };
 };
