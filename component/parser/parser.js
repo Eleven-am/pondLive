@@ -8,9 +8,6 @@ const ENTITIES = {
 };
 const ENT_REGEX = new RegExp(Object.keys(ENTITIES).join('|'), 'g');
 function join(array, separator) {
-    if (separator === undefined || separator === null) {
-        separator = ',';
-    }
     if (array.length <= 0) {
         return new HtmlSafeString([''], []);
     }

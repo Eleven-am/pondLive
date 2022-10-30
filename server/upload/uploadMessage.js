@@ -103,8 +103,8 @@ class UploadMessage {
             size: file.size,
             mimetype: file.mimetype,
             filePath: file.filePath,
-            destroy: () => this._deleteFile(file),
-            move: (directory) => this._acceptFile(file, directory),
+            destroy: this._deleteFile.bind(this, file),
+            move: this._acceptFile.bind(this, file)
         };
     }
 }

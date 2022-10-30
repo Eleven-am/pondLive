@@ -77,7 +77,7 @@ class ContextDistributor {
             unsubscribe: () => {
                 subscription.unsubscribe();
                 const doc = this._database.get(socket.clientId);
-                if (doc && doc.doc.subscriberCount === 0)
+                if (doc && doc.doc.observers.size === 0)
                     doc.removeDoc();
             }
         };

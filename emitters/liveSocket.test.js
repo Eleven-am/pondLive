@@ -53,7 +53,7 @@ describe('LiveSocket', () => {
         expect(response).toBeDefined();
         expect(router).toBeDefined();
     });
-    it('should emit an event', () => {
+    it('should emit an event', (done) => {
         const { socket } = (0, broadcastChannel_test_1.createSocket)();
         const { channel } = (0, broadcastChannel_test_1.createChannel)();
         // the emit function is only available on a websocket
@@ -61,8 +61,18 @@ describe('LiveSocket', () => {
         channel.onMessage(data => {
             expect(data.event).toEqual('emit');
             expect(data.message).toEqual({ event: 'test', data: { test: 'test' } });
+            done();
         });
         socket.upgradeToWebsocket(channel);
         socket.emit('test', { test: 'test' });
     });
+    it('should call the render function every time th assign is called', () => __awaiter(void 0, void 0, void 0, function* () {
+        const { socket, manager } = (0, broadcastChannel_test_1.createSocket)();
+        const { channel } = (0, broadcastChannel_test_1.createChannel)();
+        socket.assign({ test: 'test' });
+        expect(manager.manageSocketRender).not.toHaveBeenCalled(); // the function is not called because the socket isn't a websocket
+        socket.upgradeToWebsocket(channel);
+        socket.assign({ test: 'test2' });
+        expect(manager.manageSocketRender).toHaveBeenCalled();
+    }));
 });

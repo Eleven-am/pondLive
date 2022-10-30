@@ -32,10 +32,10 @@ class UploadAuthoriseMessage extends baseClass_1.BaseClass {
     _createPondResponse() {
         return new pondResponse_1.PondResponse(this._channel);
     }
-    authoriseAll() {
+    acceptAllUpload() {
         this._authorizeDownload(this._identifier);
     }
-    sendError(message) {
+    declineAllUpload(message) {
         this._declineDownload(this._identifier, message);
     }
     _authorizeDownload(identifier) {

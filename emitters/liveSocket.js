@@ -47,7 +47,7 @@ class LiveSocket {
             this._liveContext = Object.assign(Object.assign({}, this._liveContext), assign);
             return;
         }
-        this._reRender(() => {
+        void this._reRender(() => {
             this._liveContext = Object.assign(this._liveContext, assign);
         });
     }

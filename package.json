@@ -30,7 +30,7 @@
     "url": "git+https://github.com/Eleven-am/pondLive.git"
   },
   "dependencies": {
-    "@eleven-am/pondsocket": "^0.1.10",
+    "@eleven-am/pondsocket": "^0.1.11",
     "busboy": "^1.6.0"
   },
   "devDependencies": {

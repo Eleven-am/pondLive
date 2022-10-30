@@ -54,13 +54,13 @@ class ComponentManager {
         this._pond = props.pond;
         this._chain = props.chain;
         this._sockets = new base_1.SimpleBase();
-        this._internalBus = props.internalBus;
-        this._initialiseManager();
-        this._setupEventHandler();
         this._htmlPath = props.htmlPath;
         this._secret = props.secret;
         this._uploadPath = props.uploadPath;
         this._providers = [];
+        this._internalBus = props.internalBus;
+        this._initialiseManager();
+        this._setupEventHandler();
         const contexts = [...component.providers, ...props.providers];
         contexts.forEach((context) => __awaiter(this, void 0, void 0, function* () {
             const shouldAdd = yield context.subscribe(this._componentId, this._component);
@@ -111,13 +111,13 @@ class ComponentManager {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (!this._component.onUploadRequest || !this._component.onUpload) {
-                authorizer.sendError('Upload not supported');
+                authorizer.declineAllUpload('Upload not supported');
                 return;
             }
             const router = new emitters_1.LiveRouter(res);
             const document = this._sockets.get(clientId);
             if (!document) {
-                authorizer.sendError('Client not found');
+                authorizer.declineAllUpload('Client not found');
                 return;
             }
             const socket = document.doc.socket;

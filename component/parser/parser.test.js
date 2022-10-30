@@ -215,15 +215,15 @@ describe('html parser', () => {
         const parts = string.getParts();
         expect(parts).toEqual({ "0": "Hello World", "s": ["<div>", "</div>"] });
         value = null;
-        const string2 = (0, parser_1.html) `<div>${value || ''}</div>`;
+        const string2 = (0, parser_1.html) `<div>${value}</div>`;
         expect(string2.toString()).toEqual('<div></div>');
-        expect(string2.getParts()).toEqual({ "0": "", "s": ["<div>", "</div>"] });
+        expect(string2.getParts()).toEqual({ "0": null, "s": ["<div>", "</div>"] });
         const diff = string.differentiate(string2);
         expect(diff).toEqual({
-            0: ''
+            0: null
         });
         const merge = (0, getChanged_1.mergeObjects)(parts, diff);
-        expect(merge).toEqual({ "0": "", "s": ["<div>", "</div>"] });
+        expect(merge).toEqual({ "s": ["<div>", "</div>"] });
         const htmlString = string.parsedHtmlToString(merge);
         expect(htmlString).toEqual('<div></div>');
     });
