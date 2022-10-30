@@ -24,7 +24,7 @@ export interface LiveEvent<Events extends string = string> {
     value: string | null;
     dataId: string | null;
     dragData?: DragData;
-    formData?: FormData;
+    formData?: Record<string, string>;
 }
 
 export interface MountContext {
