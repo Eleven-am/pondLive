@@ -41,7 +41,7 @@ class ContextDistributor {
                 contextId: this._contextId,
                 data: Object.freeze(Object.assign({}, data))
             };
-            socket.onContextChange(peakData);
+            void socket.onContextChange(peakData);
         });
         return this._generateUnSubscribe(socket, sub);
     }

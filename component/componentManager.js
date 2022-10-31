@@ -148,6 +148,7 @@ class ComponentManager {
                 query: data.query,
                 cookies: cookies,
             };
+            this._providers.forEach(provider => socket.subscribeToContextManager(provider));
             if (this._component.mount)
                 yield this._component.mount(mountContext, socket, router);
             if (router.sentResponse)
@@ -163,7 +164,6 @@ class ComponentManager {
                     }
                 }
             }
-            this._providers.forEach(provider => socket.subscribeToContextManager(provider));
             if (router.sentResponse)
                 return null;
             const renderRoutes = () => this._createRouter((innerHtml === null || innerHtml === void 0 ? void 0 : innerHtml.rendered) || (0, parser_1.html) ``, this._componentId, (innerHtml === null || innerHtml === void 0 ? void 0 : innerHtml.path) || '');
