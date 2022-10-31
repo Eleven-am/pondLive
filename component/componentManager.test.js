@@ -14,6 +14,8 @@ const createComponentManager = () => {
         secret: 'test',
         uploadPath: 'test',
         internalBus: new base_1.Broadcast(),
+        cookiePath: 'test',
+        cookieBank: new Map(),
         providers: [],
     };
     const context = {

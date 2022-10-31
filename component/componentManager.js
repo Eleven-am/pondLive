@@ -59,6 +59,8 @@ class ComponentManager {
         this._uploadPath = props.uploadPath;
         this._providers = [];
         this._internalBus = props.internalBus;
+        this.cookieBank = props.cookieBank;
+        this.cookiePath = props.cookiePath;
         this._initialiseManager();
         this._setupEventHandler();
         const contexts = [...component.providers, ...props.providers];
@@ -77,6 +79,8 @@ class ComponentManager {
             providers: contexts,
             secret: props.secret,
             uploadPath: props.uploadPath,
+            cookieBank: props.cookieBank,
+            cookiePath: props.cookiePath,
         }));
     }
     manageSocketRender(socket, router, response, callback) {
@@ -114,7 +118,7 @@ class ComponentManager {
                 authorizer.declineAllUpload('Upload not supported');
                 return;
             }
-            const router = new emitters_1.LiveRouter(res);
+            const router = new emitters_1.LiveRouter(res, this.cookiePath, this.cookieBank);
             const document = this._sockets.get(clientId);
             if (!document) {
                 authorizer.declineAllUpload('Client not found');
@@ -128,7 +132,7 @@ class ComponentManager {
             yield this._pushToClient(router, document, 'updated', res);
         });
     }
-    _render(data, clientId, router) {
+    _render(data, clientId, router, cookies) {
         return __awaiter(this, void 0, void 0, function* () {
             if (router.sentResponse)
                 return null;
@@ -141,7 +145,8 @@ class ComponentManager {
             const mountContext = {
                 params: data.params,
                 path: data.address,
-                query: data.query
+                query: data.query,
+                cookies: cookies,
             };
             if (this._component.mount)
                 yield this._component.mount(mountContext, socket, router);
@@ -151,7 +156,7 @@ class ComponentManager {
             for (const manager of this._innerManagers) {
                 const event = this._base.getLiveRequest(manager._path, data.address);
                 if (event) {
-                    const rendered = yield manager._render(event, clientId, router);
+                    const rendered = yield manager._render(event, clientId, router, cookies);
                     if (rendered) {
                         innerHtml = rendered;
                         break;
@@ -282,23 +287,24 @@ class ComponentManager {
             const extension = path_1.default.extname(request.url);
             if (extension !== '')
                 return next();
-            const csrfToken = request.get('x-csrf-token');
             const method = request.method;
             const { clientId, token } = request.auth;
+            const csrfToken = request.get('x-csrf-token');
             if (method === 'GET' && clientId && token) {
+                const cookies = (0, server_1.parseCookies)(request.headers);
                 const eventRequest = this._base.getLiveRequest(this._path, request.url);
                 const resolver = this._base.generateEventRequest(this._path, request.url);
                 if (resolver && csrfToken)
-                    return yield this._handleCSRFRequest(resolver, csrfToken, clientId, response, next);
+                    return yield this._handleCSRFRequest(resolver, csrfToken, clientId, response, cookies, next);
                 if (eventRequest && !csrfToken)
-                    return yield this._handleInitialRequest(eventRequest, clientId, response, next);
+                    return yield this._handleInitialRequest(eventRequest, clientId, response, cookies, next);
             }
             next();
         }));
     }
     _initialiseSocketManager() {
         this._pond.on(`mount/${this._componentId}`, (req, res, channel) => __awaiter(this, void 0, void 0, function* () {
-            const router = new emitters_1.LiveRouter(res);
+            const router = new emitters_1.LiveRouter(res, this.cookiePath, this.cookieBank);
             yield this._handleRendered(req.client.clientAssigns.clientId, router, res, channel);
             const sub = channel.onPresenceChange(data => {
                 if (data.action === pondsocket_1.ServerActions.PRESENCE && data.event === 'LEAVE_CHANNEL') {
@@ -309,7 +315,7 @@ class ComponentManager {
         }));
         this._pond.on(`update/${this._componentId}`, (req, res, channel) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const router = new emitters_1.LiveRouter(res);
+                const router = new emitters_1.LiveRouter(res, this.cookiePath, this.cookieBank);
                 yield this._handleRendered(req.client.clientAssigns.clientId, router, res, channel);
             }
             catch (e) {
@@ -318,7 +324,7 @@ class ComponentManager {
         }));
         this._pond.on(`event/${this._componentId}`, (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const router = new emitters_1.LiveRouter(res);
+                const router = new emitters_1.LiveRouter(res, this.cookiePath, this.cookieBank);
                 yield this._handleEvent(req.message, req.client.clientAssigns.clientId, router);
             }
             catch (e) {
@@ -365,10 +371,10 @@ class ComponentManager {
         return (0, parser_1.html) `
             <div id="${parentId}" pond-router="${componentId}">${innerRoute}</div>`;
     }
-    _handleInitialRequest(request, clientId, response, next) {
+    _handleInitialRequest(request, clientId, response, cookies, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            const router = new emitters_1.LiveRouter(response);
-            const htmlData = yield this._render(request, clientId, router);
+            const router = new emitters_1.LiveRouter(response, this.cookiePath, this.cookieBank);
+            const htmlData = yield this._render(request, clientId, router, cookies);
             if (router.sentResponse)
                 return;
             if (htmlData) {
@@ -380,9 +386,9 @@ class ComponentManager {
             next();
         });
     }
-    _handleCSRFRequest(request, csrfToken, clientId, response, next) {
+    _handleCSRFRequest(request, csrfToken, clientId, response, cookies, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            const router = new emitters_1.LiveRouter(response);
+            const router = new emitters_1.LiveRouter(response, this.cookiePath, this.cookieBank);
             const data = this._base.decrypt(this._secret, csrfToken);
             if (!data || data.clientId !== clientId) {
                 response.status(403)
@@ -391,7 +397,7 @@ class ComponentManager {
                 });
                 return;
             }
-            const htmlData = yield this._render(request, clientId, router);
+            const htmlData = yield this._render(request, clientId, router, cookies);
             if (router.sentResponse)
                 return;
             if (htmlData) {

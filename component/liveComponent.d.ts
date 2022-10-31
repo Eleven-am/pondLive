@@ -31,6 +31,7 @@ export interface MountContext {
     path: string;
     params: Record<string, string>;
     query: Record<string, string>;
+    cookies: Record<string, string>;
 }
 
 export interface UploadEvent<Events extends string = string> {

@@ -34,6 +34,7 @@ const PondLive = (app) => {
     const base = new baseClass_1.BaseClass();
     const broadcaster = new base_1.Broadcast();
     app.usePondLive = (routes, options) => {
+        const cookieBank = new Map();
         const cookieName = (options === null || options === void 0 ? void 0 : options.cookie) || 'pondLive';
         const staticPath = (options === null || options === void 0 ? void 0 : options.staticPath) || '';
         const secret = (options === null || options === void 0 ? void 0 : options.secret) || base.uuid();
@@ -41,13 +42,16 @@ const PondLive = (app) => {
         const uploadPath = (options === null || options === void 0 ? void 0 : options.uploadPath) || '/pondLive/uploads';
         const providers = (options === null || options === void 0 ? void 0 : options.providers) || [];
         const pondId = base.nanoId();
+        const cookiePath = base.uuid();
         let htmlPath = undefined;
         const authenticator = (0, authenticate_1.AuthorizeRequest)(secret, cookieName, options === null || options === void 0 ? void 0 : options.authenticator);
         const socketAuthenticator = (0, authenticate_1.AuthorizeUpgrade)(secret, cookieName, options === null || options === void 0 ? void 0 : options.authenticator);
         const validator = (0, upload_1.authoriseUploader)((0, authenticate_1.getAuthorizer)(secret, cookieName, options === null || options === void 0 ? void 0 : options.authenticator));
         const uploader = (0, upload_1.GenerateUploader)(validator, broadcaster);
+        const cookieSigner = (0, authenticate_1.LiveRouterCookieSigner)(cookieBank);
         app.use(authenticator);
         app.post(uploadPath, uploader);
+        app.get(cookiePath, cookieSigner);
         app.use(express_1.default.static(path_1.default.join(__dirname, '../../client')));
         if (staticPath) {
             const exists = (0, exports.fileExist)(`${options.staticPath}/index.html`);
@@ -71,6 +75,8 @@ const PondLive = (app) => {
             internalBus: broadcaster,
             providers: providers,
             uploadPath: uploadPath,
+            cookieBank: cookieBank,
+            cookiePath: cookiePath,
         };
         routes.map(route => {
             const path = `${pondPath}${route.path}`;

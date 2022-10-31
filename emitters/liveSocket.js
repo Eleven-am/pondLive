@@ -85,7 +85,7 @@ class LiveSocket {
     createResponse() {
         this._clearTimer();
         const response = this._createPondResponse();
-        const router = new liveRouter_1.LiveRouter(response);
+        const router = new liveRouter_1.LiveRouter(response, this._manager.cookiePath, this._manager.cookieBank);
         return { response, router };
     }
     /**
@@ -185,8 +185,7 @@ class LiveSocket {
             this._clearTimer();
             if (!this._isWebsocket)
                 return;
-            const response = this._createPondResponse();
-            const router = new liveRouter_1.LiveRouter(response);
+            const { response, router } = this.createResponse();
             yield this._manager.manageSocketRender(this, router, response, component => {
                 callback(component, router);
             });

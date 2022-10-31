@@ -2,9 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LiveRouter = void 0;
 const pondsocket_1 = require("@eleven-am/pondsocket");
+const baseClass_1 = require("../utils/baseClass");
 class LiveRouter {
-    constructor(response, routerType = 'http') {
+    constructor(response, cookiePath, cookieBank, routerType = 'http') {
         this._response = response;
+        this._cookiePath = cookiePath;
+        this._cookieBank = cookieBank;
+        this._base = new baseClass_1.BaseClass();
         this._headers = {
             pageTitle: undefined,
             flashMessage: undefined,
@@ -17,6 +21,12 @@ class LiveRouter {
             this._routerType = routerType;
             this._responseSent = response.headersSent;
         }
+    }
+    get sentResponse() {
+        return this._responseSent;
+    }
+    get headers() {
+        return this._headers;
     }
     /**
      * @desc Sets the page title for the next page
@@ -31,12 +41,6 @@ class LiveRouter {
      */
     set flashMessage(message) {
         this._headers.flashMessage = message;
-    }
-    get sentResponse() {
-        return this._responseSent;
-    }
-    get headers() {
-        return this._headers;
     }
     /**
      * @desc Navigates the client to a new page
@@ -85,6 +89,31 @@ class LiveRouter {
             };
             this._sendPondResponse(message, this._response);
         }
+    }
+    /**
+     * @desc Sets a cookie
+     * @param name - The name of the cookie
+     * @param value - The value of the cookie
+     * @param options - The options for the cookie
+     */
+    setCookie(name, value, options) {
+        if (this._response instanceof pondsocket_1.PondResponse) {
+            const secret = this._base.uuid();
+            const cookie = {
+                name: name,
+                value: value,
+                options: Object.assign(Object.assign({}, options), { httpOnly: true }),
+            };
+            const message = {
+                action: 'set-cookie',
+                data: secret,
+                cookiePath: this._cookiePath,
+            };
+            this._cookieBank.set(secret, cookie);
+            this._sendPondResponse(message, this._response);
+        }
+        else
+            this._response.setCookie(name, value, Object.assign(Object.assign({}, options), { httpOnly: true }));
     }
     _sendResponse(path, response) {
         if (this._responseSent)

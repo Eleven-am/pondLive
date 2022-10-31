@@ -1,3 +1,4 @@
+import {CookieOptions} from "../server/expressConfig/express";
 
 export declare class LiveRouter {
     /**
@@ -28,6 +29,14 @@ export declare class LiveRouter {
      * @desc Reloads the current page, only works if the client is already rendered
      */
     reload(): void;
+
+    /**
+     * @desc Sets a cookie
+     * @param name - The name of the cookie
+     * @param value - The value of the cookie
+     * @param options - The options for the cookie
+     */
+    setCookie(name: string, value: string, options?: CookieOptions): void
 }
 
 export {};

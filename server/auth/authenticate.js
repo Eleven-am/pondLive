@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAuthorizer = exports.AuthorizeUpgrade = exports.AuthorizeRequest = exports.pondAuthorizer = exports.parseCookies = void 0;
+exports.LiveRouterCookieSigner = exports.getAuthorizer = exports.AuthorizeUpgrade = exports.AuthorizeRequest = exports.pondAuthorizer = exports.parseCookies = void 0;
 const response_1 = require("../expressConfig/response");
 const baseClass_1 = require("../../utils/baseClass");
 const parseCookies = (headers) => {
@@ -82,3 +82,15 @@ const getAuthorizer = (secret, cookie, authorizer) => {
     return authorizer || (0, exports.pondAuthorizer)(secret, cookie);
 };
 exports.getAuthorizer = getAuthorizer;
+const LiveRouterCookieSigner = (bank) => (req, res) => {
+    const uuid = req.query.uuid;
+    if (!uuid)
+        return res.status(400).json({ message: 'Bad Request' });
+    const message = bank.get(uuid);
+    if (!message)
+        return res.status(403).json({ message: 'Forbidden' });
+    res.setCookie(message.name, message.value, message.options);
+    res.status(200).json({ message: 'OK' });
+    bank.delete(uuid);
+};
+exports.LiveRouterCookieSigner = LiveRouterCookieSigner;
