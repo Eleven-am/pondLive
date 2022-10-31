@@ -102,14 +102,15 @@ class LiveRouter {
             const cookie = {
                 name: name,
                 value: value,
-                options: Object.assign(Object.assign({}, options), { httpOnly: true }),
+                options: Object.assign(Object.assign({}, options), { httpOnly: true, sameSite: 'strict' }),
             };
             const cookiePath = this._cookiePath + secret;
             this._cookieBank.set(secret, cookie);
             this.navigateTo(cookiePath);
+            this._responseSent = false;
         }
         else
-            this._response.setCookie(name, value, Object.assign(Object.assign({}, options), { httpOnly: true }));
+            this._response.setCookie(name, value, Object.assign(Object.assign({}, options), { httpOnly: true, sameSite: 'strict' }));
     }
     _sendResponse(path, response) {
         if (this._responseSent)
