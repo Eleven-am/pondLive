@@ -25,7 +25,7 @@ const pondAuthorizer = (secret, cookie) => {
             token = new baseClass_1.BaseClass().encrypt(secret, { time: clientId });
             return { clientId, token, setToken: true };
         }
-        if (Date.now() - parseInt(clientId) > 1000 * 60 * 60 * 2) {
+        if (Date.now() - parseInt(clientId) > 1000 * 60 * 60 * 24 * 7) {
             clientId = Date.now().toString();
             token = new baseClass_1.BaseClass().encrypt(secret, { time: clientId });
             return { clientId, token: token, setToken: true };
@@ -47,7 +47,7 @@ const AuthorizeRequest = (secret, cookie, authorizer = (0, exports.pondAuthorize
             return res.status(401).json({ message: 'Unauthorized' });
         if (setToken && token) {
             res.setCookie(cookie, token, {
-                maxAge: 1000 * 60 * 60 * 2,
+                maxAge: 1000 * 60 * 60 * 24 * 7,
                 httpOnly: true,
                 sameSite: 'strict',
                 secure: process.env.NODE_ENV === 'production',
@@ -83,7 +83,7 @@ const getAuthorizer = (secret, cookie, authorizer) => {
 };
 exports.getAuthorizer = getAuthorizer;
 const LiveRouterCookieSigner = (bank) => (req, res) => {
-    const uuid = req.query.uuid;
+    const uuid = req.params.cookieId;
     if (!uuid)
         return res.status(400).json({ message: 'Bad Request' });
     const message = bank.get(uuid);

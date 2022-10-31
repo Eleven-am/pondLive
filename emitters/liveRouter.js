@@ -104,13 +104,9 @@ class LiveRouter {
                 value: value,
                 options: Object.assign(Object.assign({}, options), { httpOnly: true }),
             };
-            const message = {
-                action: 'set-cookie',
-                data: secret,
-                cookiePath: this._cookiePath,
-            };
+            const cookiePath = this._cookiePath + secret;
             this._cookieBank.set(secret, cookie);
-            this._sendPondResponse(message, this._response);
+            this.navigateTo(cookiePath);
         }
         else
             this._response.setCookie(name, value, Object.assign(Object.assign({}, options), { httpOnly: true }));

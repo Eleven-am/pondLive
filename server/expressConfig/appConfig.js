@@ -42,7 +42,7 @@ const PondLive = (app) => {
         const uploadPath = (options === null || options === void 0 ? void 0 : options.uploadPath) || '/pondLive/uploads';
         const providers = (options === null || options === void 0 ? void 0 : options.providers) || [];
         const pondId = base.nanoId();
-        const cookiePath = base.uuid();
+        const cookiePath = `/${base.uuid()}/`;
         let htmlPath = undefined;
         const authenticator = (0, authenticate_1.AuthorizeRequest)(secret, cookieName, options === null || options === void 0 ? void 0 : options.authenticator);
         const socketAuthenticator = (0, authenticate_1.AuthorizeUpgrade)(secret, cookieName, options === null || options === void 0 ? void 0 : options.authenticator);
@@ -51,7 +51,7 @@ const PondLive = (app) => {
         const cookieSigner = (0, authenticate_1.LiveRouterCookieSigner)(cookieBank);
         app.use(authenticator);
         app.post(uploadPath, uploader);
-        app.get(cookiePath, cookieSigner);
+        app.get(`${cookiePath}:cookieId`, cookieSigner);
         app.use(express_1.default.static(path_1.default.join(__dirname, '../../client')));
         if (staticPath) {
             const exists = (0, exports.fileExist)(`${options.staticPath}/index.html`);
