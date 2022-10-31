@@ -163,7 +163,8 @@ describe('liveRouter', () => {
         router.setCookie('test', 'test');
         expect(response.setCookie).toBeCalledWith('test', 'test', {
             httpOnly: true,
-            sameSite: 'strict'
+            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production',
         });
         const response2 = {
             writeHead: jest.fn(),
@@ -172,7 +173,11 @@ describe('liveRouter', () => {
         };
         const { router: router2 } = createRouter(response2, 'client-router');
         router2.setCookie('test', 'test');
-        expect(response2.setCookie).toBeCalledWith('test', 'test', { sameSite: 'strict', httpOnly: true });
+        expect(response2.setCookie).toBeCalledWith('test', 'test', {
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: process.env.NODE_ENV === 'production',
+        });
         let outerData;
         const resolver = (event, data) => {
             expect(event).toBe('router');
@@ -191,6 +196,7 @@ describe('liveRouter', () => {
             options: {
                 httpOnly: true,
                 sameSite: 'strict',
+                secure: process.env.NODE_ENV === 'production',
             },
         });
     });
