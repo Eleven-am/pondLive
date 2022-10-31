@@ -47,13 +47,8 @@ class LiveRouter {
      * @param path - The path to navigate to
      */
     navigateTo(path) {
-        if (this._response instanceof pondsocket_1.PondResponse) {
-            const message = {
-                action: 'redirect',
-                path: path,
-            };
-            this._sendPondResponse(message, this._response);
-        }
+        if (this._response instanceof pondsocket_1.PondResponse)
+            this._sendPondResponse('redirect', path, this._response);
         else {
             this._routerType === 'client-router' ?
                 this._sendClientRouterResponse('redirect', path, this._response) :
@@ -65,13 +60,8 @@ class LiveRouter {
      * @param path - The path to replace with
      */
     replace(path) {
-        if (this._response instanceof pondsocket_1.PondResponse) {
-            const message = {
-                action: 'replace',
-                path: path,
-            };
-            this._sendPondResponse(message, this._response);
-        }
+        if (this._response instanceof pondsocket_1.PondResponse)
+            this._sendPondResponse('replace', path, this._response);
         else {
             this._routerType === 'client-router' ?
                 this._sendClientRouterResponse('replace', path, this._response) :
@@ -82,13 +72,8 @@ class LiveRouter {
      * @desc Reloads the current page, only works if the client is already rendered
      */
     reload() {
-        if (this._response instanceof pondsocket_1.PondResponse) {
-            const message = {
-                action: 'reload',
-                path: 'current',
-            };
-            this._sendPondResponse(message, this._response);
-        }
+        if (this._response instanceof pondsocket_1.PondResponse)
+            this._sendPondResponse('reload', 'current', this._response);
     }
     /**
      * @desc Sets a cookie
@@ -106,8 +91,7 @@ class LiveRouter {
             };
             const cookiePath = this._cookiePath + secret;
             this._cookieBank.set(secret, cookie);
-            this.navigateTo(cookiePath);
-            this._responseSent = false;
+            this._sendPondResponse('set-cookie', cookiePath, this._response);
         }
         else
             this._response.setCookie(name, value, options);
@@ -118,11 +102,14 @@ class LiveRouter {
         this._responseSent = true;
         response.redirect(path);
     }
-    _sendPondResponse(message, response) {
+    _sendPondResponse(action, path, response) {
         if (this._responseSent)
             throw new Error('Response already sent');
         this._responseSent = true;
-        response.send('router', message);
+        response.send('router', {
+            action: action,
+            path: path,
+        });
     }
     _sendClientRouterResponse(action, path, response) {
         if (this._responseSent)
