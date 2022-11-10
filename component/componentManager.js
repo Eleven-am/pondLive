@@ -256,7 +256,7 @@ class ComponentManager {
             if (responseEvent === 'updated') {
                 const previous = this._createRouter(previousRender);
                 const difference = previous.differentiate(htmlData);
-                if (this._base.isObjectEmpty(difference))
+                if (this._base.isObjectEmpty(difference) && !router.headers.pageTitle && !router.headers.flashMessage)
                     return;
                 res.send(responseEvent, { rendered: difference, path: this._componentId, headers: router.headers });
             }

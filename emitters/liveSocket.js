@@ -105,8 +105,6 @@ class LiveSocket {
         return __awaiter(this, void 0, void 0, function* () {
             yield this._reRender((component, router) => __awaiter(this, void 0, void 0, function* () {
                 var _a;
-                if (!router)
-                    return;
                 yield ((_a = component.onInfo) === null || _a === void 0 ? void 0 : _a.call(this._liveContext, info, this, router));
             }));
         });
