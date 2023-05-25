@@ -23,10 +23,10 @@ function matchPath (path: string, address: string) {
         const pathPart = pathParts[i];
         const addressPart = addressParts[i];
 
-        if (pathPart === undefined || addressPart === undefined) {
-            return null;
-        } else if (pathPart === '*') {
+        if (pathPart === '*') {
             return params as Params<typeof path>;
+        } else if (pathPart === undefined || addressPart === undefined) {
+            return null;
         } else if (pathPart.startsWith(':')) {
             params[pathPart.slice(1)] = addressPart;
         } else if (pathPart !== addressPart) {

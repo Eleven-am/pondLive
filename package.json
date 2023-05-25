@@ -20,7 +20,8 @@
   "scripts": {
     "test": "jest --coverage --verbose --watchAll",
     "build": "tsc --project tsconfig.build.json",
-    "publishToNpm": "npm version patch && npm publish"
+    "publishToNpm": "npm version patch && npm publish",
+    "dev": "nodemon --watch src --exec ts-node src/subscriptions/createState.ts --trace-warnings"
   },
   "author": "Roy OSSAI",
   "license": "GPL-3.0",
@@ -31,7 +32,7 @@
     "url": "git+https://github.com/Eleven-am/pondLive.git"
   },
   "dependencies": {
-    "@eleven-am/pondsocket": "^0.1.59",
+    "@eleven-am/pondsocket": "^0.1.60",
     "busboy": "^1.6.0"
   },
   "devDependencies": {
@@ -51,6 +52,7 @@
     "superwstest": "^2.0.3",
     "ts-jest": "^29.0.3",
     "ts-node": "^10.9.1",
+    "nodemon": "^2.0.22",
     "typescript": "^5.0.4"
   }
 }

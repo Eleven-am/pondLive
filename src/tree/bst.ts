@@ -45,7 +45,7 @@ export class BST<T> {
     }
 
     public search (path: string): T | null {
-        return this._searchNode(this._root, path);
+        return this._searchNode(this._root, path)?.value ?? null;
     }
 
     public delete (path: string) {
@@ -53,7 +53,27 @@ export class BST<T> {
     }
 
     public insert (path: string, value: T) {
+        const node = this._searchNode(this._root, path);
+
+        if (node) {
+            node.value = value;
+
+            return;
+        }
+
         this._root = this._balance(this._insertNode(this._root, path, value));
+    }
+
+    public update (path: string, value: T) {
+        const node = this._searchNode(this._root, path);
+
+        if (node) {
+            node.value = value;
+
+            return;
+        }
+
+        throw new Error('Node not found');
     }
 
     private _height (node: NodeLeaf<T> | null): number {
@@ -150,13 +170,13 @@ export class BST<T> {
         return node;
     }
 
-    private _searchNode (node: NodeLeaf<T> | null, path: string): T | null {
+    private _searchNode (node: NodeLeaf<T> | null, path: string): NodeLeaf<T> | null {
         if (node === null) {
             return null;
         }
 
         if (path === node.key) {
-            return node.value;
+            return node;
         }
 
         if (path < node.key) {

@@ -1,20 +1,13 @@
-// eslint-disable-next-line import/no-unresolved
 import { IncomingMessage, IncomingHttpHeaders } from 'http';
-
-import { EventParams } from '@eleven-am/pondsocket/types';
 
 import { parseAddress } from '../matcher/matcher';
 
 export class Request {
     readonly #request: IncomingMessage;
 
-    #path: string;
-
-    #query: Record<string, string>;
+    readonly #path: URL;
 
     #cookies: Record<string, string>;
-
-    #params: EventParams<any> | null;
 
     readonly #headers: IncomingHttpHeaders;
 
@@ -23,22 +16,16 @@ export class Request {
             throw new Error('Invalid request method');
         }
 
-        this.#path = '/';
-        this.#query = {};
         this.#cookies = {};
         this.#request = request;
         this.#headers = request.headers;
-        this.#params = null;
+        this.#path = new URL(request.url ?? '', `https://${request.headers.host}`);
 
-        this.#init(request);
+        this.#init();
     }
 
-    get path (): string {
+    get url (): URL {
         return this.#path;
-    }
-
-    get query (): Record<string, string> {
-        return this.#query;
     }
 
     get cookies (): Record<string, string> {
@@ -49,20 +36,12 @@ export class Request {
         return this.#headers;
     }
 
-    parseParams (path: string): EventParams<any> | null {
-        this.#params = parseAddress(path, this.#path);
-
-        return this.#params;
+    matches (path: string): boolean {
+        return Boolean(parseAddress(`${path}/*`.replace(/\/+/g, '/'), this.#path.pathname));
     }
 
-    #init (request: IncomingMessage): void {
-        const { searchParams } = new URL(request.url ?? '', 'http://localhost');
-        const entries = searchParams.entries();
-
-        this.#query = Object.fromEntries(entries);
-        this.#path = this.#path.split('?')[0];
-
-        const cookies = this.#request.headers.cookie?.split(';') ?? [];
+    #init (): void {
+        const cookies = this.#headers.cookie?.split(';') ?? [];
 
         this.#cookies = Object.fromEntries(cookies.map((cookie) => cookie.split('=')));
     }
