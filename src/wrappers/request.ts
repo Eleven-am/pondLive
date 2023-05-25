@@ -1,27 +1,29 @@
-import { IncomingMessage, IncomingHttpHeaders } from 'http';
+import { IncomingHttpHeaders, IncomingMessage } from 'http';
 
-import { parseAddress } from '../matcher/matcher';
+import type { Client, PondMessage } from '@eleven-am/pondsocket/types';
+
+import { parseAddress } from '../server/matcher/matcher';
+
+interface SocketEvent {
+    payload: PondMessage;
+    client: Client;
+}
 
 export class Request {
-    readonly #request: IncomingMessage;
-
-    readonly #path: URL;
+    #path: URL;
 
     #cookies: Record<string, string>;
 
-    readonly #headers: IncomingHttpHeaders;
+    #headers: IncomingHttpHeaders;
 
-    constructor (request: IncomingMessage) {
-        if (request.method !== 'GET') {
-            throw new Error('Invalid request method');
-        }
+    #payload: any;
 
-        this.#cookies = {};
-        this.#request = request;
-        this.#headers = request.headers;
-        this.#path = new URL(request.url ?? '', `https://${request.headers.host}`);
-
-        this.#init();
+    constructor () {
+        this.#path = new URL('http://localhost');
+        this.#cookies = {
+        };
+        this.#headers = {
+        };
     }
 
     get url (): URL {
@@ -36,13 +38,33 @@ export class Request {
         return this.#headers;
     }
 
+    get payload (): any {
+        return this.#payload;
+    }
+
+    static fromRequest (req: IncomingMessage): Request {
+        const request = new Request();
+
+        request.#path = new URL(`https://${req.headers.host}${req.url}`);
+        request.#headers = req.headers;
+        const cookies = request.#headers.cookie?.split(';') ?? [];
+
+        request.#cookies = Object.fromEntries(cookies.map((cookie) => cookie.split('=')));
+
+        return request;
+    }
+
+    static fromSocketEvent (event: SocketEvent): Request {
+        const request = new Request();
+
+        request.#path = new URL(event.payload.address as string);
+        request.#payload = event.payload;
+
+        return request;
+    }
+
     matches (path: string): boolean {
         return Boolean(parseAddress(`${path}/*`.replace(/\/+/g, '/'), this.#path.pathname));
     }
-
-    #init (): void {
-        const cookies = this.#headers.cookie?.split(';') ?? [];
-
-        this.#cookies = Object.fromEntries(cookies.map((cookie) => cookie.split('=')));
-    }
 }
+

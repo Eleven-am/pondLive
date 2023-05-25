@@ -1,8 +1,8 @@
 import type { Client } from '@eleven-am/pondsocket/types';
 import type { CookieOptions } from 'express';
 
-import { Request } from '../wrappers/request';
-import { Response } from '../wrappers/response';
+import { Request } from '../../wrappers/request';
+import { Response } from '../../wrappers/response';
 
 export declare class LiveSocket extends Client {
     readonly clientId: string;

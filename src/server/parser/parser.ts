@@ -30,6 +30,17 @@ export class Html {
         this.dynamics = dynamics;
     }
 
+    static parse (parts: ParsedHTML): Html {
+        const data = parts as StaticParsed;
+        const statics = data.s || [''];
+
+        delete data.s;
+        const dynamics = Object.values(data).filter((d) => d !== undefined && d !== null);
+
+
+        return new Html(statics, dynamics);
+    }
+
     public toString () {
         let result = this.statics[0];
 
@@ -102,26 +113,13 @@ export class Html {
 
         const mapped = differ(oldParsed, newParsed);
 
-
         return getChanges(mapped);
     }
 
     public reconstruct (changes: Record<string, any>): Html {
         const data = mergeObjects(this.getParts(), changes);
 
-
-        return this.parse(data);
-    }
-
-    public parse (parts: ParsedHTML): Html {
-        const data = parts as StaticParsed;
-        const statics = data.s || [''];
-
-        delete data.s;
-        const dynamics = Object.values(data).filter((d) => d !== undefined && d !== null);
-
-
-        return new Html(statics, dynamics);
+        return Html.parse(data);
     }
 }
 

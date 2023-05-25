@@ -1,13 +1,19 @@
+import * as fs from 'fs';
 import * as http from 'http';
 import { IncomingMessage, ServerResponse } from 'http';
+import path from 'path';
 
+import PondSocket from '@eleven-am/pondsocket';
+import type { Client, PondMessage } from '@eleven-am/pondsocket/types';
+
+import { Request } from '../../wrappers/request';
+import { Response } from '../../wrappers/response';
 import { parseAddress } from '../matcher/matcher';
 import { Html, html } from '../parser/parser';
-import { Request } from '../wrappers/request';
-import { Response } from '../wrappers/response';
 
 type Component = (props: Context) => Html;
 type MountFunction = (req: Request, res: Response) => void | Promise<void>;
+type UpgradeFunction = (socket: Client) => void | Promise<void>;
 
 interface Route {
     path: string;
@@ -29,7 +35,7 @@ interface ComponentContext<T> {
     component: Component;
     state: Map<string, T>;
     onMount?: MountFunction;
-    onUpgrade?: MountFunction;
+    onUpgrade?: UpgradeFunction;
     onUnmount?: MountFunction;
     hookCounter: number;
     args: Args<T>[];
@@ -37,6 +43,8 @@ interface ComponentContext<T> {
 
 interface LiveEvent {
     type: string;
+    userId: string;
+    payload: PondMessage;
 }
 
 type KeyOf<T> = keyof T;
@@ -49,8 +57,8 @@ type NextFunction = (err?: Error) => void;
 
 interface HookLink<T> {
     key: string;
-    getState: (initialState: T) => T;
-    setState: (state: T) => void;
+    getState: (userId: string, initialState: T) => T;
+    setState: (userId: string, state: T) => void;
     args: Args<T>[];
     addDispatcher: (key: string, dispatcher: Dispatcher<T>) => string;
 }
@@ -58,10 +66,49 @@ interface HookLink<T> {
 type EventAction<T> = Record<string, (event: LiveEvent) => T | Promise<T>>;
 type CreatedAction<T extends EventAction<any>> = [ReturnType<T[keyof T]> | null, RunAction<T>]
 
+const publicDir = path.join(__dirname, '../../../dist');
+
+const mimeTypes: Record<string, string> = {
+    '.html': 'text/html',
+    '.js': 'text/javascript',
+};
+
+function fileExists (filePath: string) {
+    return new Promise<boolean>((resolve) => {
+        fs.stat(filePath, (err, stats) => {
+            if (err) {
+                return resolve(false);
+            }
+
+            resolve(stats.isFile());
+        });
+    });
+}
+
+function getMimeType (filePath: string) {
+    const extname = path.extname(filePath);
+
+    return mimeTypes[extname] || 'text/html';
+}
+
+function serveFile (filePath: string, res: ServerResponse, callback: (data: string) => string) {
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+        if (err) {
+            res.writeHead(500);
+            res.end('Error loading file');
+        } else {
+            // eslint-disable-next-line callback-return
+            const result = callback(data);
+
+            res.writeHead(200, { 'Content-Type': getMimeType(filePath) });
+            res.end(result);
+        }
+    });
+}
+
 export function sortBy<DataType> (array: DataType[], keys: KeyOf<DataType> | KeyOf<DataType>[], order: SortingOrder | SortingOrder[]): DataType[] {
     const sortFields = Array.isArray(keys) ? keys : [keys];
     const ordersArray = Array.isArray(order) ? order : [order];
-
 
     return array.sort((a, b) => {
         let i = 0;
@@ -86,6 +133,17 @@ export function sortBy<DataType> (array: DataType[], keys: KeyOf<DataType> | Key
         }
 
         return 0;
+    });
+}
+
+function uuidv4 () {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        // eslint-disable-next-line no-bitwise
+        const r = Math.random() * 16 | 0;
+        // eslint-disable-next-line no-bitwise
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+
+        return v.toString(16);
     });
 }
 
@@ -126,6 +184,15 @@ export function deepCompare (firstObject: any, secondObject: any): boolean {
     return false;
 }
 
+function isEmpty (obj: any): boolean {
+    return Object.keys(obj).length === 0;
+}
+
+interface ClientData {
+    channel: Client;
+    vDom: Html;
+}
+
 export class Context {
     #isBuilding: boolean;
 
@@ -141,11 +208,17 @@ export class Context {
 
     #address: string;
 
+    #upgrading: Map<string, Html>;
+
+    #clients: Map<string, ClientData>;
+
     constructor () {
         this.#currentComponent = null;
         this.#components = [];
         this.#isBuilding = false;
         this.#dispatchers = new Map();
+        this.#upgrading = new Map();
+        this.#clients = new Map();
         this.#hookCount = 0;
         this.#userId = '';
         this.#address = '';
@@ -165,6 +238,10 @@ export class Context {
         }
 
         return this.#currentComponent;
+    }
+
+    get userId (): string {
+        return this.#userId;
     }
 
     fromRoute (route: InnerRoute | ComponentContext<any>): Context {
@@ -195,6 +272,7 @@ export class Context {
             }
 
             context.#currentComponent = component;
+            context.#userId = this.#userId;
         }
 
         return context;
@@ -216,27 +294,41 @@ export class Context {
         this.#isBuilding = false;
 
         return async (req: IncomingMessage, res: ServerResponse, next: NextFunction) => {
-            const request = new Request(req);
+            const request = Request.fromRequest(req);
             const response = new Response(res);
+
+            // the userId is stored in the x-user-id header if none ius found we create a new one
+            this.#userId = request.headers['x-user-id'] as string || uuidv4();
 
             await this.mountComponents(request, response);
 
-            const route = routes.find((component) => request.matches(component.path));
+            const html = this.render(routes, request);
 
-            if (!route) {
+            if (!html) {
                 return next();
             }
 
-            const context = this.fromRoute({
-                absolutePath: route.path,
-                component: route.component,
-            });
+            this.#upgrading.set(this.#userId, html);
 
-            context.#address = request.url.pathname;
-            const html = route.component(context);
+            const store = `
+                <script>
+                    window.__USER_ID__ = '${this.#userId}';
+                    window.__STATE__ = ${JSON.stringify(html.getParts())};
+                </script>
+            `;
 
-            // for testing
-            return response.html(html.toString());
+            // get index.html from public folder
+            const filePath = path.join(publicDir, 'index.html');
+            // check if file exists
+            const exists = await fileExists(filePath);
+
+            if (!exists) {
+                return response.html(html.toString());
+            }
+
+            await serveFile(filePath, res, (file) => file.toString()
+                .replace('{{html}}', html.toString())
+                .replace('{{store}}', store));
         };
     }
 
@@ -252,7 +344,6 @@ export class Context {
         const key = `${this.#currentComponent.absolutePath}-${this.#hookCount}`;
         const states = this.#currentComponent.state;
         const args = this.#currentComponent.args;
-        const userKey = `${this.#userId}-${key}`;
 
         const addDispatcher = (dispatchKey: string, dispatcher: Dispatcher<T>) => {
             const newKey = `${key}-${dispatchKey}`;
@@ -262,9 +353,30 @@ export class Context {
             return newKey;
         };
 
-        const getState = (initialState: T): T => states.get(userKey) ?? initialState;
+        const getState = (userId: string, initialState: T): T => {
+            const userKey = `${userId}-${key}`;
 
-        const setState = (state: T) => {
+            if (!this.#currentComponent) {
+                throw new Error('Cannot get state outside of component');
+            }
+
+            const state = states.get(userKey) || initialState;
+
+            if (!this.#isBuilding && userId !== '') {
+                states.set(userKey, state);
+            }
+
+            return state;
+        };
+
+        const setState = (userId: string, state: T) => {
+            if (!this.#currentComponent) {
+                throw new Error('Cannot set state outside of component');
+            }
+
+            const newUserId = `${userId}-${key}`;
+
+            this.#currentComponent.state.set(newUserId, state);
             // TODO: this should be a deep merge
         };
 
@@ -294,6 +406,39 @@ export class Context {
         this.#currentComponent.onMount = mountFunction;
     }
 
+    onUpgrade (upgradeFunction: UpgradeFunction) {
+        if (!this.#currentComponent) {
+            throw new Error('Cannot add upgrade function outside of component');
+        }
+
+        if (!this.isBuilding) {
+            return;
+        }
+
+        this.#currentComponent.onUpgrade = upgradeFunction;
+    }
+
+    upgradeUser (userId: string, channel: Client, address: string) {
+        const userHtml = this.#upgrading.get(userId);
+
+        if (!userHtml) {
+            throw new Error('User not found');
+        }
+
+        this.#clients.set(userId, {
+            channel,
+            vDom: userHtml,
+        });
+
+        this.#upgrading.delete(userId);
+        const sortedComponents = sortBy(this.#components, 'absolutePath', 'desc');
+        const componentsToUpgrade = sortedComponents.filter((component) => parseAddress(`${component.absolutePath}/*`.replace(/\/+/g, '/'), address));
+
+        for (const component of componentsToUpgrade) {
+            component.onUpgrade?.(channel);
+        }
+    }
+
     async mountComponents (req: Request, res: Response) {
         const sortedComponents = sortBy(this.#components, 'absolutePath', 'desc');
         const componentsToMount = sortedComponents.filter((component) => req.matches(component.absolutePath));
@@ -302,18 +447,86 @@ export class Context {
             await component.onMount?.(req, res);
         }
     }
+
+    async performAction (userId: string, action: string, event: LiveEvent, routes: Route[]) {
+        const newContext = this.fromUserId(userId);
+
+        newContext.#components = this.#components;
+        newContext.#dispatchers = this.#dispatchers;
+        newContext.#hookCount = this.#hookCount;
+        newContext.#isBuilding = this.#isBuilding;
+        newContext.#upgrading = this.#upgrading;
+        newContext.#clients = this.#clients;
+        newContext.#currentComponent = this.#currentComponent;
+        newContext.#components = this.#components;
+        newContext.#userId = userId;
+
+        const dispatcher = this.#dispatchers.get(action);
+        const client = this.#clients.get(userId);
+
+        if (!dispatcher || !client) {
+            throw new Error('Dispatcher not found');
+        }
+
+        await dispatcher(event);
+        const req = Request.fromSocketEvent({
+            client: client.channel,
+            payload: event.payload,
+        });
+
+        const html = this.render(routes, req);
+
+        if (!html) {
+            return;
+        }
+
+        const diff = client.vDom.differentiate(html);
+
+        if (isEmpty(diff)) {
+            return;
+        }
+
+        client.channel.broadcastMessage('update', {
+            diff,
+        });
+    }
+
+    fromUserId (userId: string): Context {
+        const context = new Context();
+
+        context.#userId = userId;
+
+        return context;
+    }
+
+    render (routes: Route[], request: Request) {
+        const route = routes.find((component) => request.matches(component.path));
+
+        if (!route) {
+            return null;
+        }
+
+        const context = this.fromRoute({
+            absolutePath: route.path,
+            component: route.component,
+        });
+
+        context.#address = request.url.pathname;
+
+        return route.component(context);
+    }
 }
 
 function useState<T> (context: Context, initialState: T): CreatedState<T> {
     const { addDispatcher, getState, key, args, setState } = context.getHook<T>();
 
     function get (): T {
-        return getState(initialState);
+        return getState(context.userId, initialState);
     }
 
     async function internalMutate (state: (T | ((state: T, event: LiveEvent) => T | Promise<T>)), event: LiveEvent): Promise<T> {
         let newState: T;
-        const currentState = getState(initialState);
+        const currentState = getState(event.userId, initialState);
 
         if (typeof state === 'function') {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -323,7 +536,7 @@ function useState<T> (context: Context, initialState: T): CreatedState<T> {
             newState = state;
         }
 
-        setState(newState);
+        setState(event.userId, newState);
 
         return newState;
     }
@@ -406,6 +619,12 @@ function useEventActions<T extends EventAction<any>> (context: Context, actions:
 function Counter (context: Context) {
     const [count, setCount] = useState(context, 0);
 
+    context.onUpgrade((channel) => {
+        channel.broadcastMessage('counter', {
+            count,
+        });
+    });
+
     return html`
         <div>
             <h1>${count}</h1>
@@ -432,13 +651,44 @@ function Index (context: Context) {
             <h1>Index</h1>
             <a href="/counter">Counter</a>
             ${stateRouter(context)}
-            <button onclick=${action('log')}>Log</button>
+            <button pond-click=${action('log')}>Log</button>
         </div>
     `;
 }
 
+export async function serveStatic (req: IncomingMessage, res: ServerResponse, next: () => void) {
+    const filePath = path.join(publicDir, req.url!);
+
+    if (!path.extname(filePath)) {
+        return next();
+    }
+
+    if (!await fileExists(filePath)) {
+        // TODO: 404 page handle this more gracefully
+        res.statusCode = 404;
+        res.end('Not found');
+
+        return;
+    }
+
+    const fileStream = fs.createReadStream(filePath);
+
+    const extension = path.extname(filePath);
+
+    res.setHeader('Content-Type', mimeTypes[extension] ?? 'text/plain');
+
+    fileStream.pipe(res);
+}
+
 class Router {
-    #routes: Route[] = [];
+    readonly #routes: Route[];
+
+    #context: Context;
+
+    constructor () {
+        this.#context = new Context();
+        this.#routes = [];
+    }
 
     addRoute (path: string, component: Component) {
         this.#routes.push({
@@ -448,16 +698,24 @@ class Router {
     }
 
     createContext () {
-        const context = new Context();
-
-        const handleRequest = context.init(this.#routes);
+        const handleRequest = this.#context.init(this.#routes);
 
         return async (req: IncomingMessage, res: ServerResponse) => {
-            await handleRequest(req, res, () => {
-                res.statusCode = 404;
-                res.end('Not found');
+            await serveStatic(req, res, async () => {
+                await handleRequest(req, res, () => {
+                    res.statusCode = 404;
+                    res.end('Not found');
+                });
             });
         };
+    }
+
+    upgradeUser (userId: string, channel: Client, address: string) {
+        this.#context.upgradeUser(userId, channel, address);
+    }
+
+    performAction (userId: string, action: string, event: LiveEvent) {
+        return this.#context.performAction(userId, action, event, this.#routes);
     }
 }
 
@@ -466,7 +724,35 @@ const router = new Router();
 router.addRoute('/', Index);
 
 const server = http.createServer(router.createContext());
+const pondSocket = new PondSocket(server);
 
-server.listen(3000, () => {
-    console.log('Server listening on port 3000');
+const endpoint = pondSocket.createEndpoint('/live', (_request, response) => {
+    response.accept();
+});
+
+const channel = endpoint.createChannel('/:userId', (request, response) => {
+    response.accept({
+        userId: request.event.params.userId,
+    });
+    const userId = request.event.params.userId;
+    const channel = request.client;
+    const address = request.joinParams.address as string;
+
+    router.upgradeUser(userId, channel, address || '/');
+});
+
+channel.onEvent('event', async (request, response) => {
+    const userId = request.user.assigns.userId as string;
+    const action = request.event.payload.action as string;
+
+    response.accept();
+    await router.performAction(userId, action, {
+        type: 'event',
+        payload: request.event.payload,
+        userId,
+    });
+});
+
+pondSocket.listen(3000, () => {
+    console.log('Listening on port 3000');
 });
