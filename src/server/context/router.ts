@@ -53,7 +53,7 @@ export class Router {
         this.#middleware.use(async (req, res, next) => {
             const request = Request.fromRequest(req);
             const response = new Response(res);
-            const match = [data.absolutePath, ...data.routes].find((route) => route.match(request.url.pathname));
+            const match = [data.path, ...data.routes].find((route) => route.match(request.url.pathname));
 
             if (!match) {
                 return next();

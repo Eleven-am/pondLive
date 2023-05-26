@@ -364,7 +364,7 @@ interface ComponentContext<T> {
 }
 
 interface RouteContext {
-    absolutePath: string;
+    path: string;
     routes: string[];
     component: Component;
 }
@@ -522,6 +522,7 @@ export class Context {
     }
 
     getHook<T> (): HookLink<T> {
+        console.log(this.#currentComponent);
         if (!this.#currentComponent) {
             throw new Error('Cannot add hook outside of component');
         }
@@ -619,7 +620,7 @@ export class Context {
         this.#isBuilding = false;
 
         const routeContext: RouteContext = {
-            absolutePath,
+            path: absolutePath,
             routes,
             component: route.component,
         };
@@ -653,20 +654,19 @@ export class Context {
         const context = this.fromUserId(userId);
 
         context.#currentComponent = null;
-        context.#address = client.address;
 
         const req = Request.fromSocketEvent({
             client: client.channel,
             address: client.address,
         });
 
-        const route = this.#routes.find((r) => req.matches(r.absolutePath));
+        const route = this.#routes.find((r) => req.matches(r.path));
 
         if (!route) {
             return;
         }
 
-        const html = route.component(context);
+        const html = context.#render(req, route, userId);
         const diff = client.vDom.differentiate(html);
 
         if (isEmpty(diff)) {
