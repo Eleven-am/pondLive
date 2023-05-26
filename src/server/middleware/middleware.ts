@@ -1,4 +1,4 @@
-type NextFunction = () => void;
+export type NextFunction = () => void;
 
 export type MiddlewareFunction<Request, Response> = (req: Request, res: Response, next: NextFunction) => void | Promise<void>;
 
@@ -9,6 +9,13 @@ export class Middleware<Request, Response> {
         if (second) {
             this.#stack.push(...second.#stack);
         }
+    }
+
+    /**
+     * @desc Returns the middleware stack length
+     */
+    public get length () {
+        return this.#stack.length;
     }
 
     /**
@@ -39,12 +46,5 @@ export class Middleware<Request, Response> {
         };
 
         nextFunction();
-    }
-
-    /**
-     * @desc Returns the middleware stack length
-     */
-    public get length () {
-        return this.#stack.length;
     }
 }

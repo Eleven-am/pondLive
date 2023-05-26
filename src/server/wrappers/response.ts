@@ -35,6 +35,10 @@ export class Response {
         this.#statusCode = statusCode;
     }
 
+    get response (): ServerResponse {
+        return this.#response;
+    }
+
     setHeader (name: string, value: string): Response {
         if (this.#responseSent) {
             throw new Error('Cannot set headers after response is sent');

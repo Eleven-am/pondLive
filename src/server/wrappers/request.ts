@@ -1,11 +1,11 @@
 import { IncomingHttpHeaders, IncomingMessage } from 'http';
 
-import type { Client, PondMessage } from '@eleven-am/pondsocket/types';
+import type { Client } from '@eleven-am/pondsocket/types';
 
-import { parseAddress } from '../server/matcher/matcher';
+import { parseAddress } from '../matcher/matcher';
 
 interface SocketEvent {
-    payload: PondMessage;
+    address: string;
     client: Client;
 }
 
@@ -57,8 +57,9 @@ export class Request {
     static fromSocketEvent (event: SocketEvent): Request {
         const request = new Request();
 
-        request.#path = new URL(event.payload.address as string);
-        request.#payload = event.payload;
+        console.log(event);
+
+        request.#path = new URL(event.address as string);
 
         return request;
     }

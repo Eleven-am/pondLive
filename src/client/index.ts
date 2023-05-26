@@ -15,7 +15,7 @@ const connect = (channel: string, initialState: Html) => {
     client.connect();
 
     const chat = client.createChannel(`/${channel}`, {
-        address: window.location.pathname,
+        address: window.location.toString(),
     });
 
     chat.join();
