@@ -58,7 +58,7 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
 };
 
 export const useServerInfo = <T>(context: Context, serverInfo: ServerInfo<T>) => {
-    const { isBuilding, reload } = context;
+    const { isBuilding } = context;
     const { getState, subscribe } = serverInfo;
 
     if (isBuilding) {
@@ -67,7 +67,7 @@ export const useServerInfo = <T>(context: Context, serverInfo: ServerInfo<T>) =>
 
     const userId = context.userId;
 
-    subscribe(userId, (userId) => reload(userId));
+    subscribe(userId, (userId) => context.reload(userId));
 
     return getState();
 };

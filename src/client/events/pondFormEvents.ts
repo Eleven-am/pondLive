@@ -1,40 +1,37 @@
-import {HandlerFunction} from "./handler";
+import { HandlerFunction } from './handler';
 
 const pondFocus = (handler: HandlerFunction) => {
-    handler('[pond-focus]', 'focus', (_, element) => {
-        return {
-            value: null,
-            dataId: element.getAttribute('pond-data-id')
-        }
-    });
-}
+    handler('[pond-focus]', 'focus', (_, element) => ({
+        value: null,
+        dataId: element.getAttribute('pond-data-id'),
+    }));
+};
 
 const pondBlur = (handler: HandlerFunction) => {
-    handler('[pond-blur]', 'blur', (_, element) => {
-        return {
-            value: null,
-            dataId: element.getAttribute('pond-data-id')
-        }
-    });
-}
+    handler('[pond-blur]', 'blur', (_, element) => ({
+        value: null,
+        dataId: element.getAttribute('pond-data-id'),
+    }));
+};
 
 const pondChange = (handler: HandlerFunction) => {
-    handler('[pond-change]', 'change', (_, element) => {
+    handler('[pond-change]', 'change', (event, element) => {
+        const input = event.target as HTMLInputElement;
+        const dataId = element.getAttribute('pond-data-id');
+
         return {
-            value: null,
-            dataId: element.getAttribute('pond-data-id')
-        }
+            value: input.value,
+            dataId,
+        };
     });
-}
+};
 
 const pondInput = (handler: HandlerFunction) => {
-    handler('[pond-input]', 'input', (_, element) => {
-        return {
-            value: null,
-            dataId: element.getAttribute('pond-data-id')
-        }
-    });
-}
+    handler('[pond-input]', 'input', (_, element) => ({
+        value: null,
+        dataId: element.getAttribute('pond-data-id'),
+    }));
+};
 
 const pondSubmit = (handler: HandlerFunction) => {
     handler('[pond-submit]', 'submit', (evt, element) => {
@@ -48,11 +45,11 @@ const pondSubmit = (handler: HandlerFunction) => {
 
         return {
             value: null,
-            formData: formData,
-            dataId: element.getAttribute('pond-data-id')
-        }
+            formData,
+            dataId: element.getAttribute('pond-data-id'),
+        };
     });
-}
+};
 
 export const pondFormInit = (handler: HandlerFunction) => {
     pondFocus(handler);
@@ -60,4 +57,4 @@ export const pondFormInit = (handler: HandlerFunction) => {
     pondChange(handler);
     pondInput(handler);
     pondSubmit(handler);
-}
+};

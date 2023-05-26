@@ -1,12 +1,6 @@
 import { mapFunctionToString } from './mapFunctionToString';
-import { LiveEvent } from '../../client/types';
 import { Context } from '../context/context';
-
-export interface ServerEvent {
-    type: string;
-    userId: string;
-    event: LiveEvent;
-}
+import { ServerEvent } from '../wrappers/serverEvent';
 
 type SetState<T> = (state: (T | ((state: T, event: ServerEvent) => T | Promise<T>))) => string;
 

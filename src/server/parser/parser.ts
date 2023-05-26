@@ -37,7 +37,6 @@ export class Html {
         delete data.s;
         const dynamics = Object.values(data).filter((d) => d !== undefined && d !== null);
 
-
         return new Html(statics, dynamics);
     }
 

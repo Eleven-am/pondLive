@@ -108,8 +108,21 @@ export const mergeObjects = (obj1: any, obj2: any): any => {
     }
 
     if (Array.isArray(obj1)) {
-        return obj1.map((_, index) => obj2[index])
-            .filter((item: any) => item !== undefined && item !== null);
+        const mapped: any = obj1.map((item: any, index: number) => {
+            if (obj2[index] !== undefined && obj2[index] !== null) {
+                return mergeObjects(item, obj2[index]);
+            }
+
+            return item;
+        });
+
+        for (const key in obj2) {
+            if (mapped[key] === undefined) {
+                mapped[key] = obj2[key];
+            }
+        }
+
+        return mapped;
     }
 
     for (const key in obj2) {

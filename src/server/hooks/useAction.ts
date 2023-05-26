@@ -1,5 +1,6 @@
-import { ServerEvent, useState } from './useState';
+import { useState } from './useState';
 import { Context } from '../context/context';
+import { ServerEvent } from '../wrappers/serverEvent';
 
 type Action<T> = Record<string, (event: ServerEvent) => T | Promise<T>>;
 type RunAction<T> = (event: keyof T) => string;

@@ -1,329 +1,3 @@
-/*
-export class Context {
-    #isBuilding: boolean;
-
-    #currentComponent: ComponentContext<any> | null;
-
-    #components: ComponentContext<any>[];
-
-    #dispatchers: Map<string, Dispatcher>;
-
-    #hookCount: number;
-
-    #userId: string;
-
-    #address: string;
-
-    #upgrading: Map<string, Html>;
-
-    #clients: Map<string, ClientData>;
-
-    constructor () {
-        this.#currentComponent = null;
-        this.#components = [];
-        this.#isBuilding = false;
-        this.#dispatchers = new Map();
-        this.#upgrading = new Map();
-        this.#clients = new Map();
-        this.#hookCount = 0;
-        this.#userId = '';
-        this.#address = '';
-    }
-
-    get address (): string {
-        return this.#address;
-    }
-
-    get isBuilding (): boolean {
-        return this.#isBuilding;
-    }
-
-    get currentComponent (): ComponentContext<any> {
-        if (!this.#currentComponent) {
-            throw new Error('Cannot add routes outside of a component');
-        }
-
-        return this.#currentComponent;
-    }
-
-    get userId (): string {
-        return this.#userId;
-    }
-
-    fromRoute (route: InnerRoute | ComponentContext<any>): Context {
-        const context = new Context();
-
-        context.#dispatchers = this.#dispatchers;
-        context.#components = this.#components;
-        context.#currentComponent = this.#currentComponent;
-        context.#address = this.#address;
-
-        if (this.#isBuilding) {
-            context.#isBuilding = true;
-
-            context.#currentComponent = {
-                absolutePath: route.absolutePath,
-                component: route.component,
-                hookCounter: 0,
-                state: new Map(),
-                args: [],
-            };
-
-            this.#components.push(context.#currentComponent);
-        } else {
-            const component = this.#components.find((component) => component.absolutePath === route.absolutePath);
-
-            if (!component) {
-                throw new Error('Component not found');
-            }
-
-            context.#currentComponent = component;
-            context.#userId = this.#userId;
-        }
-
-        return context;
-    }
-
-    init (routes: Route[]) {
-        this.#isBuilding = true;
-
-        for (const route of routes) {
-            const absolutePath = `/${route.path}`.replace(/\/+/g, '/');
-            const context = this.fromRoute({
-                absolutePath,
-                component: route.component,
-            });
-
-            route.component(context);
-        }
-
-        this.#isBuilding = false;
-
-        return async (req: IncomingMessage, res: ServerResponse, next: NextFunction) => {
-            const request = Request.fromRequest(req);
-            const response = new Response(res);
-
-            // the userId is stored in the x-user-id header if none ius found we create a new one
-            this.#userId = request.headers['x-user-id'] as string || uuidv4();
-
-            await this.mountComponents(request, response);
-
-            const html = this.render(routes, request);
-
-            if (!html) {
-                return next();
-            }
-
-            this.#upgrading.set(this.#userId, html);
-
-            const store = `
-                <script>
-                    window.__USER_ID__ = '${this.#userId}';
-                    window.__STATE__ = ${JSON.stringify(html.getParts())};
-                </script>
-            `;
-
-            // get index.html from public folder
-            const filePath = path.join(publicDir, 'index.html');
-            // check if file exists
-            const exists = await fileExists(filePath);
-
-            if (!exists) {
-                return response.html(html.toString());
-            }
-
-            await serveFile(filePath, res, (file) => file.toString()
-                .replace('{{html}}', html.toString())
-                .replace('{{store}}', store));
-        };
-    }
-
-    getHook<T> (): HookLink<T> {
-        if (!this.#currentComponent) {
-            throw new Error('Cannot add hook outside of component');
-        }
-
-        if (this.#hookCount >= this.#currentComponent.hookCounter && !this.#isBuilding) {
-            throw new Error('A hook was added after the component had rendered');
-        }
-
-        const key = `${this.#currentComponent.absolutePath}-${this.#hookCount}`;
-        const states = this.#currentComponent.state;
-        const args = this.#currentComponent.args;
-
-        const addDispatcher = (dispatchKey: string, dispatcher: Dispatcher<T>) => {
-            const newKey = `${key}-${dispatchKey}`;
-
-            this.#dispatchers.set(newKey, dispatcher);
-
-            return newKey;
-        };
-
-        const getState = (userId: string, initialState: T): T => {
-            const userKey = `${userId}-${key}`;
-
-            if (!this.#currentComponent) {
-                throw new Error('Cannot get state outside of component');
-            }
-
-            const state = states.get(userKey) || initialState;
-
-            if (!this.#isBuilding && userId !== '') {
-                states.set(userKey, state);
-            }
-
-            return state;
-        };
-
-        const setState = (userId: string, state: T) => {
-            if (!this.#currentComponent) {
-                throw new Error('Cannot set state outside of component');
-            }
-
-            const newUserId = `${userId}-${key}`;
-
-            this.#currentComponent.state.set(newUserId, state);
-            // TODO: this should be a deep merge
-        };
-
-        this.#hookCount += 1;
-        if (this.isBuilding) {
-            this.#currentComponent.hookCounter += 1;
-        }
-
-        return {
-            addDispatcher,
-            setState,
-            getState,
-            args,
-            key,
-        };
-    }
-
-    onMount (mountFunction: MountFunction) {
-        if (!this.#currentComponent) {
-            throw new Error('Cannot add mount function outside of component');
-        }
-
-        if (!this.isBuilding) {
-            return;
-        }
-
-        this.#currentComponent.onMount = mountFunction;
-    }
-
-    onUpgrade (upgradeFunction: UpgradeFunction) {
-        if (!this.#currentComponent) {
-            throw new Error('Cannot add upgrade function outside of component');
-        }
-
-        if (!this.isBuilding) {
-            return;
-        }
-
-        this.#currentComponent.onUpgrade = upgradeFunction;
-    }
-
-    upgradeUser (userId: string, channel: Client, address: string) {
-        const userHtml = this.#upgrading.get(userId);
-
-        if (!userHtml) {
-            throw new Error('User not found');
-        }
-
-        this.#clients.set(userId, {
-            channel,
-            vDom: userHtml,
-        });
-
-        this.#upgrading.delete(userId);
-        const sortedComponents = sortBy(this.#components, 'absolutePath', 'desc');
-        const componentsToUpgrade = sortedComponents.filter((component) => parseAddress(`${component.absolutePath}/*`.replace(/\/+/g, '/'), address));
-
-        for (const component of componentsToUpgrade) {
-            component.onUpgrade?.(channel);
-        }
-    }
-
-    async mountComponents (req: Request, res: Response) {
-        const sortedComponents = sortBy(this.#components, 'absolutePath', 'desc');
-        const componentsToMount = sortedComponents.filter((component) => req.matches(component.absolutePath));
-
-        for await (const component of componentsToMount) {
-            await component.onMount?.(req, res);
-        }
-    }
-
-    async performAction (userId: string, action: string, event: LiveEvent, routes: Route[]) {
-        const newContext = this.fromUserId(userId);
-
-        newContext.#components = this.#components;
-        newContext.#dispatchers = this.#dispatchers;
-        newContext.#hookCount = this.#hookCount;
-        newContext.#isBuilding = this.#isBuilding;
-        newContext.#upgrading = this.#upgrading;
-        newContext.#clients = this.#clients;
-        newContext.#currentComponent = this.#currentComponent;
-        newContext.#components = this.#components;
-        newContext.#userId = userId;
-
-        const dispatcher = this.#dispatchers.get(action);
-        const client = this.#clients.get(userId);
-
-        if (!dispatcher || !client) {
-            throw new Error('Dispatcher not found');
-        }
-
-        await dispatcher(event);
-        const req = Request.fromSocketEvent({
-            client: client.channel,
-            payload: event.payload,
-        });
-
-        const html = this.render(routes, req);
-
-        if (!html) {
-            return;
-        }
-
-        const diff = client.vDom.differentiate(html);
-
-        if (isEmpty(diff)) {
-            return;
-        }
-
-        client.channel.broadcastMessage('update', {
-            diff,
-        });
-    }
-
-    fromUserId (userId: string): Context {
-        const context = new Context();
-
-        context.#userId = userId;
-
-        return context;
-    }
-
-    render (routes: Route[], request: Request) {
-        const route = routes.find((component) => request.matches(component.path));
-
-        if (!route) {
-            return null;
-        }
-
-        const context = this.fromRoute({
-            absolutePath: route.path,
-            component: route.component,
-        });
-
-        context.#address = request.url.pathname;
-
-        return route.component(context);
-    }
-}
- */
-
 import fs from 'fs';
 import { ServerResponse } from 'http';
 import path from 'path';
@@ -333,11 +7,11 @@ import type { Client } from '@eleven-am/pondsocket/types';
 import { getMimeType } from './router';
 import { sortBy, fileExists, deepCompare, isEmpty } from '../helpers/helpers';
 import { Route } from '../hooks/useRouter';
-import { Args, ServerEvent } from '../hooks/useState';
-import { parseAddress } from '../matcher/matcher';
+import { Args } from '../hooks/useState';
 import { Html } from '../parser/parser';
 import { Request } from '../wrappers/request';
 import { Response } from '../wrappers/response';
+import { ServerEvent } from '../wrappers/serverEvent';
 
 
 export type Dispatcher = (context: Context, event: ServerEvent) => Promise<void> | void;
@@ -350,15 +24,15 @@ interface ClientData {
 
 export type Component = (props: Context) => Html;
 type MountFunction = (req: Request, res: Response) => void | Promise<void>;
-type UpgradeFunction = (socket: Client) => void | Promise<void>;
+type UpgradeFunction = (event: ServerEvent) => void | Promise<void>;
 
 interface ComponentContext<T> {
     absolutePath: string;
     component: Component;
     state: Map<string, T>;
-    onMount?: MountFunction;
-    onUpgrade?: UpgradeFunction;
-    onUnmount?: MountFunction;
+    onMount: MountFunction[];
+    onUpgrade: UpgradeFunction[];
+    onUnmount: MountFunction[];
     hookCounter: number;
     args: Args<T>[];
 }
@@ -406,6 +80,8 @@ export class Context {
 
     #routes: RouteContext[];
 
+    readonly #id: string;
+
     constructor () {
         this.#currentComponent = null;
         this.#components = [];
@@ -417,6 +93,8 @@ export class Context {
         this.#hookCount = 0;
         this.#userId = '';
         this.#address = '';
+        this.#id = Math.random().toString(36)
+            .substr(2, 9);
     }
 
     get address (): string {
@@ -439,6 +117,10 @@ export class Context {
         return this.#userId;
     }
 
+    get id (): string {
+        return this.#id;
+    }
+
     fromUserId (userId: string): Context {
         const context = this.#clone();
 
@@ -456,6 +138,9 @@ export class Context {
             context.#currentComponent = {
                 absolutePath: component.absolutePath,
                 component: component.component,
+                onMount: [],
+                onUpgrade: [],
+                onUnmount: [],
                 hookCounter: 0,
                 state: new Map(),
                 args: [],
@@ -484,7 +169,7 @@ export class Context {
             return;
         }
 
-        this.#currentComponent.onMount = mountFunction;
+        this.#currentComponent.onMount.push(mountFunction);
     }
 
     onUpgrade (upgradeFunction: UpgradeFunction) {
@@ -496,7 +181,7 @@ export class Context {
             return;
         }
 
-        this.#currentComponent.onUpgrade = upgradeFunction;
+        this.#currentComponent.onUpgrade.push(upgradeFunction);
     }
 
     upgradeUser (userId: string, channel: Client, address: string) {
@@ -512,17 +197,28 @@ export class Context {
             address,
         });
 
-        this.#upgrading.delete(userId);
-        const sortedComponents = sortBy(this.#components, 'absolutePath', 'desc');
-        const componentsToUpgrade = sortedComponents.filter((component) => parseAddress(`${component.absolutePath}/*`.replace(/\/+/g, '/'), address));
+        const req = Request.fromSocketEvent({
+            address,
+            client: channel,
+        });
 
-        for (const component of componentsToUpgrade) {
-            component.onUpgrade?.(channel);
-        }
+        const context = this.fromUserId(userId);
+
+        this.#upgrading.delete(userId);
+
+        const sortedComponents = sortBy(context.#components, 'absolutePath', 'desc');
+        const componentsToUpgrade = sortedComponents.filter((component) => req.matches(component.absolutePath));
+
+        const promises = componentsToUpgrade.flatMap((component) => component.onUpgrade.map((upgrade) => {
+            const event = new ServerEvent(component.absolutePath, userId, channel, { address } as any);
+
+            return upgrade(event);
+        }));
+
+        return Promise.all(promises);
     }
 
     getHook<T> (): HookLink<T> {
-        console.log(this.#currentComponent);
         if (!this.#currentComponent) {
             throw new Error('Cannot add hook outside of component');
         }
@@ -583,11 +279,9 @@ export class Context {
         const args = this.#currentComponent.args;
 
         const addDispatcher = (dispatchKey: string, dispatcher: Dispatcher) => {
-            const newKey = `${key}-${dispatchKey}`;
+            this.#dispatchers.set(dispatchKey, dispatcher);
 
-            this.#dispatchers.set(newKey, dispatcher);
-
-            return newKey;
+            return dispatchKey;
         };
 
         this.#hookCount += 1;
@@ -617,7 +311,6 @@ export class Context {
         const routes = context.#components.map((c) => c.absolutePath);
 
         this.#components.push(...context.#components);
-        this.#isBuilding = false;
 
         const routeContext: RouteContext = {
             path: absolutePath,
@@ -627,7 +320,10 @@ export class Context {
 
         if (primary) {
             this.#routes.push(routeContext);
+            this.#isBuilding = false;
         }
+
+        context.#isBuilding = false;
 
         return routeContext;
     }
@@ -685,7 +381,7 @@ export class Context {
 
         context.#currentComponent = null;
 
-        await context.#mountComponents(request, response);
+        await context.#mountComponents(request, response, userId);
 
         const html = context.#render(request, route, userId);
 
@@ -706,7 +402,7 @@ export class Context {
         }
 
         await context.#serveFile(filePath, response.response, (file) => file.toString()
-            .replace('{{html}}', html.toString())
+            .replace('{{html}}', html.toString().trim())
             .replace('{{store}}', store));
     }
 
@@ -722,13 +418,15 @@ export class Context {
         return route.component(context);
     }
 
-    async #mountComponents (req: Request, res: Response) {
-        const sortedComponents = sortBy(this.#components, 'absolutePath', 'desc');
+    #mountComponents (req: Request, res: Response, userId: string) {
+        const context = this.fromUserId(userId);
+
+        const sortedComponents = sortBy(context.#components, 'absolutePath', 'desc');
         const componentsToMount = sortedComponents.filter((component) => req.matches(component.absolutePath));
 
-        for await (const component of componentsToMount) {
-            await component.onMount?.(req, res);
-        }
+        const promises = componentsToMount.flatMap((component) => component.onMount.map((onMount) => onMount(req, res)));
+
+        return Promise.all(promises);
     }
 
     #clone () {

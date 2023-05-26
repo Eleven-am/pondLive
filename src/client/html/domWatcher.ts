@@ -119,11 +119,13 @@ export class DomWatcher {
         this.watch(selector, {
             onAdd: (element) => {
                 element.addEventListener(event, (event) => {
+                    console.log('event', event);
                     callback(element, event as S);
                 }, { capture: true });
             },
             onRemove: (element) => {
                 element.removeEventListener(event, (event) => {
+                    console.log('event', event);
                     callback(element, event as S);
                 }, { capture: true });
             },

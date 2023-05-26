@@ -5,7 +5,7 @@ import { DomWatcher } from '../html/domWatcher';
 import { LiveEvent } from '../types';
 
 
-type Response = ((Omit<LiveEvent, 'action' | 'dataId'> & { event?: string }) | null);
+type Response = ((Omit<LiveEvent, 'action' | 'dataId' | 'address'> & { event?: string }) | null);
 
 export type HandlerCallback<GenericEvent extends Event = Event> = (event: GenericEvent, element: HTMLElement, eventType: string) => Promise<Response> | Response;
 

@@ -6,10 +6,10 @@ import type { Client } from '@eleven-am/pondsocket/types';
 
 import { Component, Context } from './context';
 import { uuidV4, fileExists } from '../helpers/helpers';
-import { ServerEvent } from '../hooks/useState';
 import { Middleware } from '../middleware/middleware';
 import { Request } from '../wrappers/request';
 import { Response } from '../wrappers/response';
+import { ServerEvent } from '../wrappers/serverEvent';
 
 
 const mimeTypes: Record<string, string> = {
@@ -76,8 +76,8 @@ export class Router {
         };
     }
 
-    upgradeUser (userId: string, channel: Client, address: string) {
-        this.#context.upgradeUser(userId, channel, address);
+    async upgradeUser (userId: string, channel: Client, address: string) {
+        await this.#context.upgradeUser(userId, channel, address);
     }
 
     performAction (userId: string, action: string, event: ServerEvent) {

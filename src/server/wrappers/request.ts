@@ -16,8 +16,6 @@ export class Request {
 
     #headers: IncomingHttpHeaders;
 
-    #payload: any;
-
     constructor () {
         this.#path = new URL('http://localhost');
         this.#cookies = {
@@ -38,10 +36,6 @@ export class Request {
         return this.#headers;
     }
 
-    get payload (): any {
-        return this.#payload;
-    }
-
     static fromRequest (req: IncomingMessage): Request {
         const request = new Request();
 
@@ -56,8 +50,6 @@ export class Request {
 
     static fromSocketEvent (event: SocketEvent): Request {
         const request = new Request();
-
-        console.log(event);
 
         request.#path = new URL(event.address as string);
 
