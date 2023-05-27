@@ -9,6 +9,7 @@ import { useAction } from './server/hooks/useAction';
 import { useRouter } from './server/hooks/useRouter';
 import { createServerInfo, useServerInfo } from './server/hooks/useServerInfo';
 import { useState } from './server/hooks/useState';
+import { makeStyles } from './server/hooks/useStyles';
 import { html } from './server/parser/parser';
 import { ServerEvent } from './server/wrappers/serverEvent';
 
@@ -26,6 +27,12 @@ const activeUsersStore = createServerInfo<ChatState>({
     activeUsers: [],
     messages: [],
 });
+
+const useStyle = makeStyles((props: number) => ({
+    h1: {
+        color: props % 2 === 0 ? 'red' : 'blue',
+    },
+}));
 
 function handleSubmit (event: ServerEvent, state: string) {
     const userId = event.userId;
@@ -85,10 +92,11 @@ function activeUsers (context: LiveContext) {
 
 function Counter (context: LiveContext) {
     const [count, setCount] = useState(context, 0);
+    const classes = useStyle(context, count);
 
     return html`
         <div>
-            <h1>${count}</h1>
+            <h1 class="${classes.h1}">${count}</h1>
             <button pond-click=${setCount((state) => state + 1)}>Increment</button>
             <button pond-click=${setCount((state) => state - 1)}>Decrement</button>
             <button pond-click=${setCount(0)}>Reset</button>
@@ -104,10 +112,15 @@ function Index (context: LiveContext) {
         },
     ]);
 
+    const [_, action] = useAction(context, {
+        log: (e) => console.log(e),
+    });
+
     return html`
         <div>
             <h1>Index</h1>
             <a href="/counter">Counter</a>
+            <button pond-click=${action('log')}>Log</button>
             ${stateRouter(context)}
             ${activeUsers(context)}
         </div>

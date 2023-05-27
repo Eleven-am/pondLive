@@ -5,7 +5,7 @@ type SetState<T> = (state: (T | ((state: T, event: ServerEvent) => T | Promise<T
 type CreatedState<T> = [T, SetState<T>];
 
 export function useState<T> (context: LiveContext, initialState: T): CreatedState<T> {
-    const { getState, setState, addDispatcher } = context.setUpHook<T>(initialState);
+    const { getState, setState, addDispatcher } = context.setUpHook<T>(initialState, 'useState');
 
     const state = getState();
 

@@ -63,7 +63,7 @@ export class LiveContext {
         this.#manager.onUnmount(fn);
     }
 
-    setUpHook <T> (initialState: T) {
+    setUpHook <T> (initialState: T, _debugValue: string) {
         this.#hookCount += 1;
 
         const hookKey = this.#manager.setUpHook(this.#hookCount);
@@ -100,4 +100,6 @@ export class LiveContext {
 
         return this.#context.fromPath(absolutePath, this.#userId);
     }
+
+    addCSS (css: string) {}
 }

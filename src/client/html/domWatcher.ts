@@ -54,7 +54,7 @@ export class DomWatcher {
                         const name = `[${mutation.attributeName}]`;
 
                         for (const selector in this._modifiers) {
-                            if (name === selector || element.matches(selector)) {
+                            if (name === selector) {
                                 if (mutation.oldValue === null) {
                                     const modifier = this._modifiers[selector];
 
@@ -119,13 +119,11 @@ export class DomWatcher {
         this.watch(selector, {
             onAdd: (element) => {
                 element.addEventListener(event, (event) => {
-                    console.log('event', event);
                     callback(element, event as S);
                 }, { capture: true });
             },
             onRemove: (element) => {
                 element.removeEventListener(event, (event) => {
-                    console.log('event', event);
                     callback(element, event as S);
                 }, { capture: true });
             },

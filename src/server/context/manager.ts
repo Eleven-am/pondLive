@@ -24,6 +24,8 @@ type Hook<T> = {
 }
 
 export class Manager {
+    readonly id: string;
+
     readonly #hooks: Map<string, Hook<any>>;
 
     readonly #functionMap: Map<string, HookFunction>;
@@ -41,8 +43,6 @@ export class Manager {
     readonly #mountedUsers: Set<string>;
 
     readonly #upgradedUsers: Set<string>;
-
-    readonly #id: string;
 
     readonly #absolutePath: string;
 
@@ -62,7 +62,7 @@ export class Manager {
         this.#functionMap = new Map();
         this.#mountedUsers = new Set();
         this.#upgradedUsers = new Set();
-        this.#id = Math.random()
+        this.id = Math.random()
             .toString(36)
             .substring(7);
         this.#hooks = new Map();
@@ -155,7 +155,7 @@ export class Manager {
     }
 
     setUpHook (hookCount: number) {
-        const hookKey = `hook-${this.#id}-${hookCount}`;
+        const hookKey = `hook-${this.id}-${hookCount}`;
         let hookFunctions = this.#hooks.get(hookKey);
 
         if (!hookFunctions) {
@@ -180,7 +180,7 @@ export class Manager {
             throw new Error('Cannot add hook function to non existing hook');
         }
 
-        const argKey = Object.keys(hook.args).find((key) => hook.args[key] === arg);
+        const argKey = Object.keys(hook.args).find((key) => deepCompare(hook.args[key], arg));
 
         if (argKey) {
             this.#functionMap.set(argKey, fn);
@@ -220,7 +220,9 @@ export class Manager {
         }
 
         hook.state.set(userId, newState);
-        if (deepCompare(hook.state.get(userId), newState)) {
+        const notEqual = deepCompare(hook.state.get(userId), newState);
+
+        if (!notEqual) {
             return;
         }
 
@@ -234,7 +236,7 @@ export class Manager {
 
         const routes = liveContext.routes;
 
-        this.#routes = [...new Set([...this.#routes, ...routes, ...this.path])];
+        this.#routes = [...new Set([...this.#routes, ...routes, this.#absolutePath])];
 
         return html;
     }
@@ -264,6 +266,8 @@ export class Manager {
         await this.mount(request, response);
 
         const html = this.render(request.url.pathname, userId);
+
+        this.#context.addUpgradingUser(userId, html);
 
         const store = `
                 <script>
