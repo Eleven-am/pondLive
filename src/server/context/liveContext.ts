@@ -22,6 +22,8 @@ export class LiveContext {
 
     #routes: string[];
 
+    #styles: Html[];
+
     constructor (userId: string, address: string, context: Context, manager: Manager) {
         this.#context = context;
         this.#manager = manager;
@@ -29,6 +31,7 @@ export class LiveContext {
         this.#hookCount = -1;
         this.#routes = [];
         this.#address = address;
+        this.#styles = [];
     }
 
     get userId (): string {
@@ -51,6 +54,10 @@ export class LiveContext {
         return this.#routes;
     }
 
+    get styles () {
+        return this.#styles;
+    }
+
     onMount (fn: MountFunction) {
         this.#manager.onMount(fn);
     }
@@ -67,7 +74,7 @@ export class LiveContext {
         this.#hookCount += 1;
 
         const hookKey = this.#manager.setUpHook(this.#hookCount);
-        const getState = this.#manager.getHookState.bind(this.#manager, hookKey, this.#userId, initialState) as () => T;
+        const getState = this.#manager.getHookState.bind(this.#manager, hookKey, initialState, this.#userId) as () => T;
         const setState = this.#manager.setHookState.bind(this.#manager, hookKey, this.#userId) as (state: T) => void;
         const addDispatcher = this.#manager.addHookFunction.bind(this.#manager, hookKey);
 
@@ -101,5 +108,7 @@ export class LiveContext {
         return this.#context.fromPath(absolutePath, this.#userId);
     }
 
-    addCSS (css: string) {}
+    addStyle (css: Html) {
+        this.#styles = [...this.#styles, css];
+    }
 }

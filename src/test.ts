@@ -30,7 +30,7 @@ const activeUsersStore = createServerInfo<ChatState>({
 
 const useStyle = makeStyles((props: number) => ({
     h1: {
-        color: props % 2 === 0 ? 'red' : 'blue',
+        color: props % 10 === 0 ? 'green' : props % 2 === 0 ? 'red' : 'blue',
     },
 }));
 
@@ -40,8 +40,6 @@ function handleSubmit (event: ServerEvent, state: string) {
         userId,
         message: state,
     };
-
-    console.log(message);
 
     activeUsersStore.setState(
         {

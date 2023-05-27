@@ -106,6 +106,8 @@ export class Context {
         const html = manager.render(event.path, userId);
         const diff = client.virtualDom.differentiate(html);
 
+        console.log('html', userId, html);
+
         if (isEmpty(diff)) {
             return;
         }

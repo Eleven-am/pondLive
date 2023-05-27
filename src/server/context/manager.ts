@@ -7,6 +7,7 @@ import { Component, LiveContext } from './liveContext';
 import { getMimeType } from './router';
 import { uuidV4, deepCompare } from '../helpers/helpers';
 import { NextFunction } from '../middleware/middleware';
+import { html } from '../parser/parser';
 import { Request } from '../wrappers/request';
 import { Response } from '../wrappers/response';
 import { ServerEvent } from '../wrappers/serverEvent';
@@ -198,7 +199,7 @@ export class Manager {
         return newArgKey;
     }
 
-    getHookState<T> (hookKey: string, userId: string, initialState: T): T {
+    getHookState<T> (hookKey: string, initialState: T, userId: string): T {
         const hook = this.#hooks.get(hookKey);
 
         if (!hook) {
@@ -232,13 +233,14 @@ export class Manager {
     render (address: string, userId: string) {
         const liveContext = new LiveContext(userId, address, this.#context, this);
 
-        const html = this.#component(liveContext);
+        const htmlData = this.#component(liveContext);
 
         const routes = liveContext.routes;
+        const styles = liveContext.styles;
 
         this.#routes = [...new Set([...this.#routes, ...routes, this.#absolutePath])];
 
-        return html;
+        return html`${styles}${htmlData}`;
     }
 
     performAction (event: ServerEvent) {

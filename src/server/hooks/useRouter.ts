@@ -20,6 +20,10 @@ export function useRouter (routes: Route[]): Component {
 
         const newContext = context.fromRoute(route);
 
-        return route.component(newContext);
+        const data = route.component(newContext);
+
+        newContext.styles.forEach((style) => context.addStyle(style));
+
+        return data;
     };
 }
