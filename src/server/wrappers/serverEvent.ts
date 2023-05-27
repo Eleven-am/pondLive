@@ -4,39 +4,31 @@ import { LiveEvent } from '../../client/types';
 import { parseAddress } from '../matcher/matcher';
 
 export class ServerEvent {
-    readonly #path: string;
-
     readonly #userId: string;
 
     readonly #client: Client;
 
     readonly #data: LiveEvent;
 
-    constructor (path: string, userId: string, client: Client, data: LiveEvent) {
-        this.#path = path;
+    readonly #url: URL;
+
+    constructor (userId: string, client: Client, data: LiveEvent) {
         this.#userId = userId;
         this.#client = client;
         this.#data = data;
+        this.#url = new URL(data.address);
     }
 
     get path () {
-        return this.#path;
+        return this.#url.pathname;
     }
 
     get userId () {
         return this.#userId;
     }
 
-    get params () {
-        const data = parseAddress(this.#path, this.#data.address);
-
-        return data?.params || {};
-    }
-
-    get query () {
-        const data = parseAddress(this.#path, this.#data.address);
-
-        return data?.query || {};
+    get action () {
+        return this.#data.action;
     }
 
     get data () {
@@ -45,5 +37,9 @@ export class ServerEvent {
 
     emit (event: string, data: any) {
         this.#client.broadcastMessage(event, data);
+    }
+
+    matches (path: string): boolean {
+        return Boolean(parseAddress(`${path}/*`.replace(/\/+/g, '/'), this.#url.pathname));
     }
 }

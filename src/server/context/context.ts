@@ -1,65 +1,19 @@
-import fs from 'fs';
-import { ServerResponse } from 'http';
-import path from 'path';
-
 import type { Client } from '@eleven-am/pondsocket/types';
 
-import { getMimeType } from './router';
-import { sortBy, fileExists, deepCompare, isEmpty } from '../helpers/helpers';
-import { Route } from '../hooks/useRouter';
-import { Args } from '../hooks/useState';
+import { Route } from './liveContext';
+import { Manager } from './manager';
+import { isEmpty } from '../helpers/helpers';
 import { Html } from '../parser/parser';
-import { Request } from '../wrappers/request';
-import { Response } from '../wrappers/response';
 import { ServerEvent } from '../wrappers/serverEvent';
 
-
-export type Dispatcher = (context: Context, event: ServerEvent) => Promise<void> | void;
 
 interface ClientData {
     address: string;
     channel: Client;
-    vDom: Html;
+    virtualDom: Html;
 }
 
-export type Component = (props: Context) => Html;
-type MountFunction = (req: Request, res: Response) => void | Promise<void>;
-type UpgradeFunction = (event: ServerEvent) => void | Promise<void>;
-
-interface ComponentContext<T> {
-    absolutePath: string;
-    component: Component;
-    state: Map<string, T>;
-    onMount: MountFunction[];
-    onUpgrade: UpgradeFunction[];
-    onUnmount: MountFunction[];
-    hookCounter: number;
-    args: Args<T>[];
-}
-
-interface RouteContext {
-    path: string;
-    routes: string[];
-    component: Component;
-}
-
-interface InnerRoute {
-    component: Component;
-    absolutePath: string;
-}
-
-interface HookLink<T> {
-    getState: (userId: string, initialState: T) => T;
-    setState: (context: Context, state: T) => void;
-}
-
-interface HookDispatcher<T> {
-    key: string;
-    args: Args<T>[];
-    addDispatcher: (key: string, dispatcher: Dispatcher) => string;
-}
-
-export class Context {
+/* export class Context {
     #isBuilding: boolean;
 
     #currentComponent: ComponentContext<any> | null;
@@ -76,7 +30,6 @@ export class Context {
 
     #upgrading: Map<string, Html>;
 
-    #clients: Map<string, ClientData>;
 
     #routes: RouteContext[];
 
@@ -446,18 +399,121 @@ export class Context {
         return context;
     }
 
-    #serveFile (filePath: string, res: ServerResponse, callback: (data: string) => string) {
-        fs.readFile(filePath, 'utf-8', (err, data) => {
-            if (err) {
-                res.writeHead(500);
-                res.end('Error loading file');
-            } else {
-                // eslint-disable-next-line callback-return
-                const result = callback(data);
 
-                res.writeHead(200, { 'Content-Type': getMimeType(filePath) });
-                res.end(result);
-            }
+}*/
+
+
+export class Context {
+    #clients: Map<string, ClientData>;
+
+    #managers: Manager[];
+
+    #entryManagers: Manager[];
+
+    #upgrading: Map<string, Html>;
+
+    constructor () {
+        this.#clients = new Map();
+        this.#upgrading = new Map();
+        this.#entryManagers = [];
+        this.#managers = [];
+    }
+
+    initRoute (route: Route) {
+        const absolutePath = `/${route.path}`.replace(/\/+/g, '/');
+        let manager = this.#managers.find((m) => m.path === absolutePath);
+
+        if (manager) {
+            throw new Error(`Route ${absolutePath} already exists`);
+        }
+
+        manager = new Manager(this, route.component, absolutePath);
+
+        manager.render('*', 'server');
+        manager.doneBuilding();
+
+        this.#managers.push(manager);
+
+        return manager;
+    }
+
+    performAction (event: ServerEvent) {
+        return Promise.all(this.#managers.map((manager) => manager.performAction(event)));
+    }
+
+    upgradeUser (userId: string, channel: Client, address: string) {
+        const html = this.#upgrading.get(userId);
+
+        if (!html) {
+            throw new Error('No html found');
+        }
+
+        const client: ClientData = {
+            channel,
+            address,
+            virtualDom: html,
+        };
+
+        this.#clients.set(userId, client);
+        this.#upgrading.delete(userId);
+        const event = new ServerEvent(userId, channel, {
+            address,
+            action: 'upgrade',
+            value: null,
+            dataId: null,
         });
+
+        const managersToMount = this.#managers.filter((manager) => event.matches(manager.path));
+        const promises = managersToMount.map((manager) => manager.upgrade(event));
+
+        return Promise.all(promises);
+    }
+
+    addEntryManager (manager: Manager) {
+        this.#entryManagers.push(manager);
+    }
+
+    reload (userId: string) {
+        const client = this.#clients.get(userId);
+
+        if (!client) {
+            return;
+        }
+
+        const event = new ServerEvent(userId, client.channel, {
+            address: client.address,
+            action: 'reload',
+            value: null,
+            dataId: null,
+        });
+
+        const manager = this.#entryManagers.find((m) => m.canRender(event.path));
+
+        if (!manager) {
+            return;
+        }
+
+        const html = manager.render(event.path, userId);
+        const diff = client.virtualDom.differentiate(html);
+
+        if (isEmpty(diff)) {
+            return;
+        }
+
+        client.channel.broadcastMessage('update', {
+            diff,
+        });
+
+        client.virtualDom = html;
+    }
+
+    fromPath (path: string, userId: string) {
+        const manager = this.#managers.find((m) => m.canRender(path));
+
+        if (!manager) {
+            throw new Error(`No manager found for path ${path}`);
+        }
+
+        return manager.createContext(path, userId);
     }
 }

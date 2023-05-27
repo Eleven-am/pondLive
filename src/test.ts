@@ -3,7 +3,7 @@ import http from 'http';
 import PondSocket from '@eleven-am/pondsocket';
 
 import { LiveEvent } from './client/types';
-import { Context } from './server/context/context';
+import { LiveContext } from './server/context/liveContext';
 import { Router } from './server/context/router';
 import { useAction } from './server/hooks/useAction';
 import { useRouter } from './server/hooks/useRouter';
@@ -44,7 +44,7 @@ function handleSubmit (event: ServerEvent, state: string) {
     );
 }
 
-function activeUsers (context: Context) {
+function activeUsers (context: LiveContext) {
     const [state, setState] = useState(context, '');
     const { activeUsers, messages } = useServerInfo(context, activeUsersStore);
 
@@ -83,7 +83,7 @@ function activeUsers (context: Context) {
     `;
 }
 
-function Counter (context: Context) {
+function Counter (context: LiveContext) {
     const [count, setCount] = useState(context, 0);
 
     return html`
@@ -96,7 +96,7 @@ function Counter (context: Context) {
     `;
 }
 
-function Index (context: Context) {
+function Index (context: LiveContext) {
     const stateRouter = useRouter([
         {
             path: '/counter',
@@ -148,9 +148,9 @@ channel.onEvent('event', async (request, response) => {
     const channel = request.client;
 
     response.accept();
-    const event = new ServerEvent('/', userId, channel, liveEvent);
+    const event = new ServerEvent(userId, channel, liveEvent);
 
-    await router.performAction(userId, liveEvent.action, event);
+    await router.performAction(event);
 });
 
 pondSocket.listen(3000, () => {

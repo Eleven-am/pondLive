@@ -1,4 +1,4 @@
-import { Context } from '../context/context';
+import { LiveContext } from '../context/liveContext';
 
 interface ServerInfo<T> {
     getState: () => T;
@@ -57,17 +57,14 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
     };
 };
 
-export const useServerInfo = <T>(context: Context, serverInfo: ServerInfo<T>) => {
-    const { isBuilding } = context;
+export function useServerInfo <T> (context: LiveContext, serverInfo: ServerInfo<T>) {
     const { getState, subscribe } = serverInfo;
 
-    if (isBuilding) {
+    if (!context.isBuilt) {
         return getState();
     }
 
-    const userId = context.userId;
-
-    subscribe(userId, (userId) => context.reload(userId));
+    subscribe(context.userId, () => context.reload());
 
     return getState();
-};
+}

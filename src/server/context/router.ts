@@ -4,13 +4,12 @@ import path from 'path';
 
 import type { Client } from '@eleven-am/pondsocket/types';
 
-import { Component, Context } from './context';
-import { uuidV4, fileExists } from '../helpers/helpers';
-import { Middleware } from '../middleware/middleware';
-import { Request } from '../wrappers/request';
-import { Response } from '../wrappers/response';
-import { ServerEvent } from '../wrappers/serverEvent';
 
+import { Context } from './context';
+import { Component } from './liveContext';
+import { fileExists } from '../helpers/helpers';
+import { Middleware } from '../middleware/middleware';
+import { ServerEvent } from '../wrappers/serverEvent';
 
 const mimeTypes: Record<string, string> = {
     '.html': 'text/html',
@@ -48,20 +47,12 @@ export class Router {
             component,
         };
 
-        const data = this.#context.initRoute(route, true);
+        const manager = this.#context.initRoute(route);
+
+        this.#context.addEntryManager(manager);
 
         this.#middleware.use(async (req, res, next) => {
-            const request = Request.fromRequest(req);
-            const response = new Response(res);
-            const match = [data.path, ...data.routes].find((route) => route.match(request.url.pathname));
-
-            if (!match) {
-                return next();
-            }
-
-            const userId = request.headers['x-user-id'] as string || uuidV4();
-
-            await this.#context.renderToString(request, response, route, userId, serverDir);
+            await manager.handleHttpRequest(req, res, next, serverDir);
         });
     }
 
@@ -80,8 +71,8 @@ export class Router {
         await this.#context.upgradeUser(userId, channel, address);
     }
 
-    performAction (userId: string, action: string, event: ServerEvent) {
-        return this.#context.performAction(userId, action, event);
+    performAction (event: ServerEvent) {
+        return this.#context.performAction(event);
     }
 
     addStaticRoute (dir: string) {

@@ -7,6 +7,7 @@ import { parseAddress } from '../matcher/matcher';
 interface SocketEvent {
     address: string;
     client: Client;
+    userId: string;
 }
 
 export class Request {
@@ -16,8 +17,11 @@ export class Request {
 
     #headers: IncomingHttpHeaders;
 
+    #userId: string;
+
     constructor () {
         this.#path = new URL('http://localhost');
+        this.#userId = '';
         this.#cookies = {
         };
         this.#headers = {
@@ -36,9 +40,14 @@ export class Request {
         return this.#headers;
     }
 
-    static fromRequest (req: IncomingMessage): Request {
+    get userId (): string {
+        return this.#userId;
+    }
+
+    static fromRequest (req: IncomingMessage, userId: string): Request {
         const request = new Request();
 
+        request.#userId = userId;
         request.#path = new URL(`https://${req.headers.host}${req.url}`);
         request.#headers = req.headers;
         const cookies = request.#headers.cookie?.split(';') ?? [];
@@ -52,6 +61,7 @@ export class Request {
         const request = new Request();
 
         request.#path = new URL(event.address as string);
+        request.#userId = event.userId;
 
         return request;
     }

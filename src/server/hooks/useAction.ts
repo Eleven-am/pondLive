@@ -1,27 +1,26 @@
-import { useState } from './useState';
-import { Context } from '../context/context';
+import { LiveContext } from '../context/liveContext';
 import { ServerEvent } from '../wrappers/serverEvent';
 
 type Action<T> = Record<string, (event: ServerEvent) => T | Promise<T>>;
 type RunAction<T> = (event: keyof T) => string;
 type CreatedAction<T extends Action<any>> = [ReturnType<T[keyof T]> | null, RunAction<T>]
 
-export function useAction<T extends Action<any>> (context: Context, actions: T): CreatedAction<T> {
-    const [state, setState] = useState<ReturnType<T[keyof T]> | null>(context, null);
+export function useAction<T extends Action<any>> (context: LiveContext, actions: T): CreatedAction<T> {
+    const { setState, getState, addDispatcher } = context.setUpHook<ReturnType<T[keyof T]> | null>(null);
 
-    function performAction (type: keyof T, event: ServerEvent) {
+    async function performAction (type: keyof T, event: ServerEvent) {
         const action = actions[type];
 
         if (!action) {
             return null;
         }
 
-        return action(event);
+        const newState = await action(event);
+
+        setState(newState);
     }
 
-    function mutate (type: keyof T) {
-        return setState((state, event) => performAction(type, event) ?? state);
-    }
+    const runAction = (type: keyof T) => addDispatcher(type, (event) => performAction(type, event));
 
-    return [state, mutate];
+    return [getState(), runAction];
 }
