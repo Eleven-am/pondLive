@@ -31,11 +31,19 @@ export class ServerEvent {
         return this.#data.action;
     }
 
+    set action (action: string) {
+        this.#data.action = action;
+    }
+
     get data () {
         return this.#data;
     }
 
     emit (event: string, data: any) {
+        if (this.action === 'unmount') {
+            return;
+        }
+
         this.#client.broadcastMessage(event, data);
     }
 

@@ -98,6 +98,51 @@ export const getChanges = (diffedObject: any): any => {
     return changed;
 };
 
+function mergeArray (obj1: any[], obj2: any) {
+    const mapped: any = obj1.map((item: any, index: number) => {
+        if (obj2[index] !== undefined && obj2[index] !== null) {
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            return mergeObjects(item, obj2[index]);
+        }
+
+        return item;
+    });
+
+    for (const key in obj2) {
+        if (mapped[key] === undefined) {
+            mapped[key] = obj2[key];
+        }
+    }
+
+    return mapped;
+}
+
+function mergeTwoObjects (obj1: any, obj2: any) {
+    const merged: any = {};
+
+    for (const key in obj1) {
+        if (obj2[key] !== undefined && obj2[key] !== null) {
+            if (obj1[key] instanceof Object) {
+                // eslint-disable-next-line @typescript-eslint/no-use-before-define
+                merged[key] = mergeObjects(obj1[key], obj2[key]);
+            } else {
+                merged[key] = obj2[key];
+            }
+        } else {
+            merged[key] = obj1[key];
+        }
+    }
+
+    for (const key in obj2) {
+        if (merged[key] === undefined) {
+            merged[key] = obj2[key];
+        }
+    }
+
+    return merged;
+}
+
+
 export const mergeObjects = (obj1: any, obj2: any): any => {
     if (obj1 === undefined) {
         return obj2;
@@ -107,33 +152,14 @@ export const mergeObjects = (obj1: any, obj2: any): any => {
         return obj1;
     }
 
+    if (typeof obj1 !== 'object' && typeof obj2 !== 'object') {
+        return obj2;
+    }
+
     if (Array.isArray(obj1)) {
-        const mapped: any = obj1.map((item: any, index: number) => {
-            if (obj2[index] !== undefined && obj2[index] !== null) {
-                return mergeObjects(item, obj2[index]);
-            }
-
-            return item;
-        });
-
-        for (const key in obj2) {
-            if (mapped[key] === undefined) {
-                mapped[key] = obj2[key];
-            }
-        }
-
-        return mapped;
+        return mergeArray(obj1, obj2);
     }
 
-    for (const key in obj2) {
-        if (obj2[key] instanceof Object) {
-            obj1[key] = mergeObjects(obj1[key], obj2[key]);
-        } else if (obj2[key] === null) {
-            delete obj1[key];
-        } else {
-            obj1[key] = obj2[key];
-        }
-    }
-
-    return obj1;
+    return mergeTwoObjects(obj1, obj2);
 };
+

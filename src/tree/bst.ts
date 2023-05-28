@@ -1,17 +1,17 @@
-type String<T> = {
-    [P in keyof T]: T[P] extends string ? P : never;
+type SomeKind<T, U> = {
+    [P in keyof T]: T[P] extends U ? P : never;
 }[keyof T];
 
-class NodeLeaf<T> {
+class NodeLeaf<T, U> {
     public value: T;
 
-    public key: string;
+    public key: U;
 
-    public left: NodeLeaf<T> | null;
+    public left: NodeLeaf<T, U> | null;
 
-    public right: NodeLeaf<T> | null;
+    public right: NodeLeaf<T, U> | null;
 
-    constructor (path: string, value: T) {
+    constructor (path: U, value: T) {
         this.key = path;
         this.value = value;
         this.left = null;
@@ -19,18 +19,18 @@ class NodeLeaf<T> {
     }
 }
 
-export class BST<T> {
-    private _root: NodeLeaf<T> | null;
+export class BST<T, U> {
+    private _root: NodeLeaf<T, U> | null;
 
     constructor () {
         this._root = null;
     }
 
-    public static fromArray <T, A extends String<T>> (array: T[], key: A) {
-        const bst = new BST<Omit<T, A>>();
+    public static fromArray <T, U, A extends SomeKind<T, U>> (array: T[], key: A) {
+        const bst = new BST<Omit<T, A>, U>();
 
         array.forEach((item) => {
-            const path = item[key] as unknown as string;
+            const path = item[key] as unknown as U;
             const value = item;
 
             delete value[key];
@@ -44,15 +44,15 @@ export class BST<T> {
         return this._root;
     }
 
-    public search (path: string): T | null {
+    public search (path: U): T | null {
         return this._searchNode(this._root, path)?.value ?? null;
     }
 
-    public delete (path: string) {
+    public delete (path: U) {
         this._root = this._balance(this._deleteNode(this._root, path));
     }
 
-    public insert (path: string, value: T) {
+    public insert (path: U, value: T) {
         const node = this._searchNode(this._root, path);
 
         if (node) {
@@ -64,7 +64,7 @@ export class BST<T> {
         this._root = this._balance(this._insertNode(this._root, path, value));
     }
 
-    public update (path: string, value: T) {
+    public update (path: U, value: T) {
         const node = this._searchNode(this._root, path);
 
         if (node) {
@@ -76,7 +76,7 @@ export class BST<T> {
         throw new Error('Node not found');
     }
 
-    private _height (node: NodeLeaf<T> | null): number {
+    private _height (node: NodeLeaf<T, U> | null): number {
         if (node === null) {
             return -1;
         }
@@ -84,7 +84,7 @@ export class BST<T> {
         return Math.max(this._height(node.left), this._height(node.right)) + 1;
     }
 
-    private _balanceFactor (node: NodeLeaf<T> | null): number {
+    private _balanceFactor (node: NodeLeaf<T, U> | null): number {
         if (node === null) {
             return 0;
         }
@@ -92,7 +92,7 @@ export class BST<T> {
         return this._height(node.left) - this._height(node.right);
     }
 
-    private _rotateLeft (node: NodeLeaf<T>): NodeLeaf<T> {
+    private _rotateLeft (node: NodeLeaf<T, U>): NodeLeaf<T, U> {
         const child = node.right;
 
         if (child === null) {
@@ -105,7 +105,7 @@ export class BST<T> {
         return child;
     }
 
-    private _rotateRight (node: NodeLeaf<T>): NodeLeaf<T> {
+    private _rotateRight (node: NodeLeaf<T, U>): NodeLeaf<T, U> {
         const child = node.left;
 
         if (child === null) {
@@ -118,19 +118,19 @@ export class BST<T> {
         return child;
     }
 
-    private _rotateLeftRight (node: NodeLeaf<T>): NodeLeaf<T> {
+    private _rotateLeftRight (node: NodeLeaf<T, U>): NodeLeaf<T, U> {
         node.left = this._rotateLeft(node.left!);
 
         return this._rotateRight(node);
     }
 
-    private _rotateRightLeft (node: NodeLeaf<T>): NodeLeaf<T> {
+    private _rotateRightLeft (node: NodeLeaf<T, U>): NodeLeaf<T, U> {
         node.right = this._rotateRight(node.right!);
 
         return this._rotateLeft(node);
     }
 
-    private _balance (node: NodeLeaf<T> | null): NodeLeaf<T> | null {
+    private _balance (node: NodeLeaf<T, U> | null): NodeLeaf<T, U> | null {
         if (node === null) {
             return null;
         }
@@ -156,9 +156,9 @@ export class BST<T> {
         return node;
     }
 
-    private _insertNode (node: NodeLeaf<T> | null, path: string, value: T): NodeLeaf<T> {
+    private _insertNode (node: NodeLeaf<T, U> | null, path: U, value: T): NodeLeaf<T, U> {
         if (node === null) {
-            return new NodeLeaf<T>(path, value);
+            return new NodeLeaf<T, U>(path, value);
         }
 
         if (path < node.key) {
@@ -170,7 +170,7 @@ export class BST<T> {
         return node;
     }
 
-    private _searchNode (node: NodeLeaf<T> | null, path: string): NodeLeaf<T> | null {
+    private _searchNode (node: NodeLeaf<T, U> | null, path: U): NodeLeaf<T, U> | null {
         if (node === null) {
             return null;
         }
@@ -186,7 +186,7 @@ export class BST<T> {
         return this._searchNode(node.right, path);
     }
 
-    private _deleteNode (node: NodeLeaf<T> | null, path: string): NodeLeaf<T> | null {
+    private _deleteNode (node: NodeLeaf<T, U> | null, path: U): NodeLeaf<T, U> | null {
         if (node === null) {
             return null;
         }
@@ -212,7 +212,7 @@ export class BST<T> {
         return node;
     }
 
-    private _findMinNode (node: NodeLeaf<T>): NodeLeaf<T> {
+    private _findMinNode (node: NodeLeaf<T, U>): NodeLeaf<T, U> {
         if (node.left === null) {
             return node;
         }

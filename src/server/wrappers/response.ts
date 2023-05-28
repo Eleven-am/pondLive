@@ -1,5 +1,7 @@
 import { OutgoingHttpHeaders, ServerResponse } from 'http';
 
+import { PondLiveHeaders } from '../../client/routing/router';
+
 interface CookieOptions {
     domain?: string;
     expires?: Date;
@@ -27,16 +29,14 @@ export class Response {
         this.#responseSent = false;
     }
 
-    get statusCode (): number {
-        return this.#statusCode;
-    }
-
-    set statusCode (statusCode: number) {
-        this.#statusCode = statusCode;
-    }
-
     get response (): ServerResponse {
         return this.#response;
+    }
+
+    status (code: number): Response {
+        this.#statusCode = code;
+
+        return this;
     }
 
     setHeader (name: string, value: string): Response {
@@ -90,7 +90,7 @@ export class Response {
     }
 
     setPageTitle (title: string) {
-        return this.setHeader('x-page-title', title);
+        return this.setHeader(PondLiveHeaders.LIVE_PAGE_TITLE, title);
     }
 
     navigateTo (url: string) {
@@ -113,5 +113,9 @@ export class Response {
 
     replace (address: string) {
         return this.setHeader('x-router-action', `replace:${address}`);
+    }
+
+    get (header: PondLiveHeaders) {
+        return this.#headers[header];
     }
 }

@@ -1,15 +1,17 @@
 import fs from 'fs';
-import { ServerResponse, IncomingMessage } from 'http';
+import http, { ServerResponse, IncomingMessage } from 'http';
 import path from 'path';
 
-import type { Client } from '@eleven-am/pondsocket/types';
-
+import PondSocket from '@eleven-am/pondsocket';
+import type { Client, JoinResponse } from '@eleven-am/pondsocket/types';
 
 import { Context } from './context';
 import { Component } from './liveContext';
+import { LiveEvent } from '../../client/types';
 import { fileExists } from '../helpers/helpers';
 import { Middleware } from '../middleware/middleware';
 import { ServerEvent } from '../wrappers/serverEvent';
+
 
 const mimeTypes: Record<string, string> = {
     '.html': 'text/html',
@@ -67,14 +69,6 @@ export class Router {
         };
     }
 
-    async upgradeUser (userId: string, channel: Client, address: string) {
-        await this.#context.upgradeUser(userId, channel, address);
-    }
-
-    performAction (event: ServerEvent) {
-        return this.#context.performAction(event);
-    }
-
     addStaticRoute (dir: string) {
         this.#middleware.use(async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
             const filePath = path.join(dir, req.url!);
@@ -84,7 +78,6 @@ export class Router {
             }
 
             if (!await fileExists(filePath)) {
-                // TODO: 404 page handle this more gracefully
                 res.statusCode = 404;
                 res.end('Not found');
 
@@ -99,5 +92,54 @@ export class Router {
 
             fileStream.pipe(res);
         });
+    }
+
+    serve (...args: any[]) {
+        const server = http.createServer(this.execute());
+        const pondSocket = new PondSocket(server);
+
+        const endpoint = pondSocket.createEndpoint('/live', (request, response) => {
+            response.accept();
+        });
+
+        const channel = endpoint.createChannel('/:userId', async (request, response) => {
+            const userId = request.event.params.userId;
+            const channel = request.client;
+            const address = request.joinParams.address as string;
+            const pondSocketId = request.user.id;
+
+            if (!userId) {
+                response.reject('No user id provided');
+
+                return;
+            }
+
+            await this.#upgradeUser(userId, channel, response, address || '/', pondSocketId);
+        });
+
+        channel.onEvent('event', async (request, response) => {
+            const userId = request.user.assigns.userId as string;
+            const liveEvent = request.event.payload as unknown as LiveEvent;
+            const channel = request.client;
+
+            response.accept();
+            const event = new ServerEvent(userId, channel, liveEvent);
+
+            await this.#performAction(event);
+        });
+
+        channel.onLeave((event) => {
+            this.#context.unmountUser(event.assigns.userId as string);
+        });
+
+        return pondSocket.listen(...args);
+    }
+
+    async #upgradeUser (userId: string, channel: Client, response: JoinResponse, address: string, pondSocketId: string) {
+        await this.#context.upgradeUserOnJoin(userId, channel, response, address, pondSocketId);
+    }
+
+    #performAction (event: ServerEvent) {
+        return this.#context.performAction(event);
     }
 }

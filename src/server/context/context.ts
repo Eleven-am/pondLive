@@ -1,9 +1,12 @@
-import type { Client } from '@eleven-am/pondsocket/types';
+import type { Client, JoinResponse } from '@eleven-am/pondsocket/types';
 
 import { Route } from './liveContext';
 import { Manager } from './manager';
+import { PondLiveHeaders, PondLiveActions } from '../../client/routing/router';
 import { isEmpty, sortBy } from '../helpers/helpers';
 import { Html } from '../parser/parser';
+import { Request } from '../wrappers/request';
+import { Response } from '../wrappers/response';
 import { ServerEvent } from '../wrappers/serverEvent';
 
 
@@ -11,6 +14,12 @@ interface ClientData {
     address: string;
     channel: Client;
     virtualDom: Html;
+}
+
+export interface UpdateData {
+    diff: Record<string, any> | null;
+    [PondLiveHeaders.LIVE_ROUTER_ACTION]?: PondLiveActions;
+    [PondLiveHeaders.LIVE_PAGE_TITLE]?: string;
 }
 
 export class Context {
@@ -51,12 +60,24 @@ export class Context {
         return Promise.all(this.#managers.map((manager) => manager.performAction(event)));
     }
 
-    upgradeUser (userId: string, channel: Client, address: string) {
+    upgradeUserOnJoin (userId: string, channel: Client, response: JoinResponse, address: string, pondSocketId: string) {
         const html = this.#upgrading.get(userId);
 
         if (!html) {
-            throw new Error('No html found');
+            response.accept();
+            this.sendMessage(channel, {
+                diff: null,
+                [PondLiveHeaders.LIVE_ROUTER_ACTION]: PondLiveActions.LIVE_ROUTER_RELOAD,
+            });
+
+            channel.banUser(pondSocketId, 'No upgrade available');
+
+            return;
         }
+
+        response.accept({
+            userId,
+        });
 
         const client: ClientData = {
             channel,
@@ -73,8 +94,13 @@ export class Context {
             dataId: null,
         });
 
-        const managersToMount = this.#managers.filter((manager) => event.matches(manager.path));
-        const promises = managersToMount.map((manager) => manager.upgrade(event));
+
+        return this.upgradeUser(event);
+    }
+
+    mountUser (req: Request, res: Response) {
+        const managersToMount = this.#managers.filter((manager) => req.matches(manager.path));
+        const promises = managersToMount.map((manager) => manager.mount(req, res));
 
         return Promise.all(promises);
     }
@@ -106,13 +132,11 @@ export class Context {
         const html = manager.render(event.path, userId);
         const diff = client.virtualDom.differentiate(html);
 
-        console.log('html', userId, html);
-
         if (isEmpty(diff)) {
             return;
         }
 
-        client.channel.broadcastMessage('update', {
+        this.sendMessage(client.channel, {
             diff,
         });
 
@@ -132,5 +156,43 @@ export class Context {
 
     addUpgradingUser (userId: string, html: Html) {
         this.#upgrading.set(userId, html);
+    }
+
+    getClient (userId: string) {
+        return this.#clients.get(userId);
+    }
+
+    upgradeUser (event: ServerEvent) {
+        const managersToMount = this.#managers.filter((manager) => event.matches(manager.path));
+        const promises = managersToMount.map((manager) => manager.upgrade(event));
+
+        event.action = 'unmount';
+        const managersToUnmount = this.#managers.filter((manager) => !event.matches(manager.path));
+        const unmountPromises = managersToUnmount.map((manager) => manager.unmount(event));
+
+        return Promise.all([...promises, ...unmountPromises]);
+    }
+
+    unmountUser (userId: string) {
+        const client = this.#clients.get(userId);
+
+        if (!client) {
+            return;
+        }
+
+        const event = new ServerEvent(userId, client.channel, {
+            address: client.address,
+            action: 'unmount',
+            value: null,
+            dataId: null,
+        });
+
+        const promises = this.#managers.map((manager) => manager.unmount(event));
+
+        return Promise.all(promises);
+    }
+
+    sendMessage (client: Client, message: UpdateData) {
+        client.broadcastMessage('update', message);
     }
 }

@@ -1,14 +1,9 @@
-import http from 'http';
-
-import PondSocket from '@eleven-am/pondsocket';
-
-import { LiveEvent } from './client/types';
 import { LiveContext } from './server/context/liveContext';
 import { Router } from './server/context/router';
 import { useAction } from './server/hooks/useAction';
 import { useRouter } from './server/hooks/useRouter';
 import { createServerInfo, useServerInfo } from './server/hooks/useServerInfo';
-import { useState } from './server/hooks/useState';
+import { useState, SetOnServer } from './server/hooks/useState';
 import { makeStyles } from './server/hooks/useStyles';
 import { html } from './server/parser/parser';
 import { ServerEvent } from './server/wrappers/serverEvent';
@@ -34,7 +29,7 @@ const useStyle = makeStyles((props: number) => ({
     },
 }));
 
-function handleSubmit (event: ServerEvent, state: string) {
+function handleSubmit (event: ServerEvent, state: string, mutate: SetOnServer<string>) {
     const userId = event.userId;
     const message: Message = {
         userId,
@@ -47,11 +42,16 @@ function handleSubmit (event: ServerEvent, state: string) {
             messages: [...activeUsersStore.getState().messages, message],
         },
     );
+
+    mutate(event, '');
 }
 
 function activeUsers (context: LiveContext) {
-    const [state, setState] = useState(context, '');
-    const { activeUsers, messages } = useServerInfo(context, activeUsersStore);
+    const [state, setState, mutate] = useState(context, '');
+    const {
+        activeUsers,
+        messages,
+    } = useServerInfo(context, activeUsersStore);
 
     context.onUpgrade((event) => {
         activeUsersStore.setState(
@@ -62,8 +62,17 @@ function activeUsers (context: LiveContext) {
         );
     });
 
+    context.onUnmount((event) => {
+        activeUsersStore.setState(
+            {
+                ...activeUsersStore.getState(),
+                activeUsers: activeUsersStore.getState().activeUsers.filter((user) => user !== event.userId),
+            },
+        );
+    });
+
     const [_, action] = useAction(context, {
-        submit: (e) => handleSubmit(e, state),
+        submit: (e) => handleSubmit(e, state, mutate),
     });
 
     return html`
@@ -76,7 +85,7 @@ function activeUsers (context: LiveContext) {
             </ul>
             <h1>Send a message</h1>
             <h4>${state}</h4>
-            <input pond-keyup=${setState((_, event) => event.data.value as string)} />
+            <input pond-keyup="${setState((_, event) => event.data.value as string)}" pond-value="${state}" />
             <button pond-click=${action('submit')}>Submit</button>
             ${messages.map((message) => html`
                 <div>
@@ -91,6 +100,10 @@ function activeUsers (context: LiveContext) {
 function Counter (context: LiveContext) {
     const [count, setCount] = useState(context, 0);
     const classes = useStyle(context, count);
+
+    context.onMount((_, res) => {
+        res.setPageTitle('Counter');
+    });
 
     return html`
         <div>
@@ -128,42 +141,4 @@ function Index (context: LiveContext) {
 const router = new Router();
 
 router.addRoute('/', Index);
-
-const server = http.createServer(router.execute());
-const pondSocket = new PondSocket(server);
-
-const endpoint = pondSocket.createEndpoint('/live', (request, response) => {
-    response.accept();
-});
-
-const channel = endpoint.createChannel('/:userId', async (request, response) => {
-    const userId = request.event.params.userId;
-    const channel = request.client;
-    const address = request.joinParams.address as string;
-
-    if (!userId) {
-        response.reject('No user id provided');
-
-        return;
-    }
-
-    response.accept({
-        userId: request.event.params.userId,
-    });
-    await router.upgradeUser(userId, channel, address || '/');
-});
-
-channel.onEvent('event', async (request, response) => {
-    const userId = request.user.assigns.userId as string;
-    const liveEvent = request.event.payload as unknown as LiveEvent;
-    const channel = request.client;
-
-    response.accept();
-    const event = new ServerEvent(userId, channel, liveEvent);
-
-    await router.performAction(event);
-});
-
-pondSocket.listen(3000, () => {
-    console.log('Listening on port 3000');
-});
+router.serve(3000, () => console.log('Listening on port 3000'));

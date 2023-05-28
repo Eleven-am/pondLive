@@ -17,10 +17,10 @@ export function useAction<T extends Action<any>> (context: LiveContext, actions:
 
         const newState = await action(event);
 
-        setState(newState);
+        setState(newState, event.userId);
     }
 
     const runAction = (type: keyof T) => addDispatcher(type, (event) => performAction(type, event));
 
-    return [getState(), runAction];
+    return [getState(context.userId), runAction];
 }

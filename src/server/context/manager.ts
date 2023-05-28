@@ -2,9 +2,10 @@ import fs from 'fs';
 import { ServerResponse, IncomingMessage } from 'http';
 import path from 'path';
 
-import { Context } from './context';
+import { Context, UpdateData } from './context';
 import { Component, LiveContext } from './liveContext';
 import { getMimeType } from './router';
+import { PondLiveHeaders } from '../../client/routing/router';
 import { uuidV4, deepCompare } from '../helpers/helpers';
 import { NextFunction } from '../middleware/middleware';
 import { html } from '../parser/parser';
@@ -14,10 +15,9 @@ import { ServerEvent } from '../wrappers/serverEvent';
 
 
 type HookFunction = (event: ServerEvent) => void;
-
 export type MountFunction = (req: Request, res: Response) => void | Promise<void>;
 export type UpgradeFunction = (event: ServerEvent) => void | Promise<void>;
-export type UnmountFunction = (...args: any[]) => void | Promise<void>;
+export type UnmountFunction = (event: ServerEvent) => void | Promise<void>;
 
 type Hook<T> = {
     state: Map<string, T>;
@@ -142,16 +142,16 @@ export class Manager {
         this.#upgradeFunctions.forEach((fn) => fn(event));
     }
 
-    unmount (userId: string, ...args: any[]) {
+    unmount (event: ServerEvent) {
         if (!this.#isBuilt) {
             throw new Error('Cannot unmount component before the building phase');
         }
 
-        this.#unmountFunctions.forEach((fn) => fn(...args));
-        this.#mountedUsers.delete(userId);
-        this.#upgradedUsers.delete(userId);
+        this.#unmountFunctions.forEach((fn) => fn(event));
+        this.#mountedUsers.delete(event.userId);
+        this.#upgradedUsers.delete(event.userId);
         for (const [_, hook] of this.#hooks) {
-            hook.state.delete(userId);
+            hook.state.delete(event.userId);
         }
     }
 
@@ -213,7 +213,7 @@ export class Manager {
         return hook.state.get(userId) as T;
     }
 
-    setHookState<T> (hookKey: string, userId: string, newState: T) {
+    setHookState<T> (hookKey: string, newState: T, userId: string) {
         const hook = this.#hooks.get(hookKey);
 
         if (!hook) {
@@ -253,34 +253,27 @@ export class Manager {
         fn(event);
     }
 
-    async handleHttpRequest (req: IncomingMessage, res: ServerResponse, next: NextFunction, publicDir: string) {
+    handleHttpRequest (req: IncomingMessage, res: ServerResponse, next: NextFunction, publicDir: string) {
         const route = this.#routes.find((route) => route.match(req.url ?? ''));
 
         if (!route) {
             return next();
         }
 
-        const userId = req.headers['x-user-id'] as string || uuidV4();
+        let userId = req.headers[PondLiveHeaders.LIVE_USER_ID] as string;
+
+        if (!userId) {
+            userId = uuidV4();
+            const request = Request.fromRequest(req, userId);
+            const response = new Response(res);
+
+            return this.#handleFirstHttpRequest(request, response, publicDir);
+        }
 
         const request = Request.fromRequest(req, userId);
         const response = new Response(res);
 
-        await this.mount(request, response);
-
-        const html = this.render(request.url.pathname, userId);
-
-        this.#context.addUpgradingUser(userId, html);
-
-        const store = `
-                <script>
-                    window.__USER_ID__ = '${userId}';
-                    window.__STATE__ = ${JSON.stringify(html.getParts())};
-                </script>
-            `;
-
-        this.#serveFile(path.join(publicDir, 'index.html'), res, (data) => data
-            .replace('{{html}}', html.toString().trim())
-            .replace('{{store}}', store));
+        return this.#handleSubsequentHttpRequest(request, response, next);
     }
 
     canRender (address: string) {
@@ -289,6 +282,65 @@ export class Manager {
 
     createContext (address: string, userId: string) {
         return new LiveContext(userId, address, this.#context, this);
+    }
+
+    async #handleFirstHttpRequest (req: Request, res: Response, publicDir: string) {
+        await this.#context.mountUser(req, res);
+        const html = this.render(req.url.pathname, req.userId);
+
+        this.#context.addUpgradingUser(req.userId, html);
+
+        const title = res.get(PondLiveHeaders.LIVE_PAGE_TITLE) ?? 'Pond Live';
+
+        const store = `
+                <script>
+                    window.__USER_ID__ = '${req.userId}';
+                    window.__STATE__ = ${JSON.stringify(html.getParts())};
+                </script>
+            `;
+
+        this.#serveFile(path.join(publicDir, 'index.html'), res.response, (data) => data
+            .replace('{{html}}', html.toString().trim())
+            .replace('{{title}}', title as string)
+            .replace('{{store}}', store));
+    }
+
+    async #handleSubsequentHttpRequest (req: Request, res: Response, next: NextFunction) {
+        const client = this.#context.getClient(req.userId);
+
+        if (req.headers[PondLiveHeaders.LIVE_ROUTER] !== 'true') {
+            return next();
+        }
+
+        if (!client) {
+            res.status(500).json({ error: 'Client not found' });
+
+            return;
+        }
+
+        const event = new ServerEvent(req.userId, client.channel, {
+            action: 'navigate',
+            address: req.url.toString(),
+            value: null,
+            dataId: null,
+        });
+
+        await this.#context.mountUser(req, res);
+        await this.#context.upgradeUser(event);
+
+        const html = this.render(req.url.pathname, req.userId);
+        const diff = client.virtualDom.differentiate(html);
+
+        client.virtualDom = html;
+        client.address = req.url.toString();
+        const title = res.get(PondLiveHeaders.LIVE_PAGE_TITLE) ?? 'Pond Live';
+
+        const data: UpdateData = {
+            diff,
+            [PondLiveHeaders.LIVE_PAGE_TITLE]: title as string,
+        };
+
+        res.json(data);
     }
 
     #serveFile (filePath: string, res: ServerResponse, callback: (data: string) => string) {

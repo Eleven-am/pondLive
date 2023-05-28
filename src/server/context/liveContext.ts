@@ -74,8 +74,8 @@ export class LiveContext {
         this.#hookCount += 1;
 
         const hookKey = this.#manager.setUpHook(this.#hookCount);
-        const getState = this.#manager.getHookState.bind(this.#manager, hookKey, initialState, this.#userId) as () => T;
-        const setState = this.#manager.setHookState.bind(this.#manager, hookKey, this.#userId) as (state: T) => void;
+        const getState = this.#manager.getHookState.bind(this.#manager, hookKey, initialState) as (userId: string) => T;
+        const setState = this.#manager.setHookState.bind(this.#manager, hookKey) as (state: T, userId: string) => void;
         const addDispatcher = this.#manager.addHookFunction.bind(this.#manager, hookKey);
 
         return {

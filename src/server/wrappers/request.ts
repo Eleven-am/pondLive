@@ -57,15 +57,6 @@ export class Request {
         return request;
     }
 
-    static fromSocketEvent (event: SocketEvent): Request {
-        const request = new Request();
-
-        request.#path = new URL(event.address as string);
-        request.#userId = event.userId;
-
-        return request;
-    }
-
     matches (path: string): boolean {
         return Boolean(parseAddress(`${path}/*`.replace(/\/+/g, '/'), this.#path.pathname));
     }
