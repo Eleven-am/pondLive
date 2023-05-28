@@ -2,14 +2,14 @@ import { BST } from './bst';
 
 describe('BST', () => {
     it('should be able to insert a node', () => {
-        const bst = new BST<number>();
+        const bst = new BST<number, string>();
 
         bst.insert('test', 1);
         expect(bst.getRoot()).not.toBeNull();
     });
 
     it('should be able to insert multiple nodes', () => {
-        const bst = new BST<number>();
+        const bst = new BST<number, string>();
 
         bst.insert('test', 1);
         bst.insert('test2', 2);
@@ -23,7 +23,7 @@ describe('BST', () => {
     });
 
     it('should be able to search for a node', () => {
-        const bst = new BST<number>();
+        const bst = new BST<number, string>();
 
         bst.insert('test', 1);
         expect(bst.search('test')).toBe(1);
@@ -36,7 +36,7 @@ describe('BST', () => {
     });
 
     it('should be able to delete a node', () => {
-        const bst = new BST<number>();
+        const bst = new BST<number, string>();
 
         bst.insert('test', 1);
         bst.insert('test2', 2);
@@ -67,7 +67,7 @@ describe('BST', () => {
 
     // perform same tests but with 7 nodes each
     it('should be able to insert multiple nodes complex', () => {
-        const bst = new BST<number>();
+        const bst = new BST<number, string>();
 
         bst.insert('test', 1);
         bst.insert('test2', 2);
@@ -85,7 +85,7 @@ describe('BST', () => {
     });
 
     it('should be able to search for a node complex', () => {
-        const bst = new BST<number>();
+        const bst = new BST<number, string>();
 
         bst.insert('test', 1);
         expect(bst.search('test')).toBe(1);
@@ -110,7 +110,7 @@ describe('BST', () => {
     });
 
     it('should be able to delete a node complex', () => {
-        const bst = new BST<number>();
+        const bst = new BST<number, string>();
 
         bst.insert('test', 1);
         bst.insert('test2', 2);
