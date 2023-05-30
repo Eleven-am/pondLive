@@ -12,7 +12,6 @@ interface PondEvent {
     formData?: Record<string, string>;
 }
 
-
 interface UploadEvent extends FileMetaData {
     accept: (saveTo: string) => void;
     reject: (message: string) => void;
