@@ -1,14 +1,8 @@
 import { IncomingHttpHeaders, IncomingMessage } from 'http';
 
-import type { Client } from '@eleven-am/pondsocket/types';
-
 import { parseAddress } from '../matcher/matcher';
 
-interface SocketEvent {
-    address: string;
-    client: Client;
-    userId: string;
-}
+type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 export class Request {
     #path: URL;
@@ -19,6 +13,8 @@ export class Request {
 
     #userId: string;
 
+    #method: Method;
+
     constructor () {
         this.#path = new URL('http://localhost');
         this.#userId = '';
@@ -26,10 +22,15 @@ export class Request {
         };
         this.#headers = {
         };
+        this.#method = 'GET';
     }
 
     get url (): URL {
         return this.#path;
+    }
+
+    get method (): Method {
+        return this.#method;
     }
 
     get cookies (): Record<string, string> {
@@ -50,6 +51,7 @@ export class Request {
         request.#userId = userId;
         request.#path = new URL(`https://${req.headers.host}${req.url}`);
         request.#headers = req.headers;
+        request.#method = req.method as Method;
         const cookies = request.#headers.cookie?.split(';') ?? [];
 
         request.#cookies = Object.fromEntries(cookies.map((cookie) => cookie.split('=')));

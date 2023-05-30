@@ -1,3 +1,5 @@
+import path from 'path';
+
 import { LiveContext } from './server/context/liveContext';
 import { Router } from './server/context/router';
 import { useAction } from './server/hooks/useAction';
@@ -28,6 +30,8 @@ const useStyle = makeStyles((props: number) => ({
         color: props % 10 === 0 ? 'green' : props % 2 === 0 ? 'red' : 'blue',
     },
 }));
+
+const uploadPath = path.join(__dirname, '..', 'uploads');
 
 function handleSubmit (event: ServerEvent, state: string, mutate: SetOnServer<string>) {
     const userId = event.userId;
@@ -125,6 +129,7 @@ function Index (context: LiveContext) {
 
     const [_, action] = useAction(context, {
         log: (e) => console.log(e),
+        upload: (e) => e.files?.accept(uploadPath),
     });
 
     return html`
@@ -132,6 +137,7 @@ function Index (context: LiveContext) {
             <h1>Index</h1>
             <a href="/counter">Counter</a>
             <button pond-click=${action('log')}>Log</button>
+            <input pond-file="${action('upload')}" type="file" multiple />
             ${stateRouter(context)}
             ${activeUsers(context)}
         </div>

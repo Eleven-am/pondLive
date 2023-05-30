@@ -1,5 +1,7 @@
 import { HandlerFunction } from './handler';
-import { DragData } from '../types';
+import { ChannelEventHandler } from '../actors/channelEvent';
+import { addFilesListener } from '../actors/uploader';
+import { DragData, UploadList } from '../types';
 
 const pondClick = (handler: HandlerFunction<MouseEvent>) => {
     handler('[pond-click]', 'click', () => ({
@@ -39,6 +41,12 @@ const pondMouseUp = (handler: HandlerFunction<MouseEvent>) => {
 
 const pondDoubleClick = (handler: HandlerFunction<MouseEvent>) => {
     handler('[pond-double-click]', 'dblclick', () => ({
+        value: null,
+    }));
+};
+
+const pondContextMenu = (handler: HandlerFunction<MouseEvent>) => {
+    handler('[pond-context-menu]', 'contextmenu', () => ({
         value: null,
     }));
 };
@@ -128,8 +136,10 @@ const pondDragLeave = (handler: HandlerFunction<DragEvent>) => {
     });
 };
 
-const pondDrop = (handler: HandlerFunction<DragEvent>) => {
-    handler('[pond-drop]', 'drop', (_, element) => {
+const pondDrop = (handler: HandlerFunction<InputEvent>, channelHandler: ChannelEventHandler, userId: string) => {
+    handler('[pond-drop]', 'drop', async (event, element) => {
+        event.preventDefault();
+        const files = event.dataTransfer?.items;
         const positions = element.getBoundingClientRect();
         const dragData: DragData = {
             top: positions.top,
@@ -138,14 +148,58 @@ const pondDrop = (handler: HandlerFunction<DragEvent>) => {
             height: positions.height,
         };
 
+        let metaData: UploadList | undefined;
+
+        if (files) {
+            metaData = await addFilesListener(files, element, userId, channelHandler);
+        }
+
         return {
             value: null,
+            files: metaData,
             dragData,
         };
     });
 };
 
-export const pondMouseEvents = (handler: HandlerFunction<any>) => {
+const pondUpload = (handler: HandlerFunction<InputEvent>, channelHandler: ChannelEventHandler, userId: string) => {
+    handler('[pond-upload]', 'submit', async (event, form) => {
+        event.preventDefault();
+        const file = form.querySelector('input[type="file"]') as HTMLInputElement;
+        const files = file.files;
+
+        let metaData: UploadList | undefined;
+
+        if (files) {
+            metaData = await addFilesListener(files, form, userId, channelHandler);
+        }
+
+        return {
+            value: null,
+            files: metaData,
+        };
+    });
+};
+
+const pondPaste = (handler: HandlerFunction<ClipboardEvent>, channelHandler: ChannelEventHandler, userId: string) => {
+    handler('[pond-paste]', 'paste', async (event, element) => {
+        event.preventDefault();
+        const files = event.clipboardData?.items;
+        const value = event.clipboardData?.getData('text/plain') ?? null;
+        let metaData: UploadList | undefined;
+
+        if (files) {
+            metaData = await addFilesListener(files, element, userId, channelHandler);
+        }
+
+        return {
+            value,
+            files: metaData,
+        };
+    });
+};
+
+export const pondMouseEvents = (handler: HandlerFunction<any>, channelHandler: ChannelEventHandler, userId: string) => {
     pondClick(handler);
     pondMouseEnter(handler);
     pondMouseLeave(handler);
@@ -158,5 +212,8 @@ export const pondMouseEvents = (handler: HandlerFunction<any>) => {
     pondDragOver(handler);
     pondDragEnter(handler);
     pondDragLeave(handler);
-    pondDrop(handler);
+    pondContextMenu(handler);
+    pondDrop(handler, channelHandler, userId);
+    pondUpload(handler, channelHandler, userId);
+    pondPaste(handler, channelHandler, userId);
 };

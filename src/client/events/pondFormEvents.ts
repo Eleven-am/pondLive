@@ -1,4 +1,6 @@
 import { HandlerFunction } from './handler';
+import { ChannelEventHandler } from '../actors/channelEvent';
+import { addFilesListener } from '../actors/uploader';
 
 const pondFocus = (handler: HandlerFunction) => {
     handler('[pond-focus]', 'focus', (_, element) => ({
@@ -51,10 +53,29 @@ const pondSubmit = (handler: HandlerFunction) => {
     });
 };
 
-export const pondFormInit = (handler: HandlerFunction) => {
+const pondFile = (handler: HandlerFunction, userId: string, channelHandler: ChannelEventHandler) => {
+    handler('[pond-file]', 'change', async (_, element) => {
+        const input = element as HTMLInputElement;
+        const files = input.files;
+
+        if (files) {
+            const metaData = await addFilesListener(files, element, userId, channelHandler);
+
+            return {
+                value: null,
+                files: metaData,
+            };
+        }
+
+        return null;
+    });
+};
+
+export const pondFormInit = (handler: HandlerFunction, channelHandler: ChannelEventHandler, userId: string) => {
     pondFocus(handler);
     pondBlur(handler);
     pondChange(handler);
     pondInput(handler);
     pondSubmit(handler);
+    pondFile(handler, userId, channelHandler);
 };

@@ -9,11 +9,11 @@ type Response = ((Omit<LiveEvent, 'action' | 'dataId' | 'address'> & { event?: s
 
 export type HandlerCallback<GenericEvent extends Event = Event> = (event: GenericEvent, element: HTMLElement, eventType: string) => Promise<Response> | Response;
 
-export type HandlerFunction<GenericEvent extends Event = Event> = (selector: string, event: string, callback: HandlerCallback<GenericEvent>) => void;
+export type HandlerFunction<GenericEvent extends Event = Event> = (selector: string, event: string, callback: HandlerCallback<GenericEvent>) => void | Promise<void>;
 
 const handlerFunction = async (channel: Channel, selector: string, callback: HandlerCallback, element: HTMLElement, evt: Event) => {
     evt.preventDefault();
-    const attribute = selector.replace('[', '').replace(']', '');
+    const attribute = selector.replace(/[\[\].#]/g, '');
     const eventType = element.getAttribute(attribute);
     const dataId = element.getAttribute('pond-data-id');
 

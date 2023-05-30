@@ -3,7 +3,7 @@ import type { Client, JoinResponse } from '@eleven-am/pondsocket/types';
 import { Route } from './liveContext';
 import { Manager } from './manager';
 import { PondLiveHeaders, PondLiveActions } from '../../client/routing/router';
-import { isEmpty, sortBy } from '../helpers/helpers';
+import { isEmpty, sortBy, uuidV4 } from '../helpers/helpers';
 import { Html } from '../parser/parser';
 import { Request } from '../wrappers/request';
 import { Response } from '../wrappers/response';
@@ -31,9 +31,12 @@ export class Context {
 
     #upgrading: Map<string, Html>;
 
+    #uploadRoutes: Map<string, string>;
+
     constructor () {
         this.#clients = new Map();
         this.#upgrading = new Map();
+        this.#uploadRoutes = new Map();
         this.#entryManagers = [];
         this.#managers = [];
     }
@@ -87,13 +90,12 @@ export class Context {
 
         this.#clients.set(userId, client);
         this.#upgrading.delete(userId);
-        const event = new ServerEvent(userId, channel, {
+        const event = new ServerEvent(userId, channel, this, {
             address,
             action: 'upgrade',
             value: null,
             dataId: null,
         });
-
 
         return this.upgradeUser(event);
     }
@@ -116,7 +118,7 @@ export class Context {
             return;
         }
 
-        const event = new ServerEvent(userId, client.channel, {
+        const event = new ServerEvent(userId, client.channel, this, {
             address: client.address,
             action: 'reload',
             value: null,
@@ -180,7 +182,7 @@ export class Context {
             return;
         }
 
-        const event = new ServerEvent(userId, client.channel, {
+        const event = new ServerEvent(userId, client.channel, this, {
             address: client.address,
             action: 'unmount',
             value: null,
@@ -194,5 +196,22 @@ export class Context {
 
     sendMessage (client: Client, message: UpdateData) {
         client.broadcastMessage('update', message);
+    }
+
+    addUploadPath (moveTo: string): string {
+        const uploadPath = uuidV4();
+        const pathWithToken = `/upload/${uploadPath}`;
+
+        this.#uploadRoutes.set(pathWithToken, moveTo);
+
+        return pathWithToken;
+    }
+
+    getUploadPath (uploadPath: string): string | undefined {
+        const data = this.#uploadRoutes.get(uploadPath);
+
+        this.#uploadRoutes.delete(uploadPath);
+
+        return data;
     }
 }

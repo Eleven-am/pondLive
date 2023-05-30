@@ -1,17 +1,33 @@
 import fs from 'fs';
 import http, { ServerResponse, IncomingMessage } from 'http';
 import path from 'path';
+import { Writable } from 'stream';
 
 import PondSocket from '@eleven-am/pondsocket';
 import type { Client, JoinResponse } from '@eleven-am/pondsocket/types';
+import busboy from 'busboy';
 
 import { Context } from './context';
 import { Component } from './liveContext';
+import { PondLiveHeaders } from '../../client/routing/router';
 import { LiveEvent } from '../../client/types';
 import { fileExists } from '../helpers/helpers';
 import { Middleware } from '../middleware/middleware';
+import { Response } from '../wrappers/response';
 import { ServerEvent } from '../wrappers/serverEvent';
 
+
+interface FileUpload {
+    name: string;
+    size: number;
+    mimetype: string;
+}
+
+interface UploadType {
+    filename: string;
+    encoding: string;
+    mimeType: string;
+}
 
 const mimeTypes: Record<string, string> = {
     '.html': 'text/html',
@@ -34,7 +50,7 @@ export function getMimeType (filePath: string) {
 }
 
 export class Router {
-    #context: Context;
+    readonly #context: Context;
 
     #middleware: Middleware<IncomingMessage, ServerResponse>;
 
@@ -63,8 +79,7 @@ export class Router {
 
         return async (req: IncomingMessage, res: ServerResponse) => {
             await this.#middleware.run(req, res, () => {
-                res.statusCode = 404;
-                res.end('Not found');
+                this.#notfound(req, res);
             });
         };
     }
@@ -123,7 +138,7 @@ export class Router {
             const channel = request.client;
 
             response.accept();
-            const event = new ServerEvent(userId, channel, liveEvent);
+            const event = new ServerEvent(userId, channel, this.#context, liveEvent);
 
             await this.#performAction(event);
         });
@@ -141,5 +156,73 @@ export class Router {
 
     #performAction (event: ServerEvent) {
         return this.#context.performAction(event);
+    }
+
+    #manageUpload (req: IncomingMessage, res: Response, moveTo: string) {
+        const busboyInstance = busboy({ headers: req.headers });
+        const files: FileUpload[] = [];
+
+        let fileCount = 0;
+        let finished = false;
+
+        busboyInstance.on('file', (filePath: string, file: Writable, upload: UploadType) => {
+            const tmpFile = path.join(moveTo, filePath);
+            const writeStream = fs.createWriteStream(tmpFile);
+
+            fileCount++;
+
+            writeStream.on('finish', () => {
+                files.push({
+                    name: upload.filename,
+                    size: writeStream.bytesWritten,
+                    mimetype: upload.mimeType,
+                });
+
+                fileCount--;
+
+                if (finished && fileCount === 0) {
+                    res.status(200)
+                        .json({ files });
+                }
+            });
+
+            file.pipe(writeStream);
+        });
+
+        busboyInstance.on('finish', () => {
+            finished = true;
+        });
+
+        req.pipe(busboyInstance);
+    }
+
+    #notfound (req: IncomingMessage, res: ServerResponse) {
+        const userId = req.headers[PondLiveHeaders.LIVE_USER_ID] as string;
+        const response = new Response(res);
+
+        if (!userId) {
+            response.status(404)
+                .json({ message: 'Not found' });
+
+            return;
+        }
+
+        const moveTo = this.#context.getUploadPath(req.url!);
+
+        if (moveTo) {
+            if (req.method !== 'POST') {
+                response.status(405)
+                    .json({ message: 'Method not allowed' });
+
+                return;
+            }
+
+            this.#manageUpload(req, response, moveTo);
+
+            return;
+        }
+
+        response.status(404)
+            .json({ message: 'Not found' });
     }
 }

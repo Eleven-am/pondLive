@@ -1,5 +1,5 @@
+import { initPondActors } from './actors/pondActors';
 import { initEventListeners } from './events';
-import { initPondActors } from './events/pondActors';
 import { DomWatcher } from './html/domWatcher';
 import { ClientRouter } from './routing/router';
 
@@ -13,6 +13,6 @@ window.onload = () => {
     const domWatcher = new DomWatcher();
     const router = ClientRouter.connect(userId, domWatcher, state);
 
-    initEventListeners(router.channel, domWatcher);
     initPondActors(domWatcher);
+    initEventListeners(router.channel, domWatcher, userId);
 };

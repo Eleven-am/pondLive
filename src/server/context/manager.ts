@@ -318,7 +318,7 @@ export class Manager {
             return;
         }
 
-        const event = new ServerEvent(req.userId, client.channel, {
+        const event = new ServerEvent(req.userId, client.channel, this.#context, {
             action: 'navigate',
             address: req.url.toString(),
             value: null,

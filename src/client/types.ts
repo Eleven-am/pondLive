@@ -1,36 +1,29 @@
-export type RouterHeaders = {
-    pageTitle: string | undefined;
-    flashMessage: string | undefined;
-}
-
-export type default_t<T = any> = Record<string, T>;
-
 export interface LiveEvent<Events extends string = string> {
     action: Events;
     value: string | null;
     dataId: string | null;
-    files?: FileMetaData[];
+    files?: UploadList;
     dragData?: DragData;
-    metadata?: MetaData;
     formData?: Record<string, string>;
     address: string;
-}
-
-export interface MetaData {
-    type: 'UPLOAD_REQUEST' | 'UPLOAD_SUCCESS' | 'UPLOAD_FAILURE';
-    identifier: string;
 }
 
 export interface FileMetaData {
     name: string;
     size: number;
-    type: string;
+    mimeType: string;
+    path: string;
     lastModified: number;
     lastModifiedDate: Date;
 }
 
-export interface PondUploadFile extends FileMetaData {
+export interface PondFile extends FileMetaData {
     identifier: string;
+}
+
+export interface UploadList {
+    identifier: string;
+    files: PondFile[];
 }
 
 export interface DragData {

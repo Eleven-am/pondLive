@@ -30,8 +30,6 @@ const keyPressEventHandler = (handlerFunction: HandlerFunction<KeyboardEvent>) =
     });
 };
 
-// TODO: window events
-
 export const pondKeyboardEvents = (handlerFunction: HandlerFunction<KeyboardEvent>) => {
     keyDownEventHandler(handlerFunction);
     keyUpEventHandler(handlerFunction);
