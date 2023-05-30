@@ -19,10 +19,12 @@
   },
   "scripts": {
     "test": "jest --coverage --verbose --watchAll",
-    "build": "tsc --project tsconfig.build.json",
+    "build:server": "tsc --project tsconfig.build.json",
     "publishToNpm": "npm version patch && npm publish",
     "mon:client": "parcel src/server/assets/index.html",
     "mon:server": "nodemon --watch src --exec ts-node src/test.ts --trace-warnings",
+    "build:client": "parcel build src/client/index.ts",
+    "build": "npm run build:server && npm run build:client",
     "dev": "concurrently \"npm run mon:server\" \"npm run mon:client\""
   },
   "author": "Roy OSSAI",
@@ -39,6 +41,8 @@
     "parcel": "^2.8.3"
   },
   "devDependencies": {
+    "@parcel/packager-ts": "^2.8.3",
+    "@parcel/transformer-typescript-types": "^2.8.3",
     "@types/busboy": "^1.5.0",
     "@types/express": "^4.17.14",
     "@types/jest": "^29.1.2",
