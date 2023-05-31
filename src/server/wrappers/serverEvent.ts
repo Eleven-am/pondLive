@@ -1,8 +1,9 @@
 import type { Client } from '@eleven-am/pondsocket/types';
 
 import { PondUploadResponse } from '../../client/actors/uploader';
+import { PondLiveHeaders, PondLiveActions } from '../../client/routing/router';
 import { LiveEvent, DragData, PondFile, UploadList, FileMetaData } from '../../client/types';
-import { Context } from '../context/context';
+import { Context, UpdateData } from '../context/context';
 import { parseAddress } from '../matcher/matcher';
 
 interface PondEvent {
@@ -96,6 +97,27 @@ export class ServerEvent {
         return Boolean(parseAddress(`${path}/*`.replace(/\/+/g, '/'), this.#url.pathname));
     }
 
+    navigateTo (path: string) {
+        this.#sendMessage({
+            [PondLiveHeaders.LIVE_ROUTER_ACTION]: PondLiveActions.LIVE_ROUTER_NAVIGATE,
+            address: path,
+            diff: null,
+        });
+    }
+
+    reloadPage () {
+        this.#sendMessage({
+            [PondLiveHeaders.LIVE_ROUTER_ACTION]: PondLiveActions.LIVE_ROUTER_RELOAD,
+            diff: null,
+        });
+    }
+
+    sendDiff (diff: Record<string, any>) {
+        this.#sendMessage({
+            diff,
+        });
+    }
+
     #buildFileList (files: UploadList): UploadEventList {
         const filesList = files.files.map((file) => this.#buildFile(file));
 
@@ -140,5 +162,9 @@ export class ServerEvent {
             accept,
             reject,
         };
+    }
+
+    #sendMessage (message: UpdateData) {
+        this.#client.broadcastMessage('update', message);
     }
 }

@@ -20,6 +20,7 @@ export interface UpdateData {
     diff: Record<string, any> | null;
     [PondLiveHeaders.LIVE_ROUTER_ACTION]?: PondLiveActions;
     [PondLiveHeaders.LIVE_PAGE_TITLE]?: string;
+    address?: string;
 }
 
 export class Context {
@@ -65,13 +66,17 @@ export class Context {
 
     upgradeUserOnJoin (userId: string, channel: Client, response: JoinResponse, address: string, pondSocketId: string) {
         const html = this.#upgrading.get(userId);
+        const event = new ServerEvent(userId, channel, this, {
+            address,
+            action: 'upgrade',
+            value: null,
+            dataId: null,
+        });
+
 
         if (!html) {
             response.accept();
-            this.sendMessage(channel, {
-                diff: null,
-                [PondLiveHeaders.LIVE_ROUTER_ACTION]: PondLiveActions.LIVE_ROUTER_RELOAD,
-            });
+            event.reloadPage();
 
             channel.banUser(pondSocketId, 'No upgrade available');
 
@@ -90,12 +95,6 @@ export class Context {
 
         this.#clients.set(userId, client);
         this.#upgrading.delete(userId);
-        const event = new ServerEvent(userId, channel, this, {
-            address,
-            action: 'upgrade',
-            value: null,
-            dataId: null,
-        });
 
         return this.upgradeUser(event);
     }
@@ -138,9 +137,7 @@ export class Context {
             return;
         }
 
-        this.sendMessage(client.channel, {
-            diff,
-        });
+        event.sendDiff(diff);
 
         client.virtualDom = html;
     }
@@ -192,10 +189,6 @@ export class Context {
         const promises = this.#managers.map((manager) => manager.unmount(event));
 
         return Promise.all(promises);
-    }
-
-    sendMessage (client: Client, message: UpdateData) {
-        client.broadcastMessage('update', message);
     }
 
     addUploadPath (moveTo: string): string {
