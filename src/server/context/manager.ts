@@ -147,6 +147,10 @@ export class Manager {
             throw new Error('Cannot unmount component before the building phase');
         }
 
+        if (!this.#mountedUsers.has(event.userId) && !this.#upgradedUsers.has(event.userId)) {
+            return;
+        }
+
         this.#unmountFunctions.forEach((fn) => fn(event));
         this.#mountedUsers.delete(event.userId);
         this.#upgradedUsers.delete(event.userId);

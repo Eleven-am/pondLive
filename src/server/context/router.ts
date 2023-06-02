@@ -4,8 +4,12 @@ import path from 'path';
 import { Writable } from 'stream';
 
 import PondSocket from '@eleven-am/pondsocket';
-import type { Client, JoinResponse } from '@eleven-am/pondsocket/types';
+// eslint-disable-next-line import/no-unresolved
+import ponSocketExpress from '@eleven-am/pondsocket/express';
+import type { Client, JoinResponse, Endpoint } from '@eleven-am/pondsocket/types';
 import busboy from 'busboy';
+// eslint-disable-next-line import/no-unresolved
+import express, { Express } from 'express';
 
 import { Context } from './context';
 import { Component } from './liveContext';
@@ -117,37 +121,30 @@ export class Router {
             response.accept();
         });
 
-        const channel = endpoint.createChannel('/:userId', async (request, response) => {
-            const userId = request.event.params.userId;
-            const channel = request.client;
-            const address = request.joinParams.address as string;
-            const pondSocketId = request.user.id;
-
-            if (!userId) {
-                response.reject('No user id provided');
-
-                return;
-            }
-
-            await this.#upgradeUser(userId, channel, response, address || '/', pondSocketId);
-        });
-
-        channel.onEvent('event', async (request, response) => {
-            const userId = request.user.assigns.userId as string;
-            const liveEvent = request.event.payload as unknown as LiveEvent;
-            const channel = request.client;
-
-            response.accept();
-            const event = new ServerEvent(userId, channel, this.#context, liveEvent);
-
-            await this.#performAction(event);
-        });
-
-        channel.onLeave((event) => {
-            this.#context.unmountUser(event.assigns.userId as string);
-        });
+        this.#setUpChannels(endpoint);
 
         return pondSocket.listen(...args);
+    }
+
+    serveWithExpress (app: Express, path: string) {
+        const liveApp = ponSocketExpress(app);
+
+        liveApp.use(express.static(serverDir));
+
+        liveApp.get(path, async (req, res, next) => {
+            const request = req as unknown as IncomingMessage;
+            const response = res as unknown as ServerResponse;
+
+            await this.#middleware.run(request, response, next);
+        });
+
+        const endpoint = liveApp.upgrade('/live', (request, response) => {
+            response.accept();
+        });
+
+        this.#setUpChannels(endpoint);
+
+        return liveApp;
     }
 
     async #upgradeUser (userId: string, channel: Client, response: JoinResponse, address: string, pondSocketId: string) {
@@ -224,5 +221,37 @@ export class Router {
 
         response.status(404)
             .json({ message: 'Not found' });
+    }
+
+    #setUpChannels (endpoint: Endpoint) {
+        const channel = endpoint.createChannel('/:userId', async (request, response) => {
+            const userId = request.event.params.userId;
+            const channel = request.client;
+            const address = request.joinParams.address as string;
+            const pondSocketId = request.user.id;
+
+            if (!userId) {
+                response.reject('No user id provided');
+
+                return;
+            }
+
+            await this.#upgradeUser(userId, channel, response, address || '/', pondSocketId);
+        });
+
+        channel.onEvent('event', async (request, response) => {
+            const userId = request.user.assigns.userId as string;
+            const liveEvent = request.event.payload as unknown as LiveEvent;
+            const channel = request.client;
+
+            response.accept();
+            const event = new ServerEvent(userId, channel, this.#context, liveEvent);
+
+            await this.#performAction(event);
+        });
+
+        channel.onLeave((event) => {
+            this.#context.unmountUser(event.assigns.userId as string);
+        });
     }
 }
