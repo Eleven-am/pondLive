@@ -53,7 +53,7 @@ Here's an enhanced example that demonstrates additional features of PondLive:
 import { useState, html, useAction, useRouter } from '@eleven-am/pondlive';
 
 function Counter(ctx) {
-  const [count, action] = useAction(ctx, {
+  const [count, action] = useAction(ctx, 0, {
     increment: (_, count) => count + 1,
     decrement: (_, count) => count - 1,
   });
@@ -70,10 +70,12 @@ function Counter(ctx) {
 
 function Home(ctx) {
   const [name, setName] = useState(ctx, 'World');
-  const router = useRouter({
-    path: '/counter',
-    component: Counter,
-  });
+  const router = useRouter([
+      {
+        path: '/counter',
+        component: Counter,
+      }
+  ]);
 
   return html`
     <div>

@@ -1,5 +1,6 @@
 import {
     Router,
+    html,
     useAction,
     useRouter,
     useServerInfo,
@@ -9,4 +10,4 @@ import {
     makeStyles,
 } from './types';
 
-export { makeStyles, useState, useServerInfo, createServerInfo, createClientContext, useAction, useRouter, Router, };
+export { makeStyles, useState, useServerInfo, createServerInfo, createClientContext, useAction, useRouter, Router, html };
