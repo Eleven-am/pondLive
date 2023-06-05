@@ -2,10 +2,9 @@ import fs from 'fs';
 import { ServerResponse, IncomingMessage } from 'http';
 import path from 'path';
 
-import { Context, UpdateData } from './context';
+import { Context, UpdateData, PondLiveHeaders } from './context';
 import { Component, LiveContext } from './liveContext';
 import { getMimeType } from './router';
-import { PondLiveHeaders } from '../../client/routing/router';
 import { uuidV4, deepCompare, fileExists } from '../helpers/helpers';
 import { NextFunction } from '../middleware/middleware';
 import { html } from '../parser/parser';

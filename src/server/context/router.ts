@@ -10,7 +10,7 @@ import type { Client, JoinResponse, Endpoint } from '@eleven-am/pondsocket/types
 import busboy from 'busboy';
 import type { Express } from 'express';
 
-import { Context } from './context';
+import { Context, PondLiveHeaders } from './context';
 import { Component } from './liveContext';
 import { LiveEvent } from '../../client/types';
 import { fileExists } from '../helpers/helpers';
@@ -42,13 +42,6 @@ const mimeTypes: Record<string, string> = {
     '.wav': 'audio/wav',
     '.mp4': 'video/mp4',
 };
-
-export enum PondLiveHeaders {
-    LIVE_USER_ID = 'x-pond-live-user-id',
-    LIVE_ROUTER = 'x-pond-live-router',
-    LIVE_PAGE_TITLE = 'x-pond-live-page-title',
-    LIVE_ROUTER_ACTION = 'x-pond-live-router-action',
-}
 
 const serverDir = path.join(__dirname, '..', '..', 'public');
 

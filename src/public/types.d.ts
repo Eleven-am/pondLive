@@ -1,6 +1,7 @@
+import { IncomingHttpHeaders, Server } from 'http';
+
 import { PondSocketExpressApp } from '@eleven-am/pondsocket/types';
 import { Express } from 'express';
-import { IncomingHttpHeaders, Server } from 'http';
 
 export interface DragData {
     top: number;
@@ -51,27 +52,38 @@ interface CookieOptions {
 
 export declare class UploadEvent {
     name: string;
+
     size: number;
+
     mimeType: string;
+
     path: string;
+
     lastModified: number;
+
     lastModifiedDate: Date;
+
     accept: (saveTo: string) => void;
+
     reject: (message: string) => void;
 }
 
 export declare class UploadEventList {
     files: UploadEvent[];
+
     accept: (saveTo: string) => void;
+
     reject: (message: string) => void;
 }
 
 export declare class ServerEvent {
     // The user id of the user that triggered the event
     userId: string;
+
     // the payload of the event
     data: PondEvent;
-    //if the event was triggered by a file upload, this will be the file
+
+    // if the event was triggered by a file upload, this will be the file
     files: UploadEventList | null;
 
     /**
@@ -91,12 +103,16 @@ export declare class ServerEvent {
 export declare class Request {
     // The url of the request
     url: URL;
+
     // The method of the request
     method: Method;
+
     // The cookies sent with the request
     cookies: Record<string, string>;
+
     // The headers sent with the request
     headers: IncomingHttpHeaders;
+
     // The id of the user that made the request
     userId: string;
 }
@@ -186,6 +202,11 @@ export declare class ServerContext<T> {
      * @param userId - The id of the user to get the state for
      */
     getState: (userId: string) => T;
+
+    /**
+     * Destroy the serverContext object for a user
+     */
+    destroy: (userId: string) => void;
 }
 
 export class Html {}

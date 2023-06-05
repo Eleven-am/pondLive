@@ -9,6 +9,7 @@ interface ServerInfo<T> {
 interface ServerContext<T> extends Omit<ServerInfo<T>, 'setState' | 'getState'> {
     setState: (newState: T, userId: string) => void;
     getState: (userId: string) => T;
+    destroy: (userId: string) => void;
 }
 
 export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
@@ -53,6 +54,9 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
         },
         subscribe: (userId, callback) => {
             subscribers[userId] = callback;
+        },
+        destroy: (userId) => {
+            state.delete(userId);
         },
     };
 };
