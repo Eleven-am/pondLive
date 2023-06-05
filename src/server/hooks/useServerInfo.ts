@@ -2,7 +2,7 @@ import { LiveContext } from '../context/liveContext';
 import { Request } from '../wrappers/request';
 import { ServerEvent } from '../wrappers/serverEvent';
 
-type HookContext = LiveContext | ServerEvent | Request;
+export type HookContext = LiveContext | ServerEvent | Request;
 
 interface ServerInfo<T> {
     getState: () => T;
