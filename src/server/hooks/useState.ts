@@ -1,8 +1,9 @@
 import { LiveContext } from '../context/liveContext';
+import { Request } from '../wrappers/request';
 import { ServerEvent } from '../wrappers/serverEvent';
 
 export type SetState<T> = (state: (T | ((state: T, event: ServerEvent) => T | Promise<T>))) => string;
-export type SetOnServer<T> = (event: ServerEvent, state: (T | ((state: T) => T | Promise<T>))) => void;
+export type SetOnServer<T> = (event: ServerEvent | Request, state: (T | ((state: T) => T | Promise<T>))) => void;
 export type CreatedState<T> = [T, SetState<T>, SetOnServer<T>];
 
 export function useState<T> (context: LiveContext, initialState: T): CreatedState<T> {
@@ -10,7 +11,7 @@ export function useState<T> (context: LiveContext, initialState: T): CreatedStat
 
     const state = getState(context.userId);
 
-    const setStateFn = async (state: (T | ((state: T, event: ServerEvent) => T | Promise<T>)), event: ServerEvent) => {
+    const setStateFn = async (state: (T | ((state: T, event: ServerEvent) => T | Promise<T>)), event: ServerEvent | Request) => {
         let newState: T;
 
         if (typeof state === 'function') {
@@ -24,7 +25,7 @@ export function useState<T> (context: LiveContext, initialState: T): CreatedStat
         setState(newState, event.userId);
     };
 
-    const setOnServer = (event: ServerEvent, state: (T | ((state: T) => T | Promise<T>))) => setStateFn(state, event);
+    const setOnServer = (event: ServerEvent | Request, state: (T | ((state: T) => T | Promise<T>))) => setStateFn(state, event);
 
     const mutate = (state: (T | ((state: T, event: ServerEvent) => T | Promise<T>))) => addDispatcher(state, (event) => setStateFn(state, event));
 

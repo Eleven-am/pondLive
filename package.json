@@ -23,7 +23,7 @@
     "publishToNpm": "npm version patch && npm publish",
     "mon:client": "parcel src/server/assets/index.html",
     "mon:server": "nodemon --watch src --exec ts-node src/test.ts --trace-warnings",
-    "build:client": "parcel build src/client/index.ts",
+    "build:client": "npx esbuild ./src/client/index.ts --bundle --outfile=./public/pondLive.js --minify --target=es2017",
     "build": "npm run build:server && npm run build:client",
     "dev": "concurrently \"npm run mon:server\" \"npm run mon:client\""
   },
@@ -46,7 +46,6 @@
     "@types/busboy": "^1.5.0",
     "@types/express": "^4.17.14",
     "@types/jest": "^29.1.2",
-    "@types/node": "^16.10.3",
     "@types/websocket": "^1.0.5",
     "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.40.1",
@@ -64,7 +63,6 @@
     "superwstest": "^2.0.3",
     "ts-jest": "^29.0.3",
     "ts-node": "^10.9.1",
-    "typescript": "^5.0.4",
-    "url": "^0.11.0"
+    "typescript": "^5.0.4"
   }
 }

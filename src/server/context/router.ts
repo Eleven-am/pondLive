@@ -8,12 +8,10 @@ import PondSocket from '@eleven-am/pondsocket';
 import ponSocketExpress from '@eleven-am/pondsocket/express';
 import type { Client, JoinResponse, Endpoint } from '@eleven-am/pondsocket/types';
 import busboy from 'busboy';
-// eslint-disable-next-line import/no-unresolved
-import express, { Express } from 'express';
+import type { Express } from 'express';
 
 import { Context } from './context';
 import { Component } from './liveContext';
-import { PondLiveHeaders } from '../../client/routing/router';
 import { LiveEvent } from '../../client/types';
 import { fileExists } from '../helpers/helpers';
 import { Middleware } from '../middleware/middleware';
@@ -45,7 +43,14 @@ const mimeTypes: Record<string, string> = {
     '.mp4': 'video/mp4',
 };
 
-const serverDir = path.join(__dirname, '..', '..', '..', 'dist');
+export enum PondLiveHeaders {
+    LIVE_USER_ID = 'x-pond-live-user-id',
+    LIVE_ROUTER = 'x-pond-live-router',
+    LIVE_PAGE_TITLE = 'x-pond-live-page-title',
+    LIVE_ROUTER_ACTION = 'x-pond-live-router-action',
+}
+
+const serverDir = path.join(__dirname, '..', '..', 'public');
 
 export function getMimeType (filePath: string) {
     const extname = path.extname(filePath);
@@ -58,12 +63,18 @@ export class Router {
 
     #middleware: Middleware<IncomingMessage, ServerResponse>;
 
+    #directories: string[];
+
     constructor () {
         this.#middleware = new Middleware();
         this.#context = new Context();
+        this.#directories = [];
+
+        this.#addUploadRoute();
+        this.addStaticRoute(serverDir);
     }
 
-    addRoute (path: string, component: Component) {
+    mount (path: string, component: Component) {
         const route = {
             path,
             component,
@@ -74,21 +85,25 @@ export class Router {
         this.#context.addEntryManager(manager);
 
         this.#middleware.use(async (req, res, next) => {
-            await manager.handleHttpRequest(req, res, next, serverDir);
+            if (req.method !== 'GET' && req.method !== 'HEAD') {
+                return next();
+            }
+
+            await manager.handleHttpRequest(req, res, next, [...this.#directories, serverDir]);
         });
     }
 
     execute () {
-        this.addStaticRoute(serverDir);
-
         return async (req: IncomingMessage, res: ServerResponse) => {
             await this.#middleware.run(req, res, () => {
-                this.#notfound(req, res);
+                res.statusCode = 404;
+                res.end('Not found');
             });
         };
     }
 
     addStaticRoute (dir: string) {
+        this.#directories.push(dir);
         this.#middleware.use(async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
             const filePath = path.join(dir, req.url!);
 
@@ -126,16 +141,14 @@ export class Router {
         return pondSocket.listen(...args);
     }
 
-    serveWithExpress (app: Express, path: string) {
+    serveWithExpress (entryPoint: string, app: Express) {
         const liveApp = ponSocketExpress(app);
 
-        liveApp.use(express.static(serverDir));
-
-        liveApp.get(path, async (req, res, next) => {
+        liveApp.use(entryPoint, (req, res, next) => {
             const request = req as unknown as IncomingMessage;
             const response = res as unknown as ServerResponse;
 
-            await this.#middleware.run(request, response, next);
+            void this.#middleware.run(request, response, next);
         });
 
         const endpoint = liveApp.upgrade('/live', (request, response) => {
@@ -193,20 +206,21 @@ export class Router {
         req.pipe(busboyInstance);
     }
 
-    #notfound (req: IncomingMessage, res: ServerResponse) {
-        const userId = req.headers[PondLiveHeaders.LIVE_USER_ID] as string;
-        const response = new Response(res);
+    #addUploadRoute () {
+        this.#middleware.use((req, res, next) => {
+            const userId = req.headers[PondLiveHeaders.LIVE_USER_ID] as string;
+            const response = new Response(res);
 
-        if (!userId) {
-            response.status(404)
-                .json({ message: 'Not found' });
+            if (!userId) {
+                return next();
+            }
 
-            return;
-        }
+            const moveTo = this.#context.getUploadPath(req.url!);
 
-        const moveTo = this.#context.getUploadPath(req.url!);
+            if (!moveTo) {
+                return next();
+            }
 
-        if (moveTo) {
             if (req.method !== 'POST') {
                 response.status(405)
                     .json({ message: 'Method not allowed' });
@@ -215,16 +229,11 @@ export class Router {
             }
 
             this.#manageUpload(req, response, moveTo);
-
-            return;
-        }
-
-        response.status(404)
-            .json({ message: 'Not found' });
+        });
     }
 
     #setUpChannels (endpoint: Endpoint) {
-        const channel = endpoint.createChannel('/:userId', async (request, response) => {
+        const channel = endpoint.createChannel('/:userId', (request, response) => {
             const userId = request.event.params.userId;
             const channel = request.client;
             const address = request.joinParams.address as string;
@@ -236,10 +245,10 @@ export class Router {
                 return;
             }
 
-            await this.#upgradeUser(userId, channel, response, address || '/', pondSocketId);
+            void this.#upgradeUser(userId, channel, response, address || '/', pondSocketId);
         });
 
-        channel.onEvent('event', async (request, response) => {
+        channel.onEvent('event', (request, response) => {
             const userId = request.user.assigns.userId as string;
             const liveEvent = request.event.payload as unknown as LiveEvent;
             const channel = request.client;
@@ -247,7 +256,7 @@ export class Router {
             response.accept();
             const event = new ServerEvent(userId, channel, this.#context, liveEvent);
 
-            await this.#performAction(event);
+            void this.#performAction(event);
         });
 
         channel.onLeave((event) => {

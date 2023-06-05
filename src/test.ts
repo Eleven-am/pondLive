@@ -75,8 +75,8 @@ function activeUsers (context: LiveContext) {
         );
     });
 
-    const [_, action] = useAction(context, {
-        submit: (e) => handleSubmit(e, state, mutate),
+    const [_, action] = useAction(context, undefined, {
+        submit: (e) => handleSubmit(e, state, mutate) as any,
     });
 
     return html`
@@ -127,9 +127,9 @@ function Index (context: LiveContext) {
         },
     ]);
 
-    const [_, action] = useAction(context, {
-        log: (e) => console.log(e),
-        upload: (e) => e.files?.accept(uploadPath),
+    const [_, action] = useAction(context, undefined, {
+        log: (e) => console.log(e) as any,
+        upload: (e) => e.files?.accept(uploadPath) as any,
     });
 
     return html`
@@ -146,5 +146,5 @@ function Index (context: LiveContext) {
 
 const router = new Router();
 
-router.addRoute('/', Index);
+router.mount('/', Index);
 router.serve(3000, () => console.log('Listening on port 3000'));

@@ -1,6 +1,11 @@
 import { OutgoingHttpHeaders, ServerResponse } from 'http';
 
-import { PondLiveHeaders } from '../../client/routing/router';
+export enum PondLiveHeaders {
+    LIVE_USER_ID = 'x-pond-live-user-id',
+    LIVE_ROUTER = 'x-pond-live-router',
+    LIVE_PAGE_TITLE = 'x-pond-live-page-title',
+    LIVE_ROUTER_ACTION = 'x-pond-live-router-action',
+}
 
 interface CookieOptions {
     domain?: string;

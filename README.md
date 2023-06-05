@@ -1,500 +1,289 @@
-
 # PondLive
 
-PondLive is a lightweight, and easy to use serverside only web framework, leveraging the power of [PondSocket](https://github.com/Eleven-am/pondSocket) to create a simple, yet powerful, SPA framework.
+PondLive is a lightweight and user-friendly server-side web framework that utilizes the power of [PondSocket](https://github.com/Eleven-am/pondSocket) to create a simple yet powerful Single-Page Application (SPA) framework.
 
-## Documentation
+## Installation
 
-This is a Node.js module available through the npm registry.
+PondLive is available as a Node.js module through the npm registry. To install it, use the following command:
 
 ```bash
-  npm install @eleven-am/pondlive
+npm install @eleven-am/pondlive
 ```
 
-PondLive is a framework that uses PondSocket to provide realtime functionality to your application.
-PondLive is a server side framework that can be used to render HTML pages with realtime functionality to the browser, eliminating the need for a frontend framework.
+## Introduction
 
-```js
-    import { LiveFactory, html, Pondlive } from "@eleven-am/pondlive";
-    import express from "express";
+PondLive is a server-side framework that enables rendering HTML pages with real-time functionality directly to the browser, eliminating the need for a separate frontend framework. It leverages PondSocket to provide real-time features to your application.
 
-    const Counter = LiveFactory({
-        
-        mount(params, socket, router) {
-            socket.assign({
-                count: 0
-            });
-        },
-    
-        manageStyles(css) {
-            return css`
-                .counter {
-                    font-size: 2rem;
-                    font-weight: bold;
-                    color: ${this.count % 10 === 0 ? 'green': this.count % 2 === 0 ? 'red': 'blue'};
-                }
-            `;
-        },
-    
-        onEvent(event, socket, router) {
-            if (event.type === 'increment') {
-                socket.assign({
-                    count: this.count + 1
-                });
-    
-    
-            } else if (event.type === 'decrement') {
-                socket.assign({
-                    count: this.count - 1
-                });
-            }
-        },
-            
-        render(renderRoutes, classes) {
-            return html`
-                <div>
-                    <button pond-click="increment">+</button>
-                    <span class="${classes.counter}">${this.count}</span>
-                    <button pond-click="decrement">-</button>
-                </div>
-                ${renderRoutes()}
-            `;
-        }
-    })
+## Usage
 
-    const app = Pondlive(express());
-    
-    app.usePondLive([{
-        path: '/',
-        component: Counter
-    }]);
-    
-    app.listen(3000);
+To get started with PondLive, you can use the following example code:
+
+```javascript
+import { useState, html, Router } from '@eleven-am/pondlive';
+
+function Counter(ctx) {
+  const [count, setCount] = useState(ctx, 0);
+
+  return html`
+    <div>
+      <h1>Counter</h1>
+      <p>Count: ${count}</p>
+      <button pond-click=${setCount((count) => count + 1)}>Increment</button>
+      <button pond-click=${setCount((count) => count - 1)}>Decrement</button>
+    </div>
+  `;
+}
+
+const router = new Router();
+
+router.mount('/', Counter);
+
+router.serve(3000);
 ```
 
-The above example shows a simple counter that can be incremented and decremented.
-The component is a function that takes in an object with the following properties:
+In this example, we've created a simple counter component using PondLive. The `Counter` function defines the component logic and uses the `useState` hook to manage the component's state. The `html` template function is used to generate the HTML content.
 
-* mount: A function that is called when the component is mounted. This function is called with the params, socket, router and the component instance.
-* onEvent: A function that is called when an event is received from the browser. This function is called with the event, current readonly socketContext, socket, router and the component instance.
-* render: A function that is called when the component is rendered. This returns the html that is rendered to the browser.
+The `Router` class is responsible for handling routing within the PondLive framework. In this example, we create a new router instance and mount the `Counter` component to the root path ('/') using the `mount` function. Finally, we start serving the components on port 3000 with the `serve` function.
 
-#### Lifecycle of a component
+## Enhanced Example
 
-###### Mounting 
+Here's an enhanced example that demonstrates additional features of PondLive:
 
-When a http request is made to the server, the component is mounted and the mount function is called.
-At the stage the type of the socket available to the component is a http socket. This socket is used to send the initial html to the browser.
-This socket can not send any messages, to the client independent of this connection. The socket can however, subscribe to broadcast channels and receive messages from the server.
+```javascript
+import { useState, html, useAction, useRouter } from '@eleven-am/pondlive';
 
-###### Rendering
+function Counter(ctx) {
+  const [count, action] = useAction(ctx, {
+    increment: (_, count) => count + 1,
+    decrement: (_, count) => count - 1,
+  });
 
-During the render process the information assigned to the socket is available to the component. The component can use this information to render the html.
-The html is sent to the browser and the browser renders the html. The browser then attempts to establish a websocket connection with the server.
-If successful, the browser also sends an event to the server to inform it that the html has been rendered.
+  return html`
+    <div>
+      <h1>Counter</h1>
+      <p>Count: ${count}</p>
+      <button pond-click=${action('increment')}>Increment</button>
+      <button pond-click=${action('decrement')}>Decrement</button>
+    </div>
+  `;
+}
 
-###### onRendered
+function Home(ctx) {
+  const [name, setName] = useState(ctx, 'World');
+  const router = useRouter({
+    path: '/counter',
+    component: Counter,
+  });
+
+  return html`
+    <div>
+      <h1>Home</h1>
+      <p>Hello, ${name}!</p>
+      <a href="/counter">Counter</a>
+      <input type="text" pond-keyup=${setName((_, event) => event.data.value)} pond-value=${name} />
+      ${router(ctx)}
+    </div>
+  `;
+}
+```
+
+In this example, we've introduced two additional hooks: `useAction` and `useRouter`.
+
+### useAction
+The `useAction` hook is used to generate actions for a component when an event is triggered. It returns an action handler that can be invoked with a specific action name. In the example, `useAction` is used to create actions for incrementing and decrementing the count when the corresponding buttons are clicked. The actions are defined as an object mapping action names to
+
+functions that update the count value.
+
+### useRouter
+The `useRouter` hook is used to create a router for your application. It returns the router object, which allows you to define routes and mount components. In the example, `useRouter` is used to create a router instance. The `path` property specifies the route path, and the `component` property specifies the component to render when the route is matched.
+
+The `Home` component serves as the main entry point of the application and renders the `Counter` component as a child component when the path '/counter' is accessed. The `router` function is invoked within the template literal `${router(ctx)}` to render the appropriate component based on the current route.
+
+### Styles
+Sure! Here's a simplified example that demonstrates the usage of `makeStyles` with a dynamic style based on a `number` prop:
+
+```javascript
+import { makeStyles, useState, html } from '@eleven-am/pondlive';
+
+const useStyles = makeStyles((number) => ({
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100vh',
+    backgroundColor: number % 2 === 0 ? '#f0f0f0' : '#ffffff',
+  },
+  title: {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    marginBottom: '16px',
+    color: number % 2 === 0 ? '#000000' : '#ff0000',
+  },
+  button: {
+    padding: '8px 16px',
+    borderRadius: '4px',
+    backgroundColor: number % 2 === 0 ? '#0088cc' : '#00cc88',
+    color: '#ffffff',
+    cursor: 'pointer',
+  },
+}));
+
+function MyComponent(ctx) {
+    const [number, setNumber] = useState(ctx, 0);
+    const classes = useStyles(ctx, number);
     
-When the server receives the event that the html has been rendered, the server upgrades the initial socket to a websocket connection and calls the onRendered function.
-This function is called with the socket, router and the component instance. This socket can now at any time send messages to the client.
-Everytime the socket reassigns a value to its context, the component is rendered again and the html is sent to the browser. The browser then renders the new html.
+    return html`
+        <div class="${classes.container}">
+          <h1 class="${classes.title}">Welcome to My Component</h1>
+          <button class="${classes.button}">Click Me</button>
+        </div>
+  `;
+}
+```
 
-###### onEvent
+In this example, the `useStyles` function takes a `number` prop as a parameter and returns an object with dynamically generated CSS classes. The `backgroundColor`, `color`, and `backgroundColor` styles of the `container`, `title`, and `button` classes respectively are conditionally set based on whether the `number` prop is even or odd.
 
-When an event is received from the client, the onEvent function is called. This function is called with the event, socket, router and the component instance.
-The event can be used to update the socket's context, which will cause the component to be rendered again and the html to be sent to the browser.
+When rendering the `MyComponent`, we pass the `number` prop to the `useStyles` function as an argument, and then use the generated classes inside the HTML template as before.
 
-###### onInfo
+This example shows how you can create dynamic styles based on props, allowing you to customize the appearance of your components based on different conditions or inputs.
 
-A component can subscribe to a broadcast channel. A WebSocket can at anytime broadcast a message to a channel. When a message is received on a channel, the onInfo function is called.
-This function is called with the info object from the channel, socket, router and the component instance.
-This can be useful to modify the state of the component based on events from other actors, like a database or another client.
-Remember that any modification to the socket's context will cause the component to be rendered again and the html to be sent to the browser.
+## API
 
-###### onContextChange
+### ServerInfo\<T\>
+The `ServerInfo` class provides a mechanism for managing a shared state object that can be accessed by all users. It offers the following functions:
+- `getState`: Retrieves the current state of the `ServerInfo` object.
+- `setState`: Sets the state of the `ServerInfo` object to a new value.
 
-A component can subscribe to a global context provider that shares a context with all components. When this context is changed, the onContextChange function is called.
-This function is called with the new context, socket, router and the component instance.
+### ServerContext\<T\>
+The `ServerContext` class allows for the management of a state object specific to each user. It provides the following functions:
+- `setState`: Sets the state of the `ServerContext` object for a given user.
+- `getState`: Retrieves the current state of the `ServerContext` object for a specified user.
 
-###### onUnmount
+### Html
+The `Html` class represents an abstraction for generating HTML content within PondLive. It does not have any specific functions but is used in conjunction with other components.
 
-A component may unmount in one of two ways. Either the browser closes the connection, or the user navigates to another route.
-When the component unmounts, the onUnmount function is called. This function is called with the socket, router and the component instance.
-This function can be used to clean up any resources that were created during the mount function.
-This function does not render the component and thus does not send any html to the browser.
+### Router
+The `Router` class is responsible for handling routing within the PondLive framework. It offers the following functions:
+- `addRoute`: Adds a route to the router, specifying the path and component to be rendered.
+- `addStaticRoute`: Adds a directory that should be served statically.
+- `serve`: Activates the router to start serving components. Can accept additional arguments.
+- `serveWithExpress`: Activates the router to start serving components using Express. Requires specifying the entry point and Express app.
 
-###### manageStyles
+### createServerInfo
+The `createServerInfo` function creates a `ServerInfo` object that holds a single state object accessible to all users. It takes the initial state as a parameter.
 
-When the component is rendered, the manageStyles function is called. This function is called with the css function and the component instance.
-A css string is returned from this function and is used to during the render process to add the styles to the html.
-Other complex css libraries can be used to generate css styles as well. Note that the styles generated are scoped to the component.
+### createClientContext
+The `createClientContext` function creates a `ServerContext` object that holds a state object specific to each user. It takes the initial state as a parameter.
 
-#### PondLive Router
+### useServerInfo
+The `useServerInfo` hook is used to retrieve the current state of the `ServerInfo` or `ServerContext` object and provides a function to update the state. It takes the `LiveContext` and the `ServerInfo` or `ServerContext` object as parameters.
 
-The router is passed through the mount, onEvent, onInfo, onUnmount and render functions.
-With the router you can navigate to other components, change the pageTitle and display a flash message
+### useState
+The `useState` hook is used to manage the state of a component. It returns the current state value and a function to update the state. The `LiveContext` and the initial state value are required parameters.
 
-```js
-    router.navigateTo('/counter');
-    router.replace('/counter');
+### makeStyles
+The `makeStyles` function is used to generate CSS styles for a component based on a provided CSS class object or generator. It returns a hook that provides the styles as an object. Accepts either a CSS class object or a CSS generator as a parameter.
+
+### useAction
+The `useAction` hook generates actions for a component when an event is triggered. It returns the result of the action. It requires the `LiveContext`, initial state, and a set of actions as parameters.
+
+### useRouter
+The `useRouter` hook is used to create a router for an application. It accepts an array of route objects and returns the appropriate route component to render based on the current URL path.
+
+### html
+The `html` function is
+
+used to generate HTML content within PondLive. It takes a `TemplateStringsArray` and dynamic values as parameters and returns an `Html` object representing the HTML content.
+
+## LiveContext
+
+### Mount
+When a user accesses a route, the component is mounted and the `mount` function is invoked. The `mount` function is responsible for rendering the component and returning the HTML content to the browser. Certain actions can be performed during the mount phase, such as setting the initial state of the component.
+
+```javascript
+import { useState, html } from '@eleven-am/pondlive';
+
+function Greeter (ctx) {
+    const [name, setName, setOnServer] = useState(ctx, 'World');
     
-    router.pageTitle = 'Counter';
-    router.flashMessage = 'Hello World';
-```
-
-#### PondLive Socket (LiveSocket)
-
-The socket holds the state of the current user on this component. The socket is passed through during every lifecycle function.
-You can assign new values to the socket thus re-rendering the component and sending the new html to the browser.
-
-```js
-    socket.assign({
-        count: 0
-    });
-```
-A socket can also emit events that can be listened to on the window object.
-Note that this is only available if the socket is a websocket.
-
-```js
-    socket.emit('increment', { count: 1 });
-```
-
-```js
-    window.addEventListener('increment', () => {
-        // do something
-    });
-```
-
-To check if the socket is a websocket, you can use the isWebSocket function.
-
-```js
-    if (socket.isWebsocket) {
-        // do something
-    }
-```
-
-#### PondLive Contexts 
-
-###### Global Context
-There are two types of contexts. A global context and a local context. The global context is shared between all components under that provider.
-This context can be used to share information between components like the current user or the current language.
-
-```js
-    import { createContext } from 'pondlive';    
-
-    const [consumer, provider] = createContext({ username: 'John Doe' });
-```
-
-The provider is then passed to a component. Every component in this tree can at any time access the context.
-This means the provider should be passed to only the root component of the tree or at least to the root of all components that need access to the context.
-
-```js
-    const Counter = LiveFactory({   
-        providers: [provider],
-    
-        mount(params, socket, router) {
-            // do something
-        },
-    })
-```
-
-Global providers can be passed to the usePondLive function.
-
-```js
-    const app = Pondlive(express());
-    
-    app.usePondLive([{
-        path: '/',
-        component: Counter
-    }], {
-        providers: [provider]
-    });
-    
-    app.listen(3000);
-```
-
-There are two ways to access the context. The first way is to listen to the onContextChange function.
-This function requires that the consumer intercepts the onContextChange function and opens the data from the context.
-
-```js
-    const Counter = LiveFactory({   
-        providers: [provider],
-    
-        onContextChange(context, socket, router) {
-            consumer.handleContextChange(context, data => {
-                // do something with data
-            });
-        },
-    })
-```
-
-The second way is to use the consumer to get the context.
-
-```js
-    const Counter = LiveFactory({   
-        providers: [provider],
-    
-        mount(params, socket, router) {
-            const data = consumer.getContext(socket);
-            // do something with data
-        },
-    })
-```
-
-###### Local Context
-The local context exists only within a component and is managed by the socket itself. This context is used during all lifecycle functions and any modification to the context will cause the component to be rendered again and the html to be sent to the browser.
-
-```js
-    const Counter = LiveFactory({   
-        mount(params, socket, router) {
-            socket.assign({
-                count: 0
-            });
-        },
-    
-        onEvent(event, socket, router) {
-            if (event.type === 'increment') {
-                socket.assign({
-                    count: this.count + 1
-                });
-            }
-        },
-    
-        render(socket, router) {
-            return html`
-                <div>
-                    <button pond-click="increment">Increment</button>
-                    <div>${this.count}</div>
-                </div>
-            `;
-        },
-    })
-```
-
-#### Broadcast Channels
-
-Broadcast channels are a means by which multiple clients communicate with each other. A client can broadcast a message to a channel and any other client that is subscribed to that channel will receive the message.
-Any socket can subscribe to a broadcast channel, but since the messages can be emitted at any time only websockets can actually act on the messages.
-It is thus advised to subscribe to a broadcast channel in the onRendered function.
-
-```js
-    import { BroadcastChannel } from 'pondlive';
-
-    const counterChannel = new BroadcastChannel({
-        count: 0
+    ctx.onMount((req, res) => {
+        const name = req.url.searchParams.get('name') || 'World';
+        setOnServer(req, name);
     });
 
-    const Counter = LiveFactory({   
-        onRendered(socket, router) {
-            counterChannel.subscribe(socket);
-            const count = counterChannel.channelData.count;
-            
-            counterChannel.broadcast({
-                newCount: count + 1 // This will be sent to all clients that are subscribed to this channel
-            });
-            
-            counterChannel.assign({
-                count: count + 1 // The channel assigns are never broadcasted. 
-                // They can be viewed as auxilary data held by the channel
-                // This data can be accessed by all sockets that are subscribed to the channel
-                // broadcastChannel.channelData will return the data
-            });
-        },
-    
-        onInfo(info, socket, router) {
-            counterChannel.handleInfo(info, data => {
-                // do something with data
-                socket.assign({
-                    count: data.newCount
-                });
-            });
-        },
-    
-        render(socket, router) {
-            return html`
-                <div>
-                    <h1> Number of clicks: ${this.count} </h1>
-                </div>
-            `;
-        },
-    })
+    return html`
+        <div>
+            <h1>Hello, ${name}!</h1>
+        </div>
+    `;
+}
 ```
 
-#### PondLive Events
+The `onMount` function can be used for performing actions during the mount phase. In this example, the `onMount` function is used to set the initial state of the component based on the query string parameter `name`. It's assumed that during the mount phase, a call to some data store is made to retrieve the initial state of the component.
 
-PondLive events are a way to communicate between a component and the server. PondLive events are emitted by the client and are handled by the server.
-These events are triggered by most of the classic HTML events like click, change, input, submit, etc. The events are triggered by adding the pond- prefix to the event name.
-When this event fires on the client it will send a message to the server with the event type as the value of the pond- prefix.
+### Upgrades
+When a user finally makes a websocket connection, the component is upgraded, and the `upgrade` function is invoked. The `upgrade` function is useful for making subscriptions to data sources and performing other actions that require a websocket connection.
 
-```js
-    const Counter = LiveFactory({   
-        render(socket, router) {
-            return html`
-                <div>
-                    <button pond-click="increment">Increment</button>
-                    <div>${this.count}</div>
-                </div>
-            `;
-        },
+```javascript
+import { html, createServerInfo, useServerInfo } from '@eleven-am/pondlive';
+
+const info = createServerInfo({ count: 0 });
+
+function Greeter (ctx) {
+    const data = useServerInfo(ctx, info);
     
-        onEvent(event, socket, router) {
-            if (event.type === 'increment') {
-                socket.assign({
-                    count: this.count + 1
-                });
-            }
-        },
-    })
-```
-
-There also some custom events like the pond-upload event. This event can be added to a form and on submit, will send the files to the server.
-The pond-upload event can also be added to an input of type file and will send the file to the server. There are some caveats to this event.
-Because of how PondLive prevents against cross site scripting attacks, the pond-upload event can only work with components that implement both the onUpload and onUploadRequest functions.
-The onUploadRequest function is called when the server receives a pond-upload event. The event contains a list of files with some metadata.
-These request can then be accepted or rejected by the server. If the request is accepted, the files will be sent to the server and the onUpload function will be called.
-
-```js
-    const Counter = LiveFactory({   
-        onUploadRequest(event, socket, router) {
-            event.message.files.forEach(file => {
-                if (file.type === 'image/png') {
-                    file.acceptUpload()
-                } else {
-                    file.declineUpload();
-                }
-            });
-            
-            // All the files can be accepted or declined at once
-            // event.message.authoriseAll();
-            // event.message.sendError('Something went wrong');
-        },
-    
-        onUpload(event, socket, router) {
-            event.files.map(file => {
-                // The files can be moved to a different location or destroyed
-                file.move('/path/to/new/location');
-                // file.destroy(); // this will delete the file
-            });
-        },
-    
-        render(socket, router) {
-            return html`
-                <div>
-                    <form pond-upload>
-                        <input type="file" pond-upload>
-                        <button type="submit">Upload</button>
-                    </form>
-                </div>
-            `;
-        },
-    })
-```
-
-To implement a drag and drop upload system, the pond-drop-upload event can be used. This event listener can be added to any element and will trigger when files are dropped on the element.
-When the event is triggered, the whole process is repeated as earlier.
-
-```js
-    const Counter = LiveFactory({   
-        onUploadRequest(event, socket, router) {
-            event.message.files.forEach(file => {
-                if (file.type === 'image/png') {
-                    file.acceptUpload()
-                } else {
-                    file.declineUpload();
-                }
-            });
-            
-            // All the files can be accepted or declined at once
-            // event.message.authoriseAll();
-            // event.message.sendError('Something went wrong');
-            socket.assign({
-                count: event.message.files.length
-            });
-        },
-    
-        onUpload(event, socket, router) {
-            event.files.map(file => {
-                // The files can be moved to a different location or destroyed
-                file.move('/path/to/new/location');
-                // file.destroy(); // this will delete the file
-            });
-        },
-    
-        render(socket, router) {
-            return html`
-                <div>
-                    <span>${this.count} files selected</span>
-                    <div pond-drop-upload="upload">
-                        Drop files here
-                    </div>
-                </div>
-            `;
-        },
-    })
-```
-
-#### Misc
-
-The entry PondLive function takes in an instance of the express app as the first argument. It returns an extended version of the express app.
-
-```js
-    const app = express();
-    const pond = PondLive(app);
-```
-
-This app introduces two new functions, the usePondLive function and upgrade function.
-Since PondLive is built on top of PondSocket, it also has all the features of PondSocket.
-To take advantage of these features, the upgrade function can be used to add PondSocket middleware to the express app.
-The upgrade function defines a websocket route that client's can connect to. This route provides features like channels, rooms and presence
-
-```js
-    pond.upgrade('/pond', (req, res, endpoint) => {
-        // This function is called when a client connects to the websocket route
-        // The endpoint object contains all the features of PondSocket
-        // The request object is and IncomingConnection object
-        // The response object is defines the action to takt when the client connects
-        // You can either accept, reject, or send a response to the client(this would also accept the connection)
+    ctx.onUpgrade((event) => {
+        // now we have a websocket connection
+        // any time any update is made to the state 
+        // of the info object, the component will be
+        // re-rendered
+        info.setState( info.getState().count + 1 );
     });
+
+    return html`
+        <div>
+            <h1>Hello, ${name}!</h1>
+            <h2> A total of ${data.count} users have visited this page.</h2>
+        </div>
+    `;
+}
 ```
 
-For more information on the upgrade function, check out the [PondSocket documentation](https://github.com/Eleven-am/pondSocket#pondsocket).
+The `onUpgrade` function can be used for performing actions during the upgrade phase. In this example, the `onUpgrade` function is used to subscribe to the `ServerInfo` object. The component will be re-rendered any time the state of the `ServerInfo` object changes.
 
-The usePondLive function is used to add PondLive components to the express app. This function takes an array of Route objects as the first argument.
+### Unmount
+When a user leaves a route, the component is unmounted, and the `unmount` function is invoked. The `unmount` function is useful for performing cleanup actions, such as unsubscribing from data sources.
 
-```js
-    pond.usePondLive([
-        { 
-            path: '/',
-            component: Counter 
-        },
-    ]);
-```
+```javascript
+import { html, createServerInfo, useServerInfo } from '@eleven-am/pondlive';
 
-The Route object contains the path and the component to render when the path is requested.
-Since PondLive supports nested routes, a component can also have its own routes.
+const info = createServerInfo({ count: 0 });
 
-```js
-    const Counter = LiveFactory({   
-        routes: [
-            { 
-                path: '/',
-                component: Counter 
-            },
-        ],
+function Greeter (ctx) {
+    const data = useServerInfo(ctx, info);
     
-        render(renderRoutes) {
-            return html`
-                <div>
-                    <h1> Number of clicks: ${this.count} </h1>
-                    ${renderRoutes() /* This will render the nested routes*/ }
-                </div>
-            `;
-        },
-    })
+    ctx.onUpgrade((event) => {
+        // now we have a websocket connection
+        // any time any update is made to the state 
+        // of the info object, the component will be
+        // re-rendered
+        info.setState( info.getState().count + 1 );
+    });
+    
+    ctx.onUnmount((event) => {
+        // we are leaving the route
+        info.setState( info.getState().count - 1 );
+    });
+
+    return html`
+        <div>
+            <h1>Hello, ${name}!</h1>
+            <h2> Active users: ${data.count}</h2>
+        </div>
+    `;
+}
 ```
 
-There are obviously many more features that are available in PondLive. For more information, use the IDE suggestions or check out the documentation.
+The `onUnmount` function can be used for performing actions during the unmount phase. In this example , the `onUnmount` function is used to decrement the count of active users when the component is unmounted. This ensures that the count is accurate even when users navigate away from the route.
 
-#### Examples
-* Todo App [Github](https://github.com/Eleven-am/PondLiveTodo) - [liveDemo](https://todo.tutorial.maix.ovh)
-* Spotify Widget (PondLive) [Github](https://github.com/Eleven-am/SpotifyWidget) - [liveDemo](https://spotify.tutorial.maix.ovh)

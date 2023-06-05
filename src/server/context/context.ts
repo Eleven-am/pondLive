@@ -2,13 +2,26 @@ import type { Client, JoinResponse } from '@eleven-am/pondsocket/types';
 
 import { Route } from './liveContext';
 import { Manager } from './manager';
-import { PondLiveHeaders, PondLiveActions } from '../../client/routing/router';
 import { isEmpty, sortBy, uuidV4 } from '../helpers/helpers';
 import { Html } from '../parser/parser';
 import { Request } from '../wrappers/request';
 import { Response } from '../wrappers/response';
 import { ServerEvent } from '../wrappers/serverEvent';
 
+
+export enum PondLiveHeaders {
+    LIVE_USER_ID = 'x-pond-live-user-id',
+    LIVE_ROUTER = 'x-pond-live-router',
+    LIVE_PAGE_TITLE = 'x-pond-live-page-title',
+    LIVE_ROUTER_ACTION = 'x-pond-live-router-action',
+}
+
+export enum PondLiveActions {
+    LIVE_ROUTER_NAVIGATE = 'navigate',
+    LIVE_ROUTER_UPDATE = 'update',
+    LIVE_ROUTER_REDIRECT = 'redirect',
+    LIVE_ROUTER_RELOAD = 'reload',
+}
 
 interface ClientData {
     address: string;

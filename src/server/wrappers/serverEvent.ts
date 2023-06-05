@@ -1,7 +1,6 @@
 import type { Client } from '@eleven-am/pondsocket/types';
 
 import { PondUploadResponse } from '../../client/actors/uploader';
-import { PondLiveHeaders, PondLiveActions } from '../../client/routing/router';
 import { LiveEvent, DragData, PondFile, UploadList, FileMetaData } from '../../client/types';
 import { Context, UpdateData } from '../context/context';
 import { parseAddress } from '../matcher/matcher';
@@ -11,6 +10,20 @@ interface PondEvent {
     dataId: string | null;
     dragData?: DragData;
     formData?: Record<string, string>;
+}
+
+export enum PondLiveHeaders {
+    LIVE_USER_ID = 'x-pond-live-user-id',
+    LIVE_ROUTER = 'x-pond-live-router',
+    LIVE_PAGE_TITLE = 'x-pond-live-page-title',
+    LIVE_ROUTER_ACTION = 'x-pond-live-router-action',
+}
+
+export enum PondLiveActions {
+    LIVE_ROUTER_NAVIGATE = 'navigate',
+    LIVE_ROUTER_UPDATE = 'update',
+    LIVE_ROUTER_REDIRECT = 'redirect',
+    LIVE_ROUTER_RELOAD = 'reload',
 }
 
 interface UploadEvent extends FileMetaData {

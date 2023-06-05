@@ -6,7 +6,7 @@ import { Context, UpdateData } from './context';
 import { Component, LiveContext } from './liveContext';
 import { getMimeType } from './router';
 import { PondLiveHeaders } from '../../client/routing/router';
-import { uuidV4, deepCompare } from '../helpers/helpers';
+import { uuidV4, deepCompare, fileExists } from '../helpers/helpers';
 import { NextFunction } from '../middleware/middleware';
 import { html } from '../parser/parser';
 import { Request } from '../wrappers/request';
@@ -257,7 +257,7 @@ export class Manager {
         fn(event);
     }
 
-    handleHttpRequest (req: IncomingMessage, res: ServerResponse, next: NextFunction, publicDir: string) {
+    handleHttpRequest (req: IncomingMessage, res: ServerResponse, next: NextFunction, publicDir: string[]) {
         const route = this.#routes.find((route) => route.match(req.url ?? ''));
 
         if (!route) {
@@ -288,7 +288,7 @@ export class Manager {
         return new LiveContext(userId, address, this.#context, this);
     }
 
-    async #handleFirstHttpRequest (req: Request, res: Response, publicDir: string) {
+    async #handleFirstHttpRequest (req: Request, res: Response, publicDir: string[]) {
         await this.#context.mountUser(req, res);
         const html = this.render(req.url.pathname, req.userId);
 
@@ -303,10 +303,41 @@ export class Manager {
                 </script>
             `;
 
-        this.#serveFile(path.join(publicDir, 'index.html'), res.response, (data) => data
-            .replace('{{html}}', html.toString().trim())
-            .replace('{{title}}', title as string)
-            .replace('{{store}}', store));
+        const promises = publicDir.map((dir) => fileExists(path.join(dir, 'index.html')));
+        const folder = (await Promise.all(promises))
+            .map((exists, index) => ({
+                exists,
+                folder: publicDir[index],
+            }))
+            .find((folder) => folder.exists)?.folder;
+
+        if (!folder) {
+            const index = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${title}</title>
+                    ${store}
+                </head>
+                <body>
+                    <div id="app">${html.toString()
+        .trim()}</div>
+                    <script src="/pondLive.js" defer></script>
+                </body>
+                </html>
+            `.trim();
+
+            res.html(index);
+
+            return;
+        }
+
+        this.#serveFile(path.join(folder, 'index.html'), res.response, (data) => data
+            .replace(/<head>/, `<head>${store}`)
+            .replace(/<body>/, `<body><div id="app">${html.toString()
+                .trim()}</div><script src="/pondLive.js" defer></script>`)
+            .replace(/<title>(.*?)<\/title>/, `<title>${title}</title>`));
     }
 
     async #handleSubsequentHttpRequest (req: Request, res: Response, next: NextFunction) {
