@@ -4,6 +4,7 @@ import type { Channel } from '@eleven-am/pondsocket/types';
 
 import { UpdateData } from '../../server/context/context';
 import { Html } from '../../server/parser/parser';
+import { emitEvent } from '../events/eventEmmiter';
 import { updateTheDom } from '../html/clone';
 import { DomWatcher } from '../html/domWatcher';
 
@@ -95,8 +96,11 @@ export class ClientRouter {
             const target = anchor as HTMLAnchorElement;
             const url = target.href;
 
+            emitEvent('navigate-start', { url });
+
             await this.navigateTo(url);
             history.pushState(null, '', url);
+            emitEvent('navigate-end', { url });
         });
     }
 

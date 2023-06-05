@@ -1,5 +1,6 @@
 import { initPondActors } from './actors/pondActors';
 import { initEventListeners } from './events';
+import { emitEvent } from './events/eventEmmiter';
 import { DomWatcher } from './html/domWatcher';
 import { ClientRouter } from './routing/router';
 
@@ -15,4 +16,8 @@ window.onload = () => {
 
     initPondActors(domWatcher);
     initEventListeners(router.channel, domWatcher, userId);
+    emitEvent('pond-ready', {
+        userId,
+        router,
+    });
 };
