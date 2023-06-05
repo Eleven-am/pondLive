@@ -1,15 +1,21 @@
 import { LiveContext } from '../context/liveContext';
+import { Request } from '../wrappers/request';
+import { ServerEvent } from '../wrappers/serverEvent';
+
+type HookContext = LiveContext | ServerEvent | Request;
 
 interface ServerInfo<T> {
     getState: () => T;
     setState: (newState: T) => void;
+    assign: (newState: Partial<T>) => void;
     subscribe: (userId: string, callback: (userId: string, newState: T) => void) => void;
 }
 
-interface ServerContext<T> extends Omit<ServerInfo<T>, 'setState' | 'getState'> {
-    setState: (newState: T, userId: string) => void;
-    getState: (userId: string) => T;
-    destroy: (userId: string) => void;
+interface ServerContext<T> extends Omit<ServerInfo<T>, 'setState' | 'getState' | 'assign'> {
+    setState: (context: HookContext, newState: T) => void;
+    getState: (context: HookContext) => T;
+    destroy: (context: HookContext) => void;
+    assign: (context: HookContext, newState: Partial<T>) => void;
 }
 
 export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
@@ -28,6 +34,16 @@ export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
         subscribe: (userId, callback) => {
             subscribers[userId] = callback;
         },
+        assign: (newState) => {
+            state = {
+                ...state,
+                ...newState,
+            };
+
+            Object.keys(subscribers).forEach((userId) => {
+                subscribers[userId](userId, state);
+            });
+        },
     };
 };
 
@@ -36,27 +52,42 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
     const subscribers: Record<string, (userId: string, newState: any) => void> = {};
 
     return {
-        getState: (userId) => {
-            if (!state.has(userId)) {
-                state.set(userId, initialState);
+        getState: (context) => {
+            if (!state.has(context.userId)) {
+                state.set(context.userId, initialState);
             }
 
-            return state.get(userId) as T;
+            return state.get(context.userId) as T;
         },
-        setState: (newState, userId) => {
-            state.set(userId, newState);
+        setState: (context, newState) => {
+            state.set(context.userId, newState);
 
-            const callback = subscribers[userId];
+            const callback = subscribers[context.userId];
 
             if (callback) {
-                return callback(userId, newState);
+                return callback(context.userId, newState);
             }
         },
         subscribe: (userId, callback) => {
             subscribers[userId] = callback;
         },
-        destroy: (userId) => {
-            state.delete(userId);
+        destroy: (context) => {
+            state.delete(context.userId);
+            delete subscribers[context.userId];
+        },
+        assign: (context, newState) => {
+            const currentState = state.get(context.userId) as T;
+
+            state.set(context.userId, {
+                ...currentState,
+                ...newState,
+            });
+
+            const callback = subscribers[context.userId];
+
+            if (callback) {
+                return callback(context.userId, state.get(context.userId) as T);
+            }
         },
     };
 };

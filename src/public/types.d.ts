@@ -38,6 +38,7 @@ export type CSSGenerator = (props: any) => CSSClasses;
 export type Action<T> = Record<string, (event: ServerEvent, prev: T) => T | Promise<T>>;
 export type RunAction<T> = (event: keyof T) => string;
 export type CreatedAction<T, A extends Action<T>> = [T, RunAction<A>];
+export type HookContext = LiveContext | ServerEvent | Request;
 
 interface CookieOptions {
     domain?: string;
@@ -178,35 +179,49 @@ export declare class LiveContext {
 
 export declare class ServerInfo<T> {
     /**
-     * Get the current state of the serverInfo object
-     */
-    getState: () => T;
-
-    /**
      * Set the state of the serverInfo object
      * @param newState - The new state to set
      */
-    setState: (newState: T) => void;
+    setState(newState: T): void;
+
+    /**
+     * Assign a new state to the serverInfo object
+     * @param newState - The new state to assign
+     */
+    assign (newState: Partial<T>): void;
+
+    /**
+     * Get the current state of the serverInfo object
+     */
+    getState (): T;
 }
 
 export declare class ServerContext<T> {
     /**
      * Set the state of the serverContext object
+     * @param context - The context of the hook
      * @param newState - The new state to set
-     * @param userId - The id of the user to set the state for
      */
-    setState: (newState: T, userId: string) => void;
+    setState (context: HookContext, newState: T): void;
 
     /**
      * Get the current state of the serverContext object
-     * @param userId - The id of the user to get the state for
+     * @param context - The context of the hook
      */
-    getState: (userId: string) => T;
+    getState (context: HookContext): T;
 
     /**
      * Destroy the serverContext object for a user
+     * @param context - The context of the hook
      */
-    destroy: (userId: string) => void;
+    destroy (context: HookContext): void;
+
+    /**
+     * Assign a new state to the serverContext object
+     * @param context - The context of the hook
+     * @param newState - The new state to assign
+     */
+    assign (context: HookContext, newState: Partial<T>): void;
 }
 
 export class Html {}
