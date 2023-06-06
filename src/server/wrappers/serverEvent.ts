@@ -1,29 +1,17 @@
 import type { Client } from '@eleven-am/pondsocket/types';
 
+import { CookieOptions } from './response';
 import { PondUploadResponse } from '../../client/actors/uploader';
 import { LiveEvent, DragData, PondFile, UploadList, FileMetaData } from '../../client/types';
-import { Context, UpdateData } from '../context/context';
+import { Context, UpdateData, PondLiveHeaders, PondLiveActions } from '../context/context';
 import { parseAddress } from '../matcher/matcher';
+
 
 interface PondEvent {
     value: string | null;
     dataId: string | null;
     dragData?: DragData;
     formData?: Record<string, string>;
-}
-
-export enum PondLiveHeaders {
-    LIVE_USER_ID = 'x-pond-live-user-id',
-    LIVE_ROUTER = 'x-pond-live-router',
-    LIVE_PAGE_TITLE = 'x-pond-live-page-title',
-    LIVE_ROUTER_ACTION = 'x-pond-live-router-action',
-}
-
-export enum PondLiveActions {
-    LIVE_ROUTER_NAVIGATE = 'navigate',
-    LIVE_ROUTER_UPDATE = 'update',
-    LIVE_ROUTER_REDIRECT = 'redirect',
-    LIVE_ROUTER_RELOAD = 'reload',
 }
 
 interface UploadEvent extends FileMetaData {
@@ -103,7 +91,10 @@ export class ServerEvent {
             return;
         }
 
-        this.#client.broadcastMessage(event, data);
+        this.#client.broadcastMessage('live-event', {
+            event,
+            data,
+        });
     }
 
     matches (path: string): boolean {
@@ -114,6 +105,23 @@ export class ServerEvent {
         this.#sendMessage({
             [PondLiveHeaders.LIVE_ROUTER_ACTION]: PondLiveActions.LIVE_ROUTER_NAVIGATE,
             address: path,
+            diff: null,
+        });
+    }
+
+    setCookie (name: string, value: string, options?: CookieOptions) {
+        const path = this.#context.addCookiePath(name, value, options);
+
+        this.#sendMessage({
+            diff: null,
+            address: path,
+            [PondLiveHeaders.LIVE_ROUTER_ACTION]: PondLiveActions.LIVE_ROUTER_GET_COOKIE,
+        });
+    }
+
+    setPageTitle (title: string) {
+        this.#sendMessage({
+            [PondLiveHeaders.LIVE_PAGE_TITLE]: title,
             diff: null,
         });
     }

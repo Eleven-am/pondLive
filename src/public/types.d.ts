@@ -99,6 +99,20 @@ export declare class ServerEvent {
      * @param path - The path to navigate to
      */
     navigateTo(path: string): void;
+
+    /**
+     * Set a cookie on the client
+     * @param name - The name of the cookie
+     * @param value - The value of the cookie
+     * @param options - The options of the cookie
+     */
+    setCookie(name: string, value: string, options?: CookieOptions): void;
+
+    /**
+     * Set the page title of the current page
+     * @param title - The title of the page
+     */
+    setPageTitle(title: string): void;
 }
 
 export declare class Request {

@@ -64,7 +64,6 @@ export class Router {
         this.#directories = [];
 
         this.#addUploadRoute();
-        this.addStaticRoute(serverDir);
     }
 
     mount (path: string, component: Component) {
@@ -82,11 +81,13 @@ export class Router {
                 return next();
             }
 
-            await manager.handleHttpRequest(req, res, next, [...this.#directories, serverDir]);
+            await manager.handleHttpRequest(req, res, next, [...this.#directories]);
         });
     }
 
     execute () {
+        this.addStaticRoute(serverDir);
+
         return async (req: IncomingMessage, res: ServerResponse) => {
             await this.#middleware.run(req, res, () => {
                 res.statusCode = 404;
@@ -100,15 +101,8 @@ export class Router {
         this.#middleware.use(async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
             const filePath = path.join(dir, req.url!);
 
-            if (!path.extname(filePath)) {
-                return next();
-            }
-
             if (!await fileExists(filePath)) {
-                res.statusCode = 404;
-                res.end('Not found');
-
-                return;
+                return next();
             }
 
             const fileStream = fs.createReadStream(filePath);
@@ -136,6 +130,8 @@ export class Router {
 
     serveWithExpress (entryPoint: string, app: Express) {
         const liveApp = ponSocketExpress(app);
+
+        this.addStaticRoute(serverDir);
 
         liveApp.use(entryPoint, (req, res, next) => {
             const request = req as unknown as IncomingMessage;

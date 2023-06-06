@@ -1,22 +1,54 @@
 import { OutgoingHttpHeaders, ServerResponse } from 'http';
 
-export enum PondLiveHeaders {
-    LIVE_USER_ID = 'x-pond-live-user-id',
-    LIVE_ROUTER = 'x-pond-live-router',
-    LIVE_PAGE_TITLE = 'x-pond-live-page-title',
-    LIVE_ROUTER_ACTION = 'x-pond-live-router-action',
-}
+import { PondLiveHeaders } from '../context/context';
 
-interface CookieOptions {
+export interface CookieOptions {
     domain?: string;
     expires?: Date;
     httpOnly?: boolean;
     maxAge?: number;
     path?: string;
-    sameSite?: boolean | 'lax' | 'strict' | 'none';
+    sameSite?: | 'lax' | 'strict' | 'none';
     secure?: boolean;
     signed?: boolean;
 }
+
+export function createSetCookieHeader (name: string, value: string, options?: CookieOptions): string {
+    const cookieParts = [`${encodeURIComponent(name)}=${encodeURIComponent(value)}`];
+
+    if (options) {
+        if (options.expires instanceof Date) {
+            cookieParts.push(`Expires=${options.expires.toUTCString()}`);
+        }
+
+        if (options.maxAge && Number.isInteger(options.maxAge)) {
+            cookieParts.push(`Max-Age=${options.maxAge}`);
+        }
+
+        if (options.domain) {
+            cookieParts.push(`Domain=${options.domain}`);
+        }
+
+        if (options.path) {
+            cookieParts.push(`Path=${options.path}`);
+        }
+
+        if (options.secure === true) {
+            cookieParts.push('Secure');
+        }
+
+        if (options.httpOnly === true) {
+            cookieParts.push('HttpOnly');
+        }
+
+        if (options.sameSite && ['strict', 'lax', 'none'].includes(options.sameSite.toLowerCase())) {
+            cookieParts.push(`SameSite=${options.sameSite.toLowerCase()}`);
+        }
+    }
+
+    return `${cookieParts.join('; ')}`;
+}
+
 
 export class Response {
     readonly #response: ServerResponse;
@@ -55,41 +87,7 @@ export class Response {
     }
 
     setCookie (name: string, value: string, options?: CookieOptions): Response {
-        this.setHeader('set-cookie', `${name}=${value}`);
-
-        if (options) {
-            if (options.domain) {
-                this.setHeader('set-cookie', `Domain=${options.domain}`);
-            }
-
-            if (options.expires) {
-                this.setHeader('set-cookie', `Expires=${options.expires}`);
-            }
-
-            if (options.httpOnly) {
-                this.setHeader('set-cookie', `HttpOnly=${options.httpOnly}`);
-            }
-
-            if (options.maxAge) {
-                this.setHeader('set-cookie', `Max-Age=${options.maxAge}`);
-            }
-
-            if (options.path) {
-                this.setHeader('set-cookie', `Path=${options.path}`);
-            }
-
-            if (options.sameSite) {
-                this.setHeader('set-cookie', `SameSite=${options.sameSite}`);
-            }
-
-            if (options.secure) {
-                this.setHeader('set-cookie', `Secure=${options.secure}`);
-            }
-
-            if (options.signed) {
-                this.setHeader('set-cookie', `Signed=${options.signed}`);
-            }
-        }
+        this.setHeader('set-cookie', createSetCookieHeader(name, value, options));
 
         return this;
     }

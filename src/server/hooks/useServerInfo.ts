@@ -92,14 +92,14 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
     };
 };
 
-export function useServerInfo <T> (context: LiveContext, serverInfo: ServerInfo<T>) {
+export function useServerInfo <T> (context: LiveContext, serverInfo: ServerInfo<T> | ServerContext<T>): T {
     const { getState, subscribe } = serverInfo;
 
     if (!context.isBuilt) {
-        return getState();
+        return getState(context);
     }
 
     subscribe(context.userId, () => context.reload());
 
-    return getState();
+    return getState(context);
 }

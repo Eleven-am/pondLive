@@ -18,9 +18,10 @@ export enum PondLiveHeaders {
 export enum PondLiveActions {
     LIVE_ROUTER_NAVIGATE = 'navigate',
     LIVE_ROUTER_UPDATE = 'update',
-    LIVE_ROUTER_REDIRECT = 'redirect',
     LIVE_ROUTER_RELOAD = 'reload',
+    LIVE_ROUTER_GET_COOKIE = 'get-cookie',
 }
+
 
 export class ClientRouter {
     readonly #userId: string;
@@ -59,13 +60,12 @@ export class ClientRouter {
         return router;
     }
 
-    async navigateTo (url: string) {
+    async navigateTo (url: string, page = true) {
         const headers = {
             'Content-Type': 'application/json',
             Accept: 'application/json',
             [PondLiveHeaders.LIVE_ROUTER]: 'true',
             [PondLiveHeaders.LIVE_USER_ID]: this.#userId,
-            // TODO add x-csrf-token header
         };
 
         const response = await fetch(url, {
@@ -75,12 +75,14 @@ export class ClientRouter {
             credentials: 'same-origin',
         });
 
-        try {
-            const message: UpdateData = await response.json();
+        if (page) {
+            try {
+                const message: UpdateData = await response.json();
 
-            this.#updateDom(message);
-        } catch (e) {
-            console.error(e);
+                this.#updateDom(message);
+            } catch (e) {
+                console.error(e);
+            }
         }
     }
 
@@ -88,6 +90,10 @@ export class ClientRouter {
         this.#channel.onMessage((event, message) => {
             if (event === 'update') {
                 this.#updateDom(message as UpdateData);
+            } else if (event === 'live-event') {
+                const { event: eventName, data } = message as { event: string, data: any };
+
+                emitEvent(eventName, data);
             }
         });
 
@@ -114,19 +120,19 @@ export class ClientRouter {
             document.title = message[PondLiveHeaders.LIVE_PAGE_TITLE];
         }
 
-        if (message[PondLiveHeaders.LIVE_ROUTER_ACTION]) {
+        if (message[PondLiveHeaders.LIVE_ROUTER_ACTION] && message.address) {
             switch (message[PondLiveHeaders.LIVE_ROUTER_ACTION]) {
                 case PondLiveActions.LIVE_ROUTER_RELOAD:
                     window.location.reload();
                     break;
-                case PondLiveActions.LIVE_ROUTER_REDIRECT:
-                    // TODO
+                case PondLiveActions.LIVE_ROUTER_GET_COOKIE:
+                    this.navigateTo(message.address, false);
                     break;
                 case PondLiveActions.LIVE_ROUTER_UPDATE:
                     // TODO
                     break;
                 case PondLiveActions.LIVE_ROUTER_NAVIGATE:
-                    // TODO
+                    this.navigateTo(message.address);
                     break;
                 default:
                     break;

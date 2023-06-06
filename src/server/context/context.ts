@@ -5,7 +5,7 @@ import { Manager } from './manager';
 import { isEmpty, sortBy, uuidV4 } from '../helpers/helpers';
 import { Html } from '../parser/parser';
 import { Request } from '../wrappers/request';
-import { Response } from '../wrappers/response';
+import { Response, CookieOptions, createSetCookieHeader } from '../wrappers/response';
 import { ServerEvent } from '../wrappers/serverEvent';
 
 
@@ -19,8 +19,8 @@ export enum PondLiveHeaders {
 export enum PondLiveActions {
     LIVE_ROUTER_NAVIGATE = 'navigate',
     LIVE_ROUTER_UPDATE = 'update',
-    LIVE_ROUTER_REDIRECT = 'redirect',
     LIVE_ROUTER_RELOAD = 'reload',
+    LIVE_ROUTER_GET_COOKIE = 'get-cookie',
 }
 
 interface ClientData {
@@ -45,12 +45,12 @@ export class Context {
 
     #upgrading: Map<string, Html>;
 
-    #uploadRoutes: Map<string, string>;
+    #dynamicRoutes: Map<string, string>;
 
     constructor () {
         this.#clients = new Map();
         this.#upgrading = new Map();
-        this.#uploadRoutes = new Map();
+        this.#dynamicRoutes = new Map();
         this.#entryManagers = [];
         this.#managers = [];
     }
@@ -208,15 +208,27 @@ export class Context {
         const uploadPath = uuidV4();
         const pathWithToken = `/upload/${uploadPath}`;
 
-        this.#uploadRoutes.set(pathWithToken, moveTo);
+        this.#dynamicRoutes.set(pathWithToken, moveTo);
+
+        return pathWithToken;
+    }
+
+    addCookiePath (name: string, value: string, options: CookieOptions = {}): string {
+        const cookieHeader = {
+            'Set-Cookie': createSetCookieHeader(name, value, options),
+        };
+
+        const pathWithToken = `/cookie/${uuidV4()}`;
+
+        this.#dynamicRoutes.set(pathWithToken, JSON.stringify(cookieHeader));
 
         return pathWithToken;
     }
 
     getUploadPath (uploadPath: string): string | undefined {
-        const data = this.#uploadRoutes.get(uploadPath);
+        const data = this.#dynamicRoutes.get(uploadPath);
 
-        this.#uploadRoutes.delete(uploadPath);
+        this.#dynamicRoutes.delete(uploadPath);
 
         return data;
     }
