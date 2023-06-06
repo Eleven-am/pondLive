@@ -36,7 +36,7 @@ export type CreatedState<T> = [T, SetState<T>, SetOnServer<T>];
 export type CSSProperties = Record<string, string | number>;
 export type CSSClasses = Record<string, CSSProperties>;
 export type CSSGenerator = (props: any) => CSSClasses;
-export type Action<T> = Record<string, (event: ServerEvent, prev: T) => T | Promise<T>>;
+export type Action<T> = Record<string, (event: ServerEvent, prev: T) => T | void | Promise<T> | Promise<void>>;
 export type RunAction<T> = (event: keyof T) => string;
 export type CreatedAction<T, A extends Action<T>> = [T, RunAction<A>];
 

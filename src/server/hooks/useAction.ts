@@ -1,7 +1,7 @@
 import { LiveContext } from '../context/liveContext';
 import { ServerEvent } from '../wrappers/serverEvent';
 
-type Action<T> = Record<string, (event: ServerEvent, prev: T) => T | Promise<T>>;
+type Action<T> = Record<string, (event: ServerEvent, prev: T) => T | void | Promise<T> | Promise<void>>;
 type RunAction<T> = (event: keyof T) => string;
 type CreatedAction<T, A extends Action<T>> = [T, RunAction<A>]
 
@@ -18,7 +18,9 @@ export function useAction<T, A extends Action<T>> (context: LiveContext, initial
 
         const newState = await action(event, state);
 
-        setState(newState, event.userId);
+        if (newState) {
+            setState(newState, event.userId);
+        }
     }
 
     const runAction = (type: keyof A) => addDispatcher(type, (event) => performAction(type, event));
