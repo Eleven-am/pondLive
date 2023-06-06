@@ -102,13 +102,17 @@ export class LiveContext {
         return manager;
     }
 
-    fromRoute (route: Route) {
-        const absolutePath = `${this.#manager.path}${route.path}`.replace(/\/+/g, '/');
-
-        return this.#context.fromPath(absolutePath, this.#userId);
+    fromManager (manager: Manager) {
+        return this.#context.fromPath(manager.path, this.#userId);
     }
 
     addStyle (css: Html) {
         this.#styles = [...this.#styles, css];
+    }
+
+    getManager (path: string) {
+        const absolutePath = `${this.#manager.path}${path}`.replace(/\/+/g, '/');
+
+        return this.#context.getManager(absolutePath);
     }
 }

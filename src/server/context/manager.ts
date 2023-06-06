@@ -6,6 +6,7 @@ import { Context, UpdateData, PondLiveHeaders } from './context';
 import { Component, LiveContext } from './liveContext';
 import { getMimeType } from './router';
 import { uuidV4, deepCompare, fileExists } from '../helpers/helpers';
+import { parseAddress } from '../matcher/matcher';
 import { NextFunction } from '../middleware/middleware';
 import { html } from '../parser/parser';
 import { Request } from '../wrappers/request';
@@ -120,12 +121,18 @@ export class Manager {
             throw new Error('Cannot mount component before the building phase');
         }
 
+        if (res.finished) {
+            return;
+        }
+
         if (this.#mountedUsers.has(req.userId)) {
             return;
         }
 
         this.#mountedUsers.add(req.userId);
-        this.#mountFunctions.forEach((fn) => fn(req, res));
+        const promises = this.#mountFunctions.map((fn) => fn(req, res));
+
+        return Promise.all(promises);
     }
 
     upgrade (event: ServerEvent) {
@@ -241,7 +248,9 @@ export class Manager {
         const routes = liveContext.routes;
         const styles = liveContext.styles;
 
-        this.#routes = [...new Set([...this.#routes, ...routes, this.#absolutePath])];
+        if (!this.#isBuilt) {
+            this.#routes = [...new Set([...this.#routes, ...routes, this.#absolutePath])];
+        }
 
         return html`${styles}${htmlData}`;
     }
@@ -257,9 +266,7 @@ export class Manager {
     }
 
     handleHttpRequest (req: IncomingMessage, res: ServerResponse, next: NextFunction, publicDir: string[]) {
-        const route = this.#routes.find((route) => route.match(req.url ?? ''));
-
-        if (!route) {
+        if (!this.canRender(req.url ?? '')) {
             return next();
         }
 
@@ -280,7 +287,11 @@ export class Manager {
     }
 
     canRender (address: string) {
-        return this.#routes.some((route) => route.match(address));
+        if (!this.#isBuilt) {
+            throw new Error('Cannot check if component can render before the building phase');
+        }
+
+        return this.#routes.some((route) => Boolean(parseAddress(route, address)));
     }
 
     createContext (address: string, userId: string) {

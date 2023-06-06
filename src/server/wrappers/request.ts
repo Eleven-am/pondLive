@@ -1,7 +1,5 @@
 import { IncomingHttpHeaders, IncomingMessage } from 'http';
 
-import { parseAddress } from '../matcher/matcher';
-
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 export class Request {
@@ -57,10 +55,6 @@ export class Request {
         request.#cookies = Object.fromEntries(cookies.map((cookie) => cookie.split('=')));
 
         return request;
-    }
-
-    matches (path: string): boolean {
-        return Boolean(parseAddress(`${path}/*`.replace(/\/+/g, '/'), this.#path.pathname));
     }
 }
 

@@ -113,7 +113,7 @@ export class Context {
     }
 
     mountUser (req: Request, res: Response) {
-        const managersToMount = this.#managers.filter((manager) => req.matches(manager.path));
+        const managersToMount = this.#managers.filter((manager) => manager.canRender(req.url.pathname));
         const promises = managersToMount.map((manager) => manager.mount(req, res));
 
         return Promise.all(promises);
@@ -214,22 +214,38 @@ export class Context {
     }
 
     addCookiePath (name: string, value: string, options: CookieOptions = {}): string {
-        const cookieHeader = {
-            'Set-Cookie': createSetCookieHeader(name, value, options),
-        };
-
         const pathWithToken = `/cookie/${uuidV4()}`;
 
-        this.#dynamicRoutes.set(pathWithToken, JSON.stringify(cookieHeader));
+        this.#dynamicRoutes.set(pathWithToken, createSetCookieHeader(name, value, options));
 
         return pathWithToken;
     }
 
     getUploadPath (uploadPath: string): string | undefined {
+        if (!uploadPath.startsWith('/upload/')) {
+            return;
+        }
+
         const data = this.#dynamicRoutes.get(uploadPath);
 
         this.#dynamicRoutes.delete(uploadPath);
 
         return data;
+    }
+
+    getCookiePath (cookiePath: string): string | undefined {
+        if (!cookiePath.startsWith('/cookie/')) {
+            return;
+        }
+
+        const data = this.#dynamicRoutes.get(cookiePath);
+
+        this.#dynamicRoutes.delete(cookiePath);
+
+        return data;
+    }
+
+    getManager (path: string) {
+        return this.#managers.find((manager) => manager.path === path);
     }
 }

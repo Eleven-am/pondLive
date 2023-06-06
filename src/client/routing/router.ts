@@ -15,7 +15,7 @@ export enum PondLiveHeaders {
     LIVE_ROUTER_ACTION = 'x-pond-live-router-action',
 }
 
-export enum PondLiveActions {
+enum PondLiveActions {
     LIVE_ROUTER_NAVIGATE = 'navigate',
     LIVE_ROUTER_UPDATE = 'update',
     LIVE_ROUTER_RELOAD = 'reload',
@@ -120,19 +120,19 @@ export class ClientRouter {
             document.title = message[PondLiveHeaders.LIVE_PAGE_TITLE];
         }
 
-        if (message[PondLiveHeaders.LIVE_ROUTER_ACTION] && message.address) {
+        if (message[PondLiveHeaders.LIVE_ROUTER_ACTION]) {
             switch (message[PondLiveHeaders.LIVE_ROUTER_ACTION]) {
                 case PondLiveActions.LIVE_ROUTER_RELOAD:
                     window.location.reload();
                     break;
                 case PondLiveActions.LIVE_ROUTER_GET_COOKIE:
-                    this.navigateTo(message.address, false);
+                    this.navigateTo(message.address ?? '', false);
                     break;
                 case PondLiveActions.LIVE_ROUTER_UPDATE:
                     // TODO
                     break;
                 case PondLiveActions.LIVE_ROUTER_NAVIGATE:
-                    this.navigateTo(message.address);
+                    this.navigateTo(message.address ?? '');
                     break;
                 default:
                     break;

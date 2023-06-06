@@ -1,6 +1,4 @@
 import { Route, Component } from '../context/liveContext';
-import { sortBy } from '../helpers/helpers';
-import { parseAddress } from '../matcher/matcher';
 import { html } from '../parser/parser';
 
 export function useRouter (routes: Route[]): Component {
@@ -11,16 +9,15 @@ export function useRouter (routes: Route[]): Component {
             return html``;
         }
 
-        const sortedRoutes = sortBy(routes, 'path', 'desc');
-        const route = sortedRoutes.find((route) => parseAddress(`${context.manager.path}/${route.path}/*`.replace(/\/+/g, '/'), context.address));
+        const manager = routes.map((route) => context.getManager(route.path))
+            .find((manager) => manager?.canRender(context.address));
 
-        if (!route) {
+        if (!manager) {
             return html``;
         }
 
-        const newContext = context.fromRoute(route);
-
-        const data = route.component(newContext);
+        const newContext = context.fromManager(manager);
+        const data = manager.component(newContext);
 
         newContext.styles.forEach((style) => context.addStyle(style));
 

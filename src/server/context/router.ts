@@ -63,7 +63,7 @@ export class Router {
         this.#context = new Context();
         this.#directories = [];
 
-        this.#addUploadRoute();
+        this.#addDynamicRoute();
     }
 
     mount (path: string, component: Component) {
@@ -81,7 +81,7 @@ export class Router {
                 return next();
             }
 
-            await manager.handleHttpRequest(req, res, next, [...this.#directories]);
+            await manager.handleHttpRequest(req, res, next, this.#directories);
         });
     }
 
@@ -99,7 +99,7 @@ export class Router {
     addStaticRoute (dir: string) {
         this.#directories.push(dir);
         this.#middleware.use(async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
-            const filePath = path.join(dir, req.url!);
+            const filePath = path.join(dir, req.url ?? '');
 
             if (!await fileExists(filePath)) {
                 return next();
@@ -195,7 +195,7 @@ export class Router {
         req.pipe(busboyInstance);
     }
 
-    #addUploadRoute () {
+    #addDynamicRoute () {
         this.#middleware.use((req, res, next) => {
             const userId = req.headers[PondLiveHeaders.LIVE_USER_ID] as string;
             const response = new Response(res);
@@ -204,20 +204,37 @@ export class Router {
                 return next();
             }
 
-            const moveTo = this.#context.getUploadPath(req.url!);
+            const moveTo = this.#context.getUploadPath(req.url ?? '');
+            const cookies = this.#context.getCookiePath(req.url ?? '');
 
-            if (!moveTo) {
+            if (!moveTo && !cookies) {
                 return next();
             }
 
-            if (req.method !== 'POST') {
-                response.status(405)
-                    .json({ message: 'Method not allowed' });
+            if (moveTo) {
+                if (req.method !== 'POST') {
+                    response.status(405)
+                        .json({ message: 'Method not allowed' });
+
+                    return;
+                }
+
+                this.#manageUpload(req, response, moveTo);
+            } else if (cookies) {
+                if (req.method !== 'GET') {
+                    response.status(405)
+                        .json({ message: 'Method not allowed' });
+
+                    return;
+                }
+
+                res.setHeader('Set-Cookie', cookies);
+                res.end();
 
                 return;
             }
 
-            this.#manageUpload(req, response, moveTo);
+            return next();
         });
     }
 
