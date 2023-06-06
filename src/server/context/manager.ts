@@ -289,6 +289,11 @@ export class Manager {
 
     async #handleFirstHttpRequest (req: Request, res: Response, publicDir: string[]) {
         await this.#context.mountUser(req, res);
+
+        if (res.finished) {
+            return;
+        }
+
         const html = this.render(req.url.pathname, req.userId);
 
         this.#context.addUpgradingUser(req.userId, html);
@@ -360,6 +365,11 @@ export class Manager {
         });
 
         await this.#context.mountUser(req, res);
+
+        if (res.finished) {
+            return;
+        }
+
         await this.#context.upgradeUser(event);
 
         const html = this.render(req.url.pathname, req.userId);

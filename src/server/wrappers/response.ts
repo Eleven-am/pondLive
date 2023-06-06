@@ -70,6 +70,10 @@ export class Response {
         return this.#response;
     }
 
+    get finished () {
+        return this.#responseSent;
+    }
+
     status (code: number): Response {
         this.#statusCode = code;
 
@@ -97,7 +101,12 @@ export class Response {
     }
 
     navigateTo (url: string) {
-        return this.setHeader('x-router-action', `redirect:${url}`);
+        this.#response.writeHead(302, {
+            location: url,
+        });
+        this.#response.end();
+
+        this.#responseSent = true;
     }
 
     html (html: string): void {
