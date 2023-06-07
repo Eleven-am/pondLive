@@ -54,9 +54,9 @@ export function getMimeType (filePath: string) {
 export class Router {
     readonly #context: Context;
 
-    #middleware: Middleware<IncomingMessage, ServerResponse>;
+    readonly #directories: string[];
 
-    #directories: string[];
+    readonly #middleware: Middleware<IncomingMessage, ServerResponse>;
 
     constructor () {
         this.#middleware = new Middleware();
@@ -72,9 +72,7 @@ export class Router {
             component,
         };
 
-        const manager = this.#context.initRoute(route);
-
-        this.#context.addEntryManager(manager);
+        const manager = this.#context.addEntryPoint(route);
 
         this.#middleware.use(async (req, res, next) => {
             if (req.method !== 'GET' && req.method !== 'HEAD') {

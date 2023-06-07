@@ -6,43 +6,48 @@ export type HookContext = LiveContext | ServerEvent | Request;
 
 interface ServerInfo<T> {
     getState: () => T;
-    setState: (newState: T) => void;
-    assign: (newState: Partial<T>) => void;
+    assign: (context: HookContext, newState: Partial<T>) => void;
+    addEffect: (context: HookContext, effect: (change: T) => void | Promise<void>) => void;
     subscribe: (userId: string, callback: (userId: string, newState: T) => void) => void;
 }
 
-interface ServerContext<T> extends Omit<ServerInfo<T>, 'setState' | 'getState' | 'assign'> {
-    setState: (context: HookContext, newState: T) => void;
+interface ServerContext<T> extends Omit<ServerInfo<T>, 'getState'> {
     getState: (context: HookContext) => T;
     destroy: (context: HookContext) => void;
-    assign: (context: HookContext, newState: Partial<T>) => void;
 }
+
+type CreatedInfo<T> = [T, (newState: Partial<T>) => void, (effect: (change: T) => void | Promise<void>) => void];
 
 export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
     let state = initialState;
     const subscribers: Record<string, (userId: string, newState: any) => void> = {};
+    const effects: Record<string, (change: T) => void | Promise<void>> = {};
+
+    const modifyState = async (ctx: HookContext, newState: Partial<T>) => {
+        state = {
+            ...state,
+            ...newState,
+        };
+
+        const promises = Object.keys(effects).map((userId) => effects[userId](state));
+
+        await Promise.all(promises);
+
+        Object.keys(subscribers).forEach((userId) => {
+            subscribers[userId](userId, state);
+        });
+    };
 
     return {
         getState: () => state,
-        setState: (newState) => {
-            state = newState;
-
-            Object.keys(subscribers).forEach((userId) => {
-                subscribers[userId](userId, newState);
-            });
-        },
         subscribe: (userId, callback) => {
             subscribers[userId] = callback;
         },
-        assign: (newState) => {
-            state = {
-                ...state,
-                ...newState,
-            };
-
-            Object.keys(subscribers).forEach((userId) => {
-                subscribers[userId](userId, state);
-            });
+        assign: (ctx, newState) => {
+            void modifyState(ctx, newState);
+        },
+        addEffect: (ctx, effect) => {
+            effects[ctx.userId] = effect;
         },
     };
 };
@@ -50,6 +55,27 @@ export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
 export const createClientContext = <T> (initialState: T): ServerContext<T> => {
     const state: Map<string, T> = new Map();
     const subscribers: Record<string, (userId: string, newState: any) => void> = {};
+    const effects: Record<string, (change: T) => void | Promise<void>> = {};
+
+    const modifyState = async (ctx: HookContext, newState: Partial<T>) => {
+        const currentState = state.get(ctx.userId) as T;
+
+        state.set(ctx.userId, {
+            ...currentState,
+            ...newState,
+        });
+
+        const effect = effects[ctx.userId];
+        const callback = subscribers[ctx.userId];
+
+        if (effect) {
+            await effect(state.get(ctx.userId) as T);
+        }
+
+        if (callback) {
+            return callback(ctx.userId, state.get(ctx.userId) as T);
+        }
+    };
 
     return {
         getState: (context) => {
@@ -59,47 +85,37 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
 
             return state.get(context.userId) as T;
         },
-        setState: (context, newState) => {
-            state.set(context.userId, newState);
-
-            const callback = subscribers[context.userId];
-
-            if (callback) {
-                return callback(context.userId, newState);
-            }
-        },
         subscribe: (userId, callback) => {
             subscribers[userId] = callback;
         },
         destroy: (context) => {
             state.delete(context.userId);
             delete subscribers[context.userId];
+            delete effects[context.userId];
         },
         assign: (context, newState) => {
-            const currentState = state.get(context.userId) as T;
-
-            state.set(context.userId, {
-                ...currentState,
-                ...newState,
-            });
-
-            const callback = subscribers[context.userId];
-
-            if (callback) {
-                return callback(context.userId, state.get(context.userId) as T);
-            }
+            void modifyState(context, newState);
+        },
+        addEffect: (context, effect) => {
+            effects[context.userId] = effect;
         },
     };
 };
 
-export function useServerInfo <T> (context: LiveContext, serverInfo: ServerInfo<T> | ServerContext<T>): T {
-    const { getState, subscribe } = serverInfo;
+
+export function useServerInfo <T> (context: LiveContext, serverInfo: ServerInfo<T> | ServerContext<T>): CreatedInfo<T> {
+    const { getState, assign, subscribe, addEffect } = serverInfo;
+
+    const state = getState(context);
 
     if (!context.isBuilt) {
-        return getState(context);
+        return [state, () => {}, () => {}];
     }
 
     subscribe(context.userId, () => context.reload());
 
-    return getState(context);
+    const effect = addEffect.bind(null, context);
+    const setState = assign.bind(null, context);
+
+    return [state, setState, effect];
 }

@@ -20,8 +20,6 @@ export class LiveContext {
 
     #hookCount: number;
 
-    #routes: string[];
-
     #styles: Html[];
 
     constructor (userId: string, address: string, context: Context, manager: Manager) {
@@ -29,7 +27,6 @@ export class LiveContext {
         this.#manager = manager;
         this.#userId = userId;
         this.#hookCount = -1;
-        this.#routes = [];
         this.#address = address;
         this.#styles = [];
     }
@@ -48,10 +45,6 @@ export class LiveContext {
 
     get address (): string {
         return this.#address;
-    }
-
-    get routes (): string[] {
-        return this.#routes;
     }
 
     get styles () {
@@ -89,30 +82,24 @@ export class LiveContext {
         this.#context.reload(this.#userId);
     }
 
-    initRoute (route: Route) {
-        const absolutePath = `${this.#manager.path}/${route.path}`.replace(/\/+/g, '/');
+    getContext (route: Route): LiveContext {
+        if (!this.isBuilt) {
+            const manager = this.#manager.initRoute(route);
 
-        const manager = this.#context.initRoute({
-            path: absolutePath,
-            component: route.component,
-        });
+            manager.render('*', 'server');
+            manager.doneBuilding();
 
-        this.#routes = [...this.#routes, ...manager.routes, absolutePath];
+            return manager.createContext(this.#address, this.#userId);
+        }
 
-        return manager;
+        return this.#manager.getContext(route.path, this.#userId, this.#address);
     }
 
-    fromManager (manager: Manager) {
-        return this.#context.fromPath(manager.path, this.#userId);
+    canRender (address: string): boolean {
+        return this.#manager.canRender(address);
     }
 
     addStyle (css: Html) {
         this.#styles = [...this.#styles, css];
-    }
-
-    getManager (path: string) {
-        const absolutePath = `${this.#manager.path}${path}`.replace(/\/+/g, '/');
-
-        return this.#context.getManager(absolutePath);
     }
 }

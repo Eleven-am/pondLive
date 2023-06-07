@@ -4,20 +4,19 @@ import { html } from '../parser/parser';
 export function useRouter (routes: Route[]): Component {
     return (context) => {
         if (!context.isBuilt) {
-            routes.forEach((route) => context.initRoute(route));
+            routes.forEach((route) => context.getContext(route));
 
             return html``;
         }
 
-        const manager = routes.map((route) => context.getManager(route.path))
-            .find((manager) => manager?.canRender(context.address));
+        const newContext = routes.map((route) => context.getContext(route))
+            .find((context) => context.canRender(context.address));
 
-        if (!manager) {
+        if (!newContext) {
             return html``;
         }
 
-        const newContext = context.fromManager(manager);
-        const data = manager.component(newContext);
+        const data = newContext.manager.component(newContext);
 
         newContext.styles.forEach((style) => context.addStyle(style));
 

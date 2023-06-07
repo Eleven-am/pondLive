@@ -39,6 +39,7 @@ export type CSSGenerator = (props: any) => CSSClasses;
 export type Action<T> = Record<string, (event: ServerEvent, prev: T) => T | void | Promise<T> | Promise<void>>;
 export type RunAction<T> = (event: keyof T) => string;
 export type CreatedAction<T, A extends Action<T>> = [T, RunAction<A>];
+export type CreatedInfo<T> = [T, (newState: Partial<T>) => void, (effect: (change: T) => void | Promise<void>) => void];
 
 interface CookieOptions {
     domain?: string;
@@ -191,51 +192,14 @@ export declare class LiveContext {
     onUnmount(fn: UnmountFunction): void;
 }
 
-export declare class ServerInfo<T> {
-    /**
-     * Set the state of the serverInfo object
-     * @param newState - The new state to set
-     */
-    setState(newState: T): void;
-
-    /**
-     * Assign a new state to the serverInfo object
-     * @param newState - The new state to assign
-     */
-    assign (newState: Partial<T>): void;
-
-    /**
-     * Get the current state of the serverInfo object
-     */
-    getState (): T;
-}
+export declare class ServerInfo<T> {}
 
 export declare class ServerContext<T> {
     /**
-     * Set the state of the serverContext object
-     * @param context - The context of the hook
-     * @param newState - The new state to set
-     */
-    setState (context: HookContext, newState: T): void;
-
-    /**
-     * Get the current state of the serverContext object
-     * @param context - The context of the hook
-     */
-    getState (context: HookContext): T;
-
-    /**
-     * Destroy the serverContext object for a user
+     * Destroy the serverContext object for a user, to free up memory
      * @param context - The context of the hook
      */
     destroy (context: HookContext): void;
-
-    /**
-     * Assign a new state to the serverContext object
-     * @param context - The context of the hook
-     * @param newState - The new state to assign
-     */
-    assign (context: HookContext, newState: Partial<T>): void;
 }
 
 export class Html {}
@@ -285,7 +249,7 @@ export declare const createClientContext: <T>(initialState: T) => ServerContext<
  * @param context - The LiveContext object
  * @param serverInfo - The ServerInfo | ServerContext object
  */
-export declare function useServerInfo<T>(context: LiveContext, serverInfo: ServerInfo<T> | ServerContext<T>): T;
+export declare function useServerInfo<T>(context: LiveContext, serverInfo: ServerInfo<T> | ServerContext<T>): CreatedInfo<T>;
 
 /**
  * The useState hook returns the current state of the component, and a function to set the state

@@ -2,10 +2,9 @@ import type { Client, JoinResponse } from '@eleven-am/pondsocket/types';
 
 import { Route } from './liveContext';
 import { Manager } from './manager';
-import { isEmpty, sortBy, uuidV4 } from '../helpers/helpers';
+import { isEmpty, uuidV4 } from '../helpers/helpers';
 import { Html } from '../parser/parser';
-import { Request } from '../wrappers/request';
-import { Response, CookieOptions, createSetCookieHeader } from '../wrappers/response';
+import { CookieOptions, createSetCookieHeader } from '../wrappers/response';
 import { ServerEvent } from '../wrappers/serverEvent';
 
 
@@ -36,45 +35,25 @@ export interface UpdateData {
     address?: string;
 }
 
+export type HookFunction = (event: ServerEvent) => void;
+
 export class Context {
     #clients: Map<string, ClientData>;
 
-    #managers: Manager[];
-
-    #entryManagers: Manager[];
+    readonly #managers: Manager[];
 
     #upgrading: Map<string, Html>;
 
     #dynamicRoutes: Map<string, string>;
 
+    readonly #functionMap: Map<string, HookFunction>;
+
     constructor () {
         this.#clients = new Map();
         this.#upgrading = new Map();
         this.#dynamicRoutes = new Map();
-        this.#entryManagers = [];
+        this.#functionMap = new Map();
         this.#managers = [];
-    }
-
-    initRoute (route: Route) {
-        const absolutePath = `/${route.path}`.replace(/\/+/g, '/');
-        let manager = this.#managers.find((m) => m.path === absolutePath);
-
-        if (manager) {
-            throw new Error(`Route ${absolutePath} already exists`);
-        }
-
-        manager = new Manager(this, route.component, absolutePath);
-
-        manager.render('*', 'server');
-        manager.doneBuilding();
-
-        this.#managers.push(manager);
-
-        return manager;
-    }
-
-    performAction (event: ServerEvent) {
-        return Promise.all(this.#managers.map((manager) => manager.performAction(event)));
     }
 
     upgradeUserOnJoin (userId: string, channel: Client, response: JoinResponse, address: string, pondSocketId: string) {
@@ -85,7 +64,6 @@ export class Context {
             value: null,
             dataId: null,
         });
-
 
         if (!html) {
             response.accept();
@@ -112,15 +90,16 @@ export class Context {
         return this.upgradeUser(event);
     }
 
-    mountUser (req: Request, res: Response) {
-        const managersToMount = this.#managers.filter((manager) => manager.canRender(req.url.pathname));
-        const promises = managersToMount.map((manager) => manager.mount(req, res));
+    addEntryPoint (route: Route) {
+        const absolutePath = `/${route.path}`.replace(/\/+/g, '/');
+        const manager = new Manager(this, route.component, absolutePath);
 
-        return Promise.all(promises);
-    }
+        manager.render('*', 'server');
+        manager.doneBuilding();
 
-    addEntryManager (manager: Manager) {
-        this.#entryManagers.push(manager);
+        this.#managers.push(manager);
+
+        return manager;
     }
 
     reload (userId: string) {
@@ -137,7 +116,7 @@ export class Context {
             dataId: null,
         });
 
-        const manager = this.#entryManagers.find((m) => m.canRender(event.path));
+        const manager = this.#managers.find((m) => m.canRender(event.path));
 
         if (!manager) {
             return;
@@ -155,17 +134,6 @@ export class Context {
         client.virtualDom = html;
     }
 
-    fromPath (path: string, userId: string) {
-        const managers = sortBy(this.#managers, 'path', 'desc');
-        const manager = managers.find((m) => m.canRender(path));
-
-        if (!manager) {
-            throw new Error(`No manager found for path ${path}`);
-        }
-
-        return manager.createContext(path, userId);
-    }
-
     addUpgradingUser (userId: string, html: Html) {
         this.#upgrading.set(userId, html);
     }
@@ -175,14 +143,9 @@ export class Context {
     }
 
     upgradeUser (event: ServerEvent) {
-        const managersToMount = this.#managers.filter((manager) => event.matches(manager.path));
-        const promises = managersToMount.map((manager) => manager.upgrade(event));
+        const promises = this.#managers.map((manager) => manager.upgradeUser(event));
 
-        event.action = 'unmount';
-        const managersToUnmount = this.#managers.filter((manager) => !event.matches(manager.path));
-        const unmountPromises = managersToUnmount.map((manager) => manager.unmount(event));
-
-        return Promise.all([...promises, ...unmountPromises]);
+        return Promise.all(promises);
     }
 
     unmountUser (userId: string) {
@@ -199,7 +162,7 @@ export class Context {
             dataId: null,
         });
 
-        const promises = this.#managers.map((manager) => manager.unmount(event));
+        const promises = this.#managers.map((manager) => manager.unmountUser(event));
 
         return Promise.all(promises);
     }
@@ -245,7 +208,17 @@ export class Context {
         return data;
     }
 
-    getManager (path: string) {
-        return this.#managers.find((manager) => manager.path === path);
+    upSertHook (name: string, fn: HookFunction) {
+        this.#functionMap.set(name, fn);
+    }
+
+    performAction (event: ServerEvent) {
+        const fn = this.#functionMap.get(event.action);
+
+        if (!fn) {
+            return;
+        }
+
+        fn(event);
     }
 }

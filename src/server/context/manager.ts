@@ -2,8 +2,8 @@ import fs from 'fs';
 import { ServerResponse, IncomingMessage } from 'http';
 import path from 'path';
 
-import { Context, UpdateData, PondLiveHeaders } from './context';
-import { Component, LiveContext } from './liveContext';
+import { Context, UpdateData, PondLiveHeaders, HookFunction } from './context';
+import { Component, LiveContext, Route } from './liveContext';
 import { getMimeType } from './router';
 import { uuidV4, deepCompare, fileExists } from '../helpers/helpers';
 import { parseAddress } from '../matcher/matcher';
@@ -14,7 +14,6 @@ import { Response } from '../wrappers/response';
 import { ServerEvent } from '../wrappers/serverEvent';
 
 
-type HookFunction = (event: ServerEvent) => void;
 export type MountFunction = (req: Request, res: Response) => void | Promise<void>;
 export type UpgradeFunction = (event: ServerEvent) => void | Promise<void>;
 export type UnmountFunction = (event: ServerEvent) => void | Promise<void>;
@@ -29,8 +28,6 @@ export class Manager {
 
     readonly #hooks: Map<string, Hook<any>>;
 
-    readonly #functionMap: Map<string, HookFunction>;
-
     readonly #mountFunctions: MountFunction[];
 
     readonly #upgradeFunctions: UpgradeFunction[];
@@ -40,6 +37,8 @@ export class Manager {
     readonly #component: Component;
 
     readonly #state: Map<string, unknown>;
+
+    readonly #children: Map<string, Manager>;
 
     readonly #mountedUsers: Set<string>;
 
@@ -51,8 +50,6 @@ export class Manager {
 
     #isBuilt: boolean;
 
-    #routes: string[];
-
     constructor (context: Context, component: Component, absolutePath: string) {
         this.#mountFunctions = [];
         this.#upgradeFunctions = [];
@@ -60,7 +57,7 @@ export class Manager {
         this.#component = component;
         this.#state = new Map();
         this.#isBuilt = false;
-        this.#functionMap = new Map();
+        this.#children = new Map();
         this.#mountedUsers = new Set();
         this.#upgradedUsers = new Set();
         this.id = Math.random()
@@ -69,7 +66,6 @@ export class Manager {
         this.#hooks = new Map();
         this.#absolutePath = absolutePath;
         this.#context = context;
-        this.#routes = [];
     }
 
     get component () {
@@ -82,10 +78,6 @@ export class Manager {
 
     get path () {
         return this.#absolutePath;
-    }
-
-    get routes () {
-        return this.#routes;
     }
 
     doneBuilding () {
@@ -114,55 +106,6 @@ export class Manager {
         }
 
         this.#unmountFunctions.push(fn);
-    }
-
-    mount (req: Request, res: Response) {
-        if (!this.#isBuilt) {
-            throw new Error('Cannot mount component before the building phase');
-        }
-
-        if (res.finished) {
-            return;
-        }
-
-        if (this.#mountedUsers.has(req.userId)) {
-            return;
-        }
-
-        this.#mountedUsers.add(req.userId);
-        const promises = this.#mountFunctions.map((fn) => fn(req, res));
-
-        return Promise.all(promises);
-    }
-
-    upgrade (event: ServerEvent) {
-        if (!this.#isBuilt) {
-            throw new Error('Cannot upgrade component before the building phase');
-        }
-
-        if (this.#upgradedUsers.has(event.userId)) {
-            return;
-        }
-
-        this.#upgradedUsers.add(event.userId);
-        this.#upgradeFunctions.forEach((fn) => fn(event));
-    }
-
-    unmount (event: ServerEvent) {
-        if (!this.#isBuilt) {
-            throw new Error('Cannot unmount component before the building phase');
-        }
-
-        if (!this.#mountedUsers.has(event.userId) && !this.#upgradedUsers.has(event.userId)) {
-            return;
-        }
-
-        this.#unmountFunctions.forEach((fn) => fn(event));
-        this.#mountedUsers.delete(event.userId);
-        this.#upgradedUsers.delete(event.userId);
-        for (const [_, hook] of this.#hooks) {
-            hook.state.delete(event.userId);
-        }
     }
 
     setUpHook (hookCount: number) {
@@ -194,7 +137,7 @@ export class Manager {
         const argKey = Object.keys(hook.args).find((key) => deepCompare(hook.args[key], arg));
 
         if (argKey) {
-            this.#functionMap.set(argKey, fn);
+            this.#context.upSertHook(argKey, fn);
 
             return argKey;
         }
@@ -204,7 +147,7 @@ export class Manager {
             .substring(7)}`;
 
         hook.args[newArgKey] = arg;
-        this.#functionMap.set(newArgKey, fn);
+        this.#context.upSertHook(newArgKey, fn);
 
         return newArgKey;
     }
@@ -244,25 +187,9 @@ export class Manager {
         const liveContext = new LiveContext(userId, address, this.#context, this);
 
         const htmlData = this.#component(liveContext);
-
-        const routes = liveContext.routes;
         const styles = liveContext.styles;
 
-        if (!this.#isBuilt) {
-            this.#routes = [...new Set([...this.#routes, ...routes, this.#absolutePath])];
-        }
-
         return html`${styles}${htmlData}`;
-    }
-
-    performAction (event: ServerEvent) {
-        const fn = this.#functionMap.get(event.action);
-
-        if (!fn) {
-            return;
-        }
-
-        fn(event);
     }
 
     handleHttpRequest (req: IncomingMessage, res: ServerResponse, next: NextFunction, publicDir: string[]) {
@@ -291,15 +218,139 @@ export class Manager {
             throw new Error('Cannot check if component can render before the building phase');
         }
 
-        return this.#routes.some((route) => Boolean(parseAddress(route, address)));
+        for (const [_, manager] of this.#children) {
+            if (manager.canRender(address)) {
+                return true;
+            }
+        }
+
+        return Boolean(parseAddress(this.#absolutePath, address));
     }
 
     createContext (address: string, userId: string) {
         return new LiveContext(userId, address, this.#context, this);
     }
 
+    initRoute (route: Route) {
+        if (this.#isBuilt) {
+            throw new Error('Cannot add route after the building phase');
+        }
+
+        const absolutePath = `${this.#absolutePath}/${route.path}`.replace(/\/+/g, '/');
+        const manager = new Manager(this.#context, route.component, absolutePath);
+
+        this.#children.set(route.path, manager);
+
+        return manager;
+    }
+
+    getContext (path: string, userId: string, address: string) {
+        if (!this.#isBuilt) {
+            throw new Error('Cannot retrieve route before the building phase');
+        }
+
+        if (!this.#children.has(path)) {
+            throw new Error(`Cannot retrieve non existing route ${path}`);
+        }
+
+        const manager = this.#children.get(path) as Manager;
+
+        return new LiveContext(userId, address, this.#context, manager);
+    }
+
+    async unmountUser (event: ServerEvent) {
+        const canRender = this.canRender(event.path);
+
+        if (canRender || (!this.#mountedUsers.has(event.userId) && !this.#upgradedUsers.has(event.userId))) {
+            return;
+        }
+
+        for (const [_, manager] of this.#children) {
+            await manager.unmountUser(event);
+        }
+
+        await this.#unmount(event);
+    }
+
+    async upgradeUser (event: ServerEvent) {
+        await this.#performRenderAction(event.path, async (manager) => {
+            await manager.#upgrade(event);
+        });
+    }
+
+    #upgrade (event: ServerEvent) {
+        if (!this.#isBuilt) {
+            throw new Error('Cannot upgrade component before the building phase');
+        }
+
+        if (this.#upgradedUsers.has(event.userId)) {
+            return;
+        }
+
+        this.#upgradedUsers.add(event.userId);
+        const promises = this.#upgradeFunctions.map((fn) => fn(event));
+
+        return Promise.all(promises);
+    }
+
+    #unmount (event: ServerEvent) {
+        if (!this.#isBuilt) {
+            throw new Error('Cannot unmount component before the building phase');
+        }
+
+        this.#mountedUsers.delete(event.userId);
+        this.#upgradedUsers.delete(event.userId);
+        for (const [_, hook] of this.#hooks) {
+            hook.state.delete(event.userId);
+        }
+
+        const promises = this.#unmountFunctions.map((fn) => fn(event));
+
+        return Promise.all(promises);
+    }
+
+    #mount (req: Request, res: Response) {
+        if (!this.#isBuilt) {
+            throw new Error('Cannot mount component before the building phase');
+        }
+
+        if (res.finished) {
+            return;
+        }
+
+        if (this.#mountedUsers.has(req.userId)) {
+            return;
+        }
+
+        this.#mountedUsers.add(req.userId);
+        const promises = this.#mountFunctions.map((fn) => fn(req, res));
+
+        return Promise.all(promises);
+    }
+
+    #serveFile (filePath: string, res: ServerResponse, callback: (data: string) => string) {
+        fs.readFile(filePath, 'utf-8', (err, data) => {
+            if (err) {
+                res.writeHead(500);
+                res.end('Error loading file');
+            } else {
+                // eslint-disable-next-line callback-return
+                const result = callback(data);
+
+                res.writeHead(200, { 'Content-Type': getMimeType(filePath) });
+                res.end(result);
+            }
+        });
+    }
+
+    async #mountUser (req: Request, res: Response) {
+        await this.#performRenderAction(req.url.pathname, async (manager) => {
+            await manager.#mount(req, res);
+        });
+    }
+
     async #handleFirstHttpRequest (req: Request, res: Response, publicDir: string[]) {
-        await this.#context.mountUser(req, res);
+        await this.#mountUser(req, res);
 
         if (res.finished) {
             return;
@@ -356,6 +407,7 @@ export class Manager {
     }
 
     async #handleSubsequentHttpRequest (req: Request, res: Response, next: NextFunction) {
+        await this.#context.unmountUser(req.userId);
         const client = this.#context.getClient(req.userId);
 
         if (req.headers[PondLiveHeaders.LIVE_ROUTER] !== 'true') {
@@ -375,7 +427,7 @@ export class Manager {
             dataId: null,
         });
 
-        await this.#context.mountUser(req, res);
+        await this.#mountUser(req, res);
 
         if (res.finished) {
             return;
@@ -398,18 +450,17 @@ export class Manager {
         res.json(data);
     }
 
-    #serveFile (filePath: string, res: ServerResponse, callback: (data: string) => string) {
-        fs.readFile(filePath, 'utf-8', (err, data) => {
-            if (err) {
-                res.writeHead(500);
-                res.end('Error loading file');
-            } else {
-                // eslint-disable-next-line callback-return
-                const result = callback(data);
+    async #performRenderAction (address: string, fn: (manager: Manager) => Promise<void>) {
+        const canRender = this.canRender(address);
 
-                res.writeHead(200, { 'Content-Type': getMimeType(filePath) });
-                res.end(result);
-            }
-        });
+        if (!canRender) {
+            return;
+        }
+
+        for (const [_, manager] of this.#children) {
+            await manager.#performRenderAction(address, fn);
+        }
+
+        await fn(this);
     }
 }
