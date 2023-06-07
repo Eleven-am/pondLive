@@ -16,7 +16,7 @@ interface ServerContext<T> extends Omit<ServerInfo<T>, 'getState'> {
     destroy: (context: HookContext) => void;
 }
 
-type CreatedInfo<T> = [T, (newState: Partial<T>) => void, (effect: (change: T) => void | Promise<void>) => void];
+type CreatedInfo<T> = [T, (context: HookContext, newState: Partial<T>) => void, (effect: (change: T) => void | Promise<void>) => void];
 
 export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
     let state = initialState;
@@ -115,7 +115,6 @@ export function useServerInfo <T> (context: LiveContext, serverInfo: ServerInfo<
     subscribe(context.userId, () => context.reload());
 
     const effect = addEffect.bind(null, context);
-    const setState = assign.bind(null, context);
 
-    return [state, setState, effect];
+    return [state, assign, effect];
 }
