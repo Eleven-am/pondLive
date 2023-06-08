@@ -1,6 +1,6 @@
 {
   "name": "@eleven-am/pondlive",
-  "version": "0.1.19",
+  "version": "0.1.48",
   "description": "PondLive is a simple, lightweight, and easy to use Web framework",
   "keywords": [
     "socket",
@@ -36,7 +36,7 @@
     "url": "git+https://github.com/Eleven-am/pondLive.git"
   },
   "dependencies": {
-    "@eleven-am/pondsocket": "^0.1.62",
+    "@eleven-am/pondsocket": "^0.1.64",
     "busboy": "^1.6.0",
     "parcel": "^2.8.3"
   },
