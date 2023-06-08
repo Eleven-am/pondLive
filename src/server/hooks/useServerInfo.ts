@@ -63,6 +63,10 @@ export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
             void modifyState(ctx, setter(state));
         },
         deleteEffect: (userId, identifier) => {
+            if (!effects[userId]) {
+                return;
+            }
+
             delete effects[userId][identifier];
         },
     };
@@ -129,6 +133,10 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
             void modifyState(context, setter(state.get(context.userId) ?? initialState));
         },
         deleteEffect: (userId, identifier) => {
+            if (!effects[userId]) {
+                return;
+            }
+
             delete effects[userId][identifier];
         },
     };
