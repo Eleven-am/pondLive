@@ -3,6 +3,7 @@ import type { Client, JoinResponse } from '@eleven-am/pondsocket/types';
 import { Route } from './liveContext';
 import { Manager } from './manager';
 import { isEmpty, uuidV4 } from '../helpers/helpers';
+import { UserQueue } from '../helpers/userQueue';
 import { Html } from '../parser/parser';
 import { CookieOptions, createSetCookieHeader } from '../wrappers/response';
 import { ServerEvent } from '../wrappers/serverEvent';
@@ -37,12 +38,9 @@ export interface UpdateData {
 
 export type HookFunction = (event: ServerEvent) => void;
 
-export enum RenderPhase {
-    RENDERING,
-    IDLE,
-}
-
 export class Context {
+    readonly queues: UserQueue;
+
     #clients: Map<string, ClientData>;
 
     readonly #managers: Manager[];
@@ -53,18 +51,13 @@ export class Context {
 
     readonly #functionMap: Map<string, HookFunction>;
 
-    readonly #queue: Set<string>;
-
-    readonly #phase: Map<string, RenderPhase>;
-
     constructor () {
         this.#clients = new Map();
         this.#upgrading = new Map();
         this.#dynamicRoutes = new Map();
         this.#functionMap = new Map();
-        this.#phase = new Map();
-        this.#queue = new Set();
         this.#managers = [];
+        this.queues = new UserQueue();
     }
 
     upgradeUserOnJoin (userId: string, channel: Client, response: JoinResponse, address: string, pondSocketId: string) {
@@ -128,22 +121,30 @@ export class Context {
     }
 
     unmountUser (userId: string, newPath: string | null) {
+        const event = this.getEvent(userId);
+
+        if (!event) {
+            return;
+        }
+
+        const promises = this.#managers.map((manager) => manager.unmountUser(event, newPath));
+
+        return Promise.all(promises);
+    }
+
+    getEvent (userId: string) {
         const client = this.#clients.get(userId);
 
         if (!client) {
             return;
         }
 
-        const event = new ServerEvent(userId, client.channel, this, {
+        return new ServerEvent(userId, client.channel, this, {
             address: client.address,
-            action: 'unmount',
+            action: 'update',
             value: null,
             dataId: null,
         });
-
-        const promises = this.#managers.map((manager) => manager.unmountUser(event, newPath));
-
-        return Promise.all(promises);
     }
 
     addUploadPath (moveTo: string): string {
@@ -202,35 +203,14 @@ export class Context {
     }
 
     reload (userId: string) {
-        if (this.#phase.get(userId) === RenderPhase.RENDERING) {
-            this.#addTask(userId);
-
-            return;
-        }
-
-        this.#reload(userId);
+        void this.queues.add(userId, () => this.#reload(userId));
     }
 
-    doneRendering (userId: string) {
-        const task = this.#getTask(userId);
-
-        if (task) {
-            this.#reload(userId);
-        }
-
-        this.#setPhase(userId, RenderPhase.IDLE);
-    }
-
-    lock (userId: string) {
-        this.#setPhase(userId, RenderPhase.RENDERING);
-    }
-
-    #setPhase (userId: string, phase: RenderPhase) {
-        this.#phase.set(userId, phase);
+    addTask (userId: string, task: () => void | Promise<void>) {
+        void this.queues.add(userId, task);
     }
 
     #reload (userId: string) {
-        this.lock(userId);
         const client = this.#clients.get(userId);
 
         if (!client) {
@@ -259,18 +239,5 @@ export class Context {
 
         event.sendDiff(diff);
         client.virtualDom = html;
-        this.doneRendering(userId);
-    }
-
-    #addTask (userId: string) {
-        this.#queue.add(userId);
-    }
-
-    #getTask (userId: string) {
-        const task = this.#queue.has(userId);
-
-        this.#queue.delete(userId);
-
-        return task;
     }
 }

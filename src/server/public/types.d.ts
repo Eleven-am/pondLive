@@ -38,8 +38,9 @@ export type CSSClasses = Record<string, CSSProperties>;
 export type CSSGenerator = (props: any) => CSSClasses;
 export type Action<T> = Record<string, (event: ServerEvent, prev: T) => T | void | Promise<T> | Promise<void>>;
 export type RunAction<T> = (event: keyof T) => string;
-export type CreatedAction<T, A extends Action<T>> = [T, RunAction<A>];
-export type Effect<T> = (change: T) => (() => void) | Promise<(() => void)> | void | Promise<void>;
+export type InitialState<A extends Action<any>> = A extends Action<infer T> ? T : never;
+export type CreatedAction<A extends Action<any>> = [InitialState<A>, RunAction<A>, SetOnServer<InitialState<A>>];
+export type Effect<T> = (change: T, event: ServerEvent) => (() => void) | Promise<(() => void)> | void | Promise<void>;
 export type CreatedInfo<T> = [T, (context: HookContext, newState: Partial<T>) => void, (effect: Effect<T>) => void];
 
 interface CookieOptions {
@@ -320,7 +321,7 @@ export declare function makeStyles<B extends CSSGenerator>(classes: B): (context
  * @param initialState - The initial state of the component, which us used when no action has been triggered
  * @param actions - The actions to use
  */
-export declare function useAction<T, A extends Action<T>>(context: LiveContext, initialState: T, actions: A): CreatedAction<T, A>;
+export declare function useAction<A extends Action<any>>(context: LiveContext, initialState: InitialState<A>, actions: A): CreatedAction<A>;
 
 /**
  * The useRouter hook takes in multiple sub routes that can be rendered within a component, it returns the correct route to render

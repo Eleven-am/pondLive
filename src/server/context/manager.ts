@@ -180,13 +180,13 @@ export class Manager {
             return;
         }
 
-        hook.state.set(userId, newState);
-        const notEqual = deepCompare(hook.state.get(userId), newState);
+        const currentState = hook.state.get(userId);
 
-        if (!notEqual) {
+        if (deepCompare(currentState, newState)) {
             return;
         }
 
+        hook.state.set(userId, newState);
         this.#context.reload(userId);
     }
 
@@ -225,13 +225,13 @@ export class Manager {
 
         if (!userId) {
             userId = uuidV4();
-            const request = Request.fromRequest(req, userId);
+            const request = Request.fromRequest(req, this.#context, userId);
             const response = new Response(res);
 
             return this.#handleFirstHttpRequest(request, response, publicDir);
         }
 
-        const request = Request.fromRequest(req, userId);
+        const request = Request.fromRequest(req, this.#context, userId);
         const response = new Response(res);
 
         return this.#handleSubsequentHttpRequest(request, response, next);
@@ -436,50 +436,50 @@ export class Manager {
             .replace(/<title>(.*?)<\/title>/, `<title>${title}</title>`));
     }
 
-    async #handleSubsequentHttpRequest (req: Request, res: Response, next: NextFunction) {
-        this.#context.lock(req.userId);
-        await this.#context.unmountUser(req.userId, req.url.pathname);
-        const client = this.#context.getClient(req.userId);
+    #handleSubsequentHttpRequest (req: Request, res: Response, next: NextFunction) {
+        this.#context.addTask(req.userId, async () => {
+            await this.#context.unmountUser(req.userId, req.url.pathname);
+            const client = this.#context.getClient(req.userId);
 
-        if (req.headers[PondLiveHeaders.LIVE_ROUTER] !== 'true') {
-            return next();
-        }
+            if (req.headers[PondLiveHeaders.LIVE_ROUTER] !== 'true') {
+                return next();
+            }
 
-        if (!client) {
-            res.status(500).json({ error: 'Client not found' });
+            if (!client) {
+                res.status(500).json({ error: 'Client not found' });
 
-            return;
-        }
+                return;
+            }
 
-        const event = new ServerEvent(req.userId, client.channel, this.#context, {
-            action: 'navigate',
-            address: req.url.toString(),
-            value: null,
-            dataId: null,
+            const event = new ServerEvent(req.userId, client.channel, this.#context, {
+                action: 'navigate',
+                address: req.url.toString(),
+                value: null,
+                dataId: null,
+            });
+
+            await this.#mountUser(req, res);
+
+            if (res.finished) {
+                return;
+            }
+
+            await this.#context.upgradeUser(event);
+
+            const html = this.render(req.url.pathname, req.userId);
+            const diff = client.virtualDom.differentiate(html);
+
+            client.virtualDom = html;
+            client.address = req.url.toString();
+            const title = res.get(PondLiveHeaders.LIVE_PAGE_TITLE) ?? 'Pond Live';
+
+            const data: UpdateData = {
+                diff: isEmpty(diff) ? null : diff,
+                [PondLiveHeaders.LIVE_PAGE_TITLE]: title as string,
+            };
+
+            res.json(data);
         });
-
-        await this.#mountUser(req, res);
-
-        if (res.finished) {
-            return;
-        }
-
-        await this.#context.upgradeUser(event);
-
-        const html = this.render(req.url.pathname, req.userId);
-        const diff = client.virtualDom.differentiate(html);
-
-        client.virtualDom = html;
-        client.address = req.url.toString();
-        const title = res.get(PondLiveHeaders.LIVE_PAGE_TITLE) ?? 'Pond Live';
-
-        const data: UpdateData = {
-            diff: isEmpty(diff) ? null : diff,
-            [PondLiveHeaders.LIVE_PAGE_TITLE]: title as string,
-        };
-
-        res.json(data);
-        this.#context.doneRendering(req.userId);
     }
 
     async #performRenderAction (address: string, fn: (manager: Manager) => Promise<void>) {

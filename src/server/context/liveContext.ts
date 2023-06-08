@@ -70,22 +70,25 @@ export class LiveContext {
         const onUnMount = this.#manager.unMountHook.bind(this.#manager);
         const deleteState = this.#manager.deleteHookState.bind(this.#manager, hookKey);
         const isMounted = this.#manager.isMounted.bind(this.#manager);
+        const getEvent = this.#context.getEvent.bind(this.#context);
 
         return {
             hookKey,
             onUnMount,
             deleteState,
             isMounted,
+            getEvent,
         };
     }
 
     setUpStateHook <T> (initialState: T, _debugValue: string) {
-        const { hookKey, deleteState, onUnMount, isMounted } = this.setUpHook();
+        const { hookKey, deleteState, onUnMount, isMounted, getEvent } = this.setUpHook();
         const getState = this.#manager.getHookState.bind(this.#manager, hookKey, initialState) as (userId: string) => T;
         const setState = this.#manager.setHookState.bind(this.#manager, hookKey) as (state: T, userId: string) => void;
         const addDispatcher = this.#manager.addHookFunction.bind(this.#manager, hookKey);
 
         return {
+            getEvent,
             getState,
             setState,
             onUnMount,
@@ -122,5 +125,9 @@ export class LiveContext {
 
     isMounted (userId: string) {
         return this.#manager.isMounted(userId);
+    }
+
+    getEvent (userId: string) {
+        return this.#context.getEvent(userId);
     }
 }

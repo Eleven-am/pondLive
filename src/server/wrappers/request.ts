@@ -1,5 +1,7 @@
 import { IncomingHttpHeaders, IncomingMessage } from 'http';
 
+import { Context } from '../context/context';
+
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 export class Request {
@@ -13,7 +15,9 @@ export class Request {
 
     #method: Method;
 
-    constructor () {
+    readonly #context: Context;
+
+    constructor (context: Context) {
         this.#path = new URL('http://localhost');
         this.#userId = '';
         this.#cookies = {
@@ -21,6 +25,7 @@ export class Request {
         this.#headers = {
         };
         this.#method = 'GET';
+        this.#context = context;
     }
 
     get url (): URL {
@@ -43,8 +48,12 @@ export class Request {
         return this.#userId;
     }
 
-    static fromRequest (req: IncomingMessage, userId: string): Request {
-        const request = new Request();
+    get event () {
+        return this.#context.getEvent(this.#userId);
+    }
+
+    static fromRequest (req: IncomingMessage, context: Context, userId: string): Request {
+        const request = new Request(context);
 
         request.#userId = userId;
         request.#path = new URL(`https://${req.headers.host}${req.url}`);

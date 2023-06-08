@@ -43,7 +43,7 @@ const mimeTypes: Record<string, string> = {
     '.mp4': 'video/mp4',
 };
 
-const serverDir = path.join(__dirname, '..', '..', 'public');
+const serverDir = path.join(__dirname, '..', 'public');
 
 export function getMimeType (filePath: string) {
     const extname = path.extname(filePath);

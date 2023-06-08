@@ -3,7 +3,7 @@ import { Request } from '../wrappers/request';
 import { ServerEvent } from '../wrappers/serverEvent';
 
 export type HookContext = LiveContext | ServerEvent | Request;
-type Effect<T> = (change: T) => (() => void) | Promise<(() => void)> | void | Promise<void>;
+type Effect<T> = (change: T, event: ServerEvent) => (() => void) | Promise<(() => void)> | void | Promise<void>;
 type CreatedInfo<T> = [T, (context: HookContext, newState: Partial<T>) => void, (effect: Effect<T>) => void]
 
 interface ServerInfo<T> {
@@ -35,7 +35,27 @@ export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
         cleanup.forEach((x) => x());
 
         const promises = Object.keys(effects).map((userId) => effects[userId])
-            .map((x) => Object.keys(x).map((key) => x[key](state)))
+            .map((x) => {
+                let event: ServerEvent | undefined;
+
+                if (ctx instanceof LiveContext) {
+                    event = ctx.getEvent(ctx.userId);
+                } else if (ctx instanceof ServerEvent) {
+                    event = ctx;
+                } else {
+                    event = ctx.event;
+                }
+
+                if (event === undefined) {
+                    return;
+                }
+
+                return Object.keys(x).map((identifier) => {
+                    const effect = x[identifier];
+
+                    return effect(state, event as ServerEvent);
+                }) as Promise<(() => void) | void>[];
+            })
             .flat();
 
         cleanup = (await Promise.all(promises)).filter((x) => x) as (() => void)[];
@@ -94,7 +114,21 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
         const callback = subscribers[ctx.userId];
 
         if (effect) {
-            const promises = Object.keys(effect).map((key) => effect[key](state.get(ctx.userId) as T));
+            let event: ServerEvent | undefined;
+
+            if (ctx instanceof LiveContext) {
+                event = ctx.getEvent(ctx.userId);
+            } else if (ctx instanceof ServerEvent) {
+                event = ctx;
+            } else {
+                event = ctx.event;
+            }
+
+            if (event === undefined) {
+                return;
+            }
+
+            const promises = Object.keys(effect).map((key) => effect[key](state.get(ctx.userId) as T, event as ServerEvent));
 
             cleanup[ctx.userId] = (await Promise.all(promises)).filter((x) => x) as (() => void)[];
         }
