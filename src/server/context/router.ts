@@ -264,7 +264,7 @@ export class Router {
         });
 
         channel.onLeave((event) => {
-            this.#context.unmountUser(event.assigns.userId as string);
+            this.#context.unmountUser(event.assigns.userId as string, null);
         });
     }
 }

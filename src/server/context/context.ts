@@ -37,6 +37,11 @@ export interface UpdateData {
 
 export type HookFunction = (event: ServerEvent) => void;
 
+export enum RenderPhase {
+    RENDERING,
+    IDLE,
+}
+
 export class Context {
     #clients: Map<string, ClientData>;
 
@@ -48,11 +53,17 @@ export class Context {
 
     readonly #functionMap: Map<string, HookFunction>;
 
+    readonly #queue: Set<string>;
+
+    readonly #phase: Map<string, RenderPhase>;
+
     constructor () {
         this.#clients = new Map();
         this.#upgrading = new Map();
         this.#dynamicRoutes = new Map();
         this.#functionMap = new Map();
+        this.#phase = new Map();
+        this.#queue = new Set();
         this.#managers = [];
     }
 
@@ -102,38 +113,6 @@ export class Context {
         return manager;
     }
 
-    reload (userId: string) {
-        const client = this.#clients.get(userId);
-
-        if (!client) {
-            return;
-        }
-
-        const event = new ServerEvent(userId, client.channel, this, {
-            address: client.address,
-            action: 'reload',
-            value: null,
-            dataId: null,
-        });
-
-        const manager = this.#managers.find((m) => m.canRender(event.path));
-
-        if (!manager) {
-            return;
-        }
-
-        const html = manager.render(event.path, userId);
-        const diff = client.virtualDom.differentiate(html);
-
-        if (isEmpty(diff)) {
-            return;
-        }
-
-        event.sendDiff(diff);
-
-        client.virtualDom = html;
-    }
-
     addUpgradingUser (userId: string, html: Html) {
         this.#upgrading.set(userId, html);
     }
@@ -148,7 +127,7 @@ export class Context {
         return Promise.all(promises);
     }
 
-    unmountUser (userId: string) {
+    unmountUser (userId: string, newPath: string | null) {
         const client = this.#clients.get(userId);
 
         if (!client) {
@@ -162,7 +141,7 @@ export class Context {
             dataId: null,
         });
 
-        const promises = this.#managers.map((manager) => manager.unmountUser(event));
+        const promises = this.#managers.map((manager) => manager.unmountUser(event, newPath));
 
         return Promise.all(promises);
     }
@@ -220,5 +199,78 @@ export class Context {
         }
 
         fn(event);
+    }
+
+    reload (userId: string) {
+        if (this.#phase.get(userId) === RenderPhase.RENDERING) {
+            this.#addTask(userId);
+
+            return;
+        }
+
+        this.#reload(userId);
+    }
+
+    doneRendering (userId: string) {
+        const task = this.#getTask(userId);
+
+        if (task) {
+            this.#reload(userId);
+        }
+
+        this.#setPhase(userId, RenderPhase.IDLE);
+    }
+
+    lock (userId: string) {
+        this.#setPhase(userId, RenderPhase.RENDERING);
+    }
+
+    #setPhase (userId: string, phase: RenderPhase) {
+        this.#phase.set(userId, phase);
+    }
+
+    #reload (userId: string) {
+        this.lock(userId);
+        const client = this.#clients.get(userId);
+
+        if (!client) {
+            return;
+        }
+
+        const event = new ServerEvent(userId, client.channel, this, {
+            address: client.address,
+            action: 'reload',
+            value: null,
+            dataId: null,
+        });
+
+        const manager = this.#managers.find((m) => m.canRender(event.path));
+
+        if (!manager) {
+            return;
+        }
+
+        const html = manager.render(event.path, userId);
+        const diff = client.virtualDom.differentiate(html);
+
+        if (isEmpty(diff)) {
+            return;
+        }
+
+        event.sendDiff(diff);
+        client.virtualDom = html;
+        this.doneRendering(userId);
+    }
+
+    #addTask (userId: string) {
+        this.#queue.add(userId);
+    }
+
+    #getTask (userId: string) {
+        const task = this.#queue.has(userId);
+
+        this.#queue.delete(userId);
+
+        return task;
     }
 }

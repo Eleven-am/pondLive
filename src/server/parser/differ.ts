@@ -1,14 +1,11 @@
+const isFunction = (x: any): boolean => typeof x === 'function';
+const isArray = (x: any): boolean => Array.isArray(x);
+const isDate = (x: any): boolean => x instanceof Date;
+const isObject = (x: any): boolean => typeof x === 'object' && x !== null && !isArray(x) && !isDate(x);
+const isValue = (x: any): boolean => !isObject(x) && !isArray(x);
+const isNotEmpty = (x: any): boolean => x !== undefined && x !== null;
+
 export const differ = (obj1: Record<string, any> | undefined, obj2: Record<string, any>): Record<string, any> => {
-    const isFunction = (x: any): boolean => Object.prototype.toString.call(x) === '[object Function]';
-
-    const isArray = (x: any): boolean => Object.prototype.toString.call(x) === '[object Array]';
-
-    const isDate = (x: any): boolean => Object.prototype.toString.call(x) === '[object Date]';
-
-    const isObject = (x: any): boolean => Object.prototype.toString.call(x) === '[object Object]';
-
-    const isValue = (x: any): boolean => !isObject(x) && !isArray(x);
-
     const compareValues = (value1: any, value2: any): string => {
         if (value1 === value2) {
             return 'unchanged';
@@ -30,6 +27,7 @@ export const differ = (obj1: Record<string, any> | undefined, obj2: Record<strin
         if (isFunction(obj1) || isFunction(obj2)) {
             throw new Error('Invalid argument. Function given, object expected.');
         }
+
         if (isValue(obj1) || isValue(obj2)) {
             const newType = compareValues(obj1, obj2);
 
@@ -100,21 +98,23 @@ export const getChanges = (diffedObject: any): any => {
 
 function mergeArray (obj1: any[], obj2: any) {
     const mapped: any = obj1.map((item: any, index: number) => {
-        if (obj2[index] !== undefined && obj2[index] !== null) {
+        if (isNotEmpty(obj2[index])) {
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             return mergeObjects(item, obj2[index]);
+        } else if (obj2[index] === null) {
+            return undefined;
         }
 
         return item;
     });
 
     for (const key in obj2) {
-        if (mapped[key] === undefined) {
+        if (mapped[key] === undefined && isNotEmpty(obj2[key])) {
             mapped[key] = obj2[key];
         }
     }
 
-    return mapped;
+    return mapped.filter((item: any) => isNotEmpty(item));
 }
 
 function mergeTwoObjects (obj1: any, obj2: any) {
@@ -122,9 +122,13 @@ function mergeTwoObjects (obj1: any, obj2: any) {
 
     for (const key in obj1) {
         if (obj2[key] !== undefined && obj2[key] !== null) {
-            if (obj1[key] instanceof Object) {
+            if (!isValue(obj1[key])) {
                 // eslint-disable-next-line @typescript-eslint/no-use-before-define
-                merged[key] = mergeObjects(obj1[key], obj2[key]);
+                const value = mergeObjects(obj1[key], obj2[key]);
+
+                if (isNotEmpty(value)) {
+                    merged[key] = value;
+                }
             } else {
                 merged[key] = obj2[key];
             }
@@ -134,7 +138,7 @@ function mergeTwoObjects (obj1: any, obj2: any) {
     }
 
     for (const key in obj2) {
-        if (merged[key] === undefined) {
+        if (merged[key] === undefined && isNotEmpty(obj2[key])) {
             merged[key] = obj2[key];
         }
     }
@@ -152,11 +156,15 @@ export const mergeObjects = (obj1: any, obj2: any): any => {
         return obj1;
     }
 
-    if (typeof obj1 !== 'object' && typeof obj2 !== 'object') {
+    if (obj2 === null) {
+        return undefined;
+    }
+
+    if (isValue(obj1) && isValue(obj2)) {
         return obj2;
     }
 
-    if (Array.isArray(obj1)) {
+    if (isArray(obj1)) {
         return mergeArray(obj1, obj2);
     }
 

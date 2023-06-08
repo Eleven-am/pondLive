@@ -3,12 +3,16 @@ import { Request } from '../wrappers/request';
 import { ServerEvent } from '../wrappers/serverEvent';
 
 export type HookContext = LiveContext | ServerEvent | Request;
+type Effect<T> = (change: T) => (() => void) | Promise<(() => void)> | void | Promise<void>;
+type CreatedInfo<T> = [T, (context: HookContext, newState: Partial<T>) => void, (effect: Effect<T>) => void]
 
 interface ServerInfo<T> {
     getState: () => T;
     assign: (context: HookContext, newState: Partial<T>) => void;
-    addEffect: (context: HookContext, effect: (change: T) => void | Promise<void>) => void;
+    addEffect: (context: HookContext, identifier: string, effect: Effect<T>) => void;
     subscribe: (userId: string, callback: (userId: string, newState: T) => void) => void;
+    setState: (context: HookContext, setter: (state: T) => T) => void;
+    deleteEffect: (userId: string, identifier: string) => void;
 }
 
 interface ServerContext<T> extends Omit<ServerInfo<T>, 'getState'> {
@@ -16,12 +20,11 @@ interface ServerContext<T> extends Omit<ServerInfo<T>, 'getState'> {
     destroy: (context: HookContext) => void;
 }
 
-type CreatedInfo<T> = [T, (context: HookContext, newState: Partial<T>) => void, (effect: (change: T) => void | Promise<void>) => void];
-
 export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
     let state = initialState;
     const subscribers: Record<string, (userId: string, newState: any) => void> = {};
-    const effects: Record<string, (change: T) => void | Promise<void>> = {};
+    const effects: Record<string, Record<string, Effect<T>>> = {};
+    let cleanup: (() => void)[] = [];
 
     const modifyState = async (ctx: HookContext, newState: Partial<T>) => {
         state = {
@@ -29,9 +32,13 @@ export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
             ...newState,
         };
 
-        const promises = Object.keys(effects).map((userId) => effects[userId](state));
+        cleanup.forEach((x) => x());
 
-        await Promise.all(promises);
+        const promises = Object.keys(effects).map((userId) => effects[userId])
+            .map((x) => Object.keys(x).map((key) => x[key](state)))
+            .flat();
+
+        cleanup = (await Promise.all(promises)).filter((x) => x) as (() => void)[];
 
         Object.keys(subscribers).forEach((userId) => {
             subscribers[userId](userId, state);
@@ -46,8 +53,17 @@ export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
         assign: (ctx, newState) => {
             void modifyState(ctx, newState);
         },
-        addEffect: (ctx, effect) => {
-            effects[ctx.userId] = effect;
+        addEffect: (ctx, identifier, effect) => {
+            effects[ctx.userId] = {
+                ...effects[ctx.userId],
+                [identifier]: effect,
+            };
+        },
+        setState: (ctx, setter) => {
+            void modifyState(ctx, setter(state));
+        },
+        deleteEffect: (userId, identifier) => {
+            delete effects[userId][identifier];
         },
     };
 };
@@ -55,7 +71,8 @@ export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
 export const createClientContext = <T> (initialState: T): ServerContext<T> => {
     const state: Map<string, T> = new Map();
     const subscribers: Record<string, (userId: string, newState: any) => void> = {};
-    const effects: Record<string, (change: T) => void | Promise<void>> = {};
+    const effects: Record<string, Record<string, Effect<T>>> = {};
+    const cleanup: Record<string, (() => void)[]> = {};
 
     const modifyState = async (ctx: HookContext, newState: Partial<T>) => {
         const currentState = state.get(ctx.userId) as T;
@@ -65,11 +82,17 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
             ...newState,
         });
 
+        if (cleanup[ctx.userId]) {
+            cleanup[ctx.userId].forEach((x) => x());
+        }
+
         const effect = effects[ctx.userId];
         const callback = subscribers[ctx.userId];
 
         if (effect) {
-            await effect(state.get(ctx.userId) as T);
+            const promises = Object.keys(effect).map((key) => effect[key](state.get(ctx.userId) as T));
+
+            cleanup[ctx.userId] = (await Promise.all(promises)).filter((x) => x) as (() => void)[];
         }
 
         if (callback) {
@@ -96,15 +119,25 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
         assign: (context, newState) => {
             void modifyState(context, newState);
         },
-        addEffect: (context, effect) => {
-            effects[context.userId] = effect;
+        addEffect: (context, identifier, effect) => {
+            effects[context.userId] = {
+                ...effects[context.userId],
+                [identifier]: effect,
+            };
+        },
+        setState: (context, setter) => {
+            void modifyState(context, setter(state.get(context.userId) ?? initialState));
+        },
+        deleteEffect: (userId, identifier) => {
+            delete effects[userId][identifier];
         },
     };
 };
 
 
 export function useServerInfo <T> (context: LiveContext, serverInfo: ServerInfo<T> | ServerContext<T>): CreatedInfo<T> {
-    const { getState, assign, subscribe, addEffect } = serverInfo;
+    const { getState, assign, subscribe, addEffect, deleteEffect } = serverInfo;
+    const { hookKey, onUnMount } = context.setUpHook();
 
     const state = getState(context);
 
@@ -114,7 +147,9 @@ export function useServerInfo <T> (context: LiveContext, serverInfo: ServerInfo<
 
     subscribe(context.userId, () => context.reload());
 
-    const effect = addEffect.bind(null, context);
+    onUnMount(context.userId, () => deleteEffect(context.userId, hookKey));
+
+    const effect = addEffect.bind(null, context, hookKey);
 
     return [state, assign, effect];
 }

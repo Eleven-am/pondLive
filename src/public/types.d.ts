@@ -39,7 +39,8 @@ export type CSSGenerator = (props: any) => CSSClasses;
 export type Action<T> = Record<string, (event: ServerEvent, prev: T) => T | void | Promise<T> | Promise<void>>;
 export type RunAction<T> = (event: keyof T) => string;
 export type CreatedAction<T, A extends Action<T>> = [T, RunAction<A>];
-export type CreatedInfo<T> = [T, (context: HookContext, newState: Partial<T>) => void, (effect: (change: T) => void | Promise<void>) => void];
+export type Effect<T> = (change: T) => (() => void) | Promise<(() => void)> | void | Promise<void>;
+export type CreatedInfo<T> = [T, (context: HookContext, newState: Partial<T>) => void, (effect: Effect<T>) => void];
 
 interface CookieOptions {
     domain?: string;
@@ -204,6 +205,13 @@ export declare class ServerInfo<T> {
      * Get the current state of the serverInfo object
      */
     getState (): T;
+
+    /**
+     * Set the state of the serverContext object
+     * @param context - The context of the hook
+     * @param setter - The function that sets the state
+     */
+    setState(context: HookContext, setter: (state: T) => T): void;
 }
 
 export declare class ServerContext<T> {
@@ -225,6 +233,13 @@ export declare class ServerContext<T> {
      * @param context - The context of the hook
      */
     destroy (context: HookContext): void;
+
+    /**
+     * Set the state of the serverContext object
+     * @param context - The context of the hook
+     * @param setter - The function that sets the state
+     */
+    setState(context: HookContext, setter: (state: T) => T): void;
 }
 
 export class Html {}

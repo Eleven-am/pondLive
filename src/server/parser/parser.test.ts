@@ -454,7 +454,7 @@ describe('html parser', () => {
             },
         });
 
-        const merge = htmlString.reconstruct(diff);
+        const merge = htmlString.patch(diff);
 
         expect(merge).toEqual(html``);
     });

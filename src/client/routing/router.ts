@@ -112,7 +112,7 @@ export class ClientRouter {
 
     #updateDom (message: UpdateData) {
         if (message.diff) {
-            this.#virtualDom = this.#virtualDom.reconstruct(message.diff);
+            this.#virtualDom = this.#virtualDom.patch(message.diff);
             updateTheDom(this.#virtualDom.toString());
         }
 

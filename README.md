@@ -207,7 +207,7 @@ When a user accesses a route, the component is mounted and the `mount` function 
 import { useState, html } from '@eleven-am/pondlive';
 
 function Greeter (ctx) {
-    const [name, setName, setOnServer] = useState(ctx, 'World');
+    const [name, _, setOnServer] = useState(ctx, 'World');
     
     ctx.onMount((req, res) => {
         const name = req.url.searchParams.get('name') || 'World';
@@ -231,16 +231,29 @@ When a user finally makes a websocket connection, the component is upgraded, and
 import { html, createServerInfo, useServerInfo } from '@eleven-am/pondlive';
 
 const info = createServerInfo({ count: 0 });
+// const info = createClientContext({ count: 0 });
+
+// The createServerInfo function creates a ServerInfo object that holds a single state object accessible to all users.
+// The createClientContext function creates a ServerContext object that holds a state object specific to each user.
 
 function Greeter (ctx) {
-    const data = useServerInfo(ctx, info);
+    const [data, setter] = useServerInfo(ctx, info);
     
     ctx.onUpgrade((event) => {
         // now we have a websocket connection
         // any time any update is made to the state 
         // of the info object, the component will be
         // re-rendered
-        info.setState( info.getState().count + 1 );
+        info.setState(event, function (state) { 
+            return { count: state.count + 1 };
+        });
+        
+        // When inside a context callback the data value may be stale
+        // because the component has not yet been re-rendered. To get
+        // the latest value, use the getState function.
+        
+        // const count = info.getState(event).count;
+        // setter(event, { count: count + 1 });
     });
 
     return html`
@@ -263,19 +276,34 @@ import { html, createServerInfo, useServerInfo } from '@eleven-am/pondlive';
 const info = createServerInfo({ count: 0 });
 
 function Greeter (ctx) {
-    const data = useServerInfo(ctx, info);
+    const [data, _, dataEffect] = useServerInfo(ctx, info);
     
     ctx.onUpgrade((event) => {
         // now we have a websocket connection
         // any time any update is made to the state 
         // of the info object, the component will be
         // re-rendered
-        info.setState( info.getState().count + 1 );
+        info.setState(event, function (state) { 
+            return { count: state.count + 1 };
+        });
+    });
+    
+    dataEffect((data) => {
+        // do something with the data
+        
+        // The dataEffect function is used to perform actions when the data changes.
+        // cleanup actions can be performed by returning a function from the dataEffect
+        
+        // return () => { /* cleanup actions */ };
+        
+        // note that only one dataEffect can be used per component
     });
     
     ctx.onUnmount((event) => {
         // we are leaving the route
-        info.setState( info.getState().count - 1 );
+        info.setState(event, function (state) { 
+            return { count: state.count - 1 };
+        });
     });
 
     return html`

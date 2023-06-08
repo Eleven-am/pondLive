@@ -115,7 +115,7 @@ export class Html {
         return getChanges(mapped);
     }
 
-    public reconstruct (changes: Record<string, any>): Html {
+    public patch (changes: Record<string, any>): Html {
         const data = mergeObjects(this.getParts(), changes);
 
         return Html.parse(data);

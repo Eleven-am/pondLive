@@ -5,7 +5,7 @@ import path from 'path';
 import { Context, UpdateData, PondLiveHeaders, HookFunction } from './context';
 import { Component, LiveContext, Route } from './liveContext';
 import { getMimeType } from './router';
-import { uuidV4, deepCompare, fileExists } from '../helpers/helpers';
+import { uuidV4, deepCompare, fileExists, isEmpty } from '../helpers/helpers';
 import { parseAddress } from '../matcher/matcher';
 import { NextFunction } from '../middleware/middleware';
 import { html } from '../parser/parser';
@@ -44,6 +44,8 @@ export class Manager {
 
     readonly #upgradedUsers: Set<string>;
 
+    readonly #cleanups: Map<string, (() => void)[]>;
+
     readonly #absolutePath: string;
 
     readonly #context: Context;
@@ -58,6 +60,7 @@ export class Manager {
         this.#state = new Map();
         this.#isBuilt = false;
         this.#children = new Map();
+        this.#cleanups = new Map();
         this.#mountedUsers = new Set();
         this.#upgradedUsers = new Set();
         this.id = Math.random()
@@ -173,6 +176,10 @@ export class Manager {
             throw new Error('Cannot set hook state from non existing hook');
         }
 
+        if (!this.isMounted(userId)) {
+            return;
+        }
+
         hook.state.set(userId, newState);
         const notEqual = deepCompare(hook.state.get(userId), newState);
 
@@ -181,6 +188,23 @@ export class Manager {
         }
 
         this.#context.reload(userId);
+    }
+
+    unMountHook (userId: string, fn: () => void) {
+        const cleanups = this.#cleanups.get(userId) ?? [];
+
+        cleanups.push(fn);
+        this.#cleanups.set(userId, cleanups);
+    }
+
+    deleteHookState (hookKey: string, userId: string) {
+        const hook = this.#hooks.get(hookKey);
+
+        if (!hook) {
+            throw new Error('Cannot delete hook state from non existing hook');
+        }
+
+        hook.state.delete(userId);
     }
 
     render (address: string, userId: string) {
@@ -258,18 +282,25 @@ export class Manager {
         return new LiveContext(userId, address, this.#context, manager);
     }
 
-    async unmountUser (event: ServerEvent) {
-        const canRender = this.canRender(event.path);
+    isMounted (userId: string) {
+        return this.#mountedUsers.has(userId);
+    }
 
-        if (canRender || (!this.#mountedUsers.has(event.userId) && !this.#upgradedUsers.has(event.userId))) {
+    async unmountUser (event: ServerEvent, newPath: string | null) {
+        for (const [_, manager] of this.#children) {
+            await manager.unmountUser(event, newPath);
+        }
+
+        const canRender = this.canRender(event.path);
+        const canRenderNew = newPath ? this.canRender(newPath) : false;
+
+        if (canRenderNew) {
             return;
         }
 
-        for (const [_, manager] of this.#children) {
-            await manager.unmountUser(event);
+        if (canRender && this.#mountedUsers.has(event.userId) && this.#upgradedUsers.has(event.userId)) {
+            await this.#unmount(event);
         }
-
-        await this.#unmount(event);
     }
 
     async upgradeUser (event: ServerEvent) {
@@ -300,9 +331,8 @@ export class Manager {
 
         this.#mountedUsers.delete(event.userId);
         this.#upgradedUsers.delete(event.userId);
-        for (const [_, hook] of this.#hooks) {
-            hook.state.delete(event.userId);
-        }
+        (this.#cleanups.get(event.userId) ?? []).forEach((fn) => fn());
+        this.#cleanups.delete(event.userId);
 
         const promises = this.#unmountFunctions.map((fn) => fn(event));
 
@@ -407,7 +437,8 @@ export class Manager {
     }
 
     async #handleSubsequentHttpRequest (req: Request, res: Response, next: NextFunction) {
-        await this.#context.unmountUser(req.userId);
+        this.#context.lock(req.userId);
+        await this.#context.unmountUser(req.userId, req.url.pathname);
         const client = this.#context.getClient(req.userId);
 
         if (req.headers[PondLiveHeaders.LIVE_ROUTER] !== 'true') {
@@ -443,11 +474,12 @@ export class Manager {
         const title = res.get(PondLiveHeaders.LIVE_PAGE_TITLE) ?? 'Pond Live';
 
         const data: UpdateData = {
-            diff,
+            diff: isEmpty(diff) ? null : diff,
             [PondLiveHeaders.LIVE_PAGE_TITLE]: title as string,
         };
 
         res.json(data);
+        this.#context.doneRendering(req.userId);
     }
 
     async #performRenderAction (address: string, fn: (manager: Manager) => Promise<void>) {
