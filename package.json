@@ -29,8 +29,8 @@
   },
   "author": "Roy OSSAI",
   "license": "GPL-3.0",
-  "main": "./index.js",
-  "types": "./index.d.ts",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Eleven-am/pondLive.git"
