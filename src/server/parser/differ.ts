@@ -1,9 +1,10 @@
-const isFunction = (x: any): boolean => typeof x === 'function';
-const isArray = (x: any): boolean => Array.isArray(x);
-const isDate = (x: any): boolean => x instanceof Date;
-const isObject = (x: any): boolean => typeof x === 'object' && x !== null && !isArray(x) && !isDate(x);
+const isFunction = (x: any): x is Function => typeof x === 'function';
+const isArray = (x: any): x is any[] => Array.isArray(x);
+const isDate = (x: any): x is Date => x instanceof Date;
+const isObject = (x: any): x is Record<string, any> => typeof x === 'object' && x !== null && !isArray(x) && !isDate(x);
 const isValue = (x: any): boolean => !isObject(x) && !isArray(x);
 const isNotEmpty = (x: any): boolean => x !== undefined && x !== null;
+const isEmpty = (x: any): boolean => Object.keys(x).length === 0;
 
 export const differ = (obj1: Record<string, any> | undefined, obj2: Record<string, any>): Record<string, any> => {
     const compareValues = (value1: any, value2: any): string => {
@@ -79,15 +80,17 @@ export const getChanges = (diffedObject: any): any => {
 
     for (const key in diffedObject) {
         if (diffedObject[key]) {
-            if (diffedObject[key].type === 'created' || diffedObject[key].type === 'updated') {
-                changed[key] = diffedObject[key].data;
-            } else if (diffedObject[key].type === 'deleted') {
-                changed[key] = null;
-            } else if (typeof diffedObject[key] === 'object') {
-                const data = getChanges(diffedObject[key]);
+            const { type, data } = diffedObject[key];
 
-                if (data && Object.keys(data).length > 0) {
-                    changed[key] = data;
+            if (type === 'created' || type === 'updated') {
+                changed[key] = data;
+            } else if (type === 'deleted') {
+                changed[key] = null;
+            } else if (isObject(data)) {
+                const nestedChanges = getChanges(data);
+
+                if (nestedChanges && !isEmpty(nestedChanges)) {
+                    changed[key] = nestedChanges;
                 }
             }
         }
@@ -97,7 +100,7 @@ export const getChanges = (diffedObject: any): any => {
 };
 
 function mergeArray (obj1: any[], obj2: any) {
-    const mapped: any = obj1.map((item: any, index: number) => {
+    const merged: any[] = obj1.map((item: any, index: number) => {
         if (isNotEmpty(obj2[index])) {
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             return mergeObjects(item, obj2[index]);
@@ -109,12 +112,16 @@ function mergeArray (obj1: any[], obj2: any) {
     });
 
     for (const key in obj2) {
-        if (mapped[key] === undefined && isNotEmpty(obj2[key])) {
-            mapped[key] = obj2[key];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if (merged[key] === undefined && isNotEmpty(obj2[key])) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            merged[key] = obj2[key];
         }
     }
 
-    return mapped.filter((item: any) => isNotEmpty(item));
+    return merged.filter((item: any) => isNotEmpty(item));
 }
 
 function mergeTwoObjects (obj1: any, obj2: any) {
@@ -146,7 +153,6 @@ function mergeTwoObjects (obj1: any, obj2: any) {
     return merged;
 }
 
-
 export const mergeObjects = (obj1: any, obj2: any): any => {
     if (obj1 === undefined) {
         return obj2;
@@ -170,4 +176,3 @@ export const mergeObjects = (obj1: any, obj2: any): any => {
 
     return mergeTwoObjects(obj1, obj2);
 };
-
