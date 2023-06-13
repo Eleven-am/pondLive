@@ -26,15 +26,7 @@ export class DomWatcher {
                             if (node instanceof HTMLElement) {
                                 const element = node as HTMLElement;
 
-                                for (const selector in this._modifiers) {
-                                    if (element.matches(selector)) {
-                                        const modifier = this._modifiers[selector];
-
-                                        modifier.forEach((object) => {
-                                            object.onRemove && object.onRemove(element, null, null);
-                                        });
-                                    }
-                                }
+                                this._removeElement(element);
                             }
                         }
 
@@ -60,17 +52,19 @@ export class DomWatcher {
                                     const current = element.getAttribute(mutation.attributeName!);
 
                                     modifier.forEach((object) => {
-                                        object.onAdd && object.onAdd(element, null, current);
+                                        if (object.onAdd) {
+                                            object.onAdd(element, null, current);
+                                        }
                                     });
                                 } else {
                                     const modifier = this._modifiers[selector];
                                     const valuePresent = element.getAttribute(mutation.attributeName!);
 
                                     modifier.forEach((object) => {
-                                        if (valuePresent) {
-                                            object.onUpdated && object.onUpdated(element, mutation.oldValue, valuePresent);
-                                        } else {
-                                            object.onRemove && object.onRemove(element, mutation.oldValue, null);
+                                        if (valuePresent && object.onUpdated) {
+                                            object.onUpdated(element, mutation.oldValue, valuePresent);
+                                        } else if (!valuePresent && object.onRemove) {
+                                            object.onRemove(element, mutation.oldValue, null);
                                         }
                                     });
                                 }
@@ -96,25 +90,20 @@ export class DomWatcher {
     public watch (selector: string, object: ModificationWatcher): void {
         const elements = document.querySelectorAll(selector);
 
-        for (let i = 0; i < elements.length; i++) {
-            const element = elements[i] as HTMLElement;
-            const attribute = element.getAttribute(selector);
+        if (object.onAdd) {
+            for (let i = 0; i < elements.length; i++) {
+                const element = elements[i] as HTMLElement;
+                const attribute = selector.replace(/[\[\].#]/g, '');
+                const value = element.getAttribute(attribute);
 
-            object.onAdd && object.onAdd(element, null, attribute);
+                object.onAdd(element, null, value);
+            }
         }
 
         const modifier = this._modifiers[selector] || [];
 
         modifier.push(object);
         this._modifiers[selector] = modifier;
-    }
-
-    public unwatch (selector: string): void {
-        delete this._modifiers[selector];
-    }
-
-    public isWatching (selector: string): boolean {
-        return Boolean(this._modifiers[selector]);
     }
 
     public addEventListener<S extends Event> (selector: string, event: string, callback: (node: HTMLElement, event: S) => void): void {
@@ -173,30 +162,45 @@ export class DomWatcher {
         });
     }
 
-    public shutdown (): void {
-        // eslint-disable-next-line guard-for-in
-        for (const selector in this._modifiers) {
-            this.unwatch(selector);
-        }
-
-        this._observer.disconnect();
-    }
-
     private _addNewElement (node: HTMLElement): void {
         for (const selector in this._modifiers) {
             if (node.matches(selector)) {
                 const modifier = this._modifiers[selector];
 
                 modifier.forEach((object) => {
-                    const attribute = node.getAttribute(selector);
+                    const attribute = selector.replace(/[\[\].#]/g, '');
+                    const value = node.getAttribute(attribute);
 
-                    object.onAdd && object.onAdd(node, null, attribute);
+                    if (object.onAdd) {
+                        object.onAdd(node, null, value);
+                    }
                 });
             }
         }
 
         for (let i = 0; i < node.children.length; i++) {
             this._addNewElement(node.children[i] as HTMLElement);
+        }
+    }
+
+    private _removeElement (node: HTMLElement): void {
+        for (const selector in this._modifiers) {
+            if (node.matches(selector)) {
+                const modifier = this._modifiers[selector];
+
+                modifier.forEach((object) => {
+                    const attribute = selector.replace(/[\[\].#]/g, '');
+                    const value = node.getAttribute(attribute);
+
+                    if (object.onRemove) {
+                        object.onRemove(node, value, null);
+                    }
+                });
+            }
+        }
+
+        for (let i = 0; i < node.children.length; i++) {
+            this._removeElement(node.children[i] as HTMLElement);
         }
     }
 }
