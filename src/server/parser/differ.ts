@@ -80,17 +80,15 @@ export const getChanges = (diffedObject: any): any => {
 
     for (const key in diffedObject) {
         if (diffedObject[key]) {
-            const { type, data } = diffedObject[key];
-
-            if (type === 'created' || type === 'updated') {
-                changed[key] = data;
-            } else if (type === 'deleted') {
+            if (diffedObject[key].type === 'created' || diffedObject[key].type === 'updated') {
+                changed[key] = diffedObject[key].data;
+            } else if (diffedObject[key].type === 'deleted') {
                 changed[key] = null;
-            } else if (isObject(data)) {
-                const nestedChanges = getChanges(data);
+            } else if (typeof diffedObject[key] === 'object') {
+                const data = getChanges(diffedObject[key]);
 
-                if (nestedChanges && !isEmpty(nestedChanges)) {
-                    changed[key] = nestedChanges;
+                if (isNotEmpty(data) && !isEmpty(data)) {
+                    changed[key] = data;
                 }
             }
         }
@@ -100,7 +98,7 @@ export const getChanges = (diffedObject: any): any => {
 };
 
 function mergeArray (obj1: any[], obj2: any) {
-    const merged: any[] = obj1.map((item: any, index: number) => {
+    const mapped: any = obj1.map((item: any, index: number) => {
         if (isNotEmpty(obj2[index])) {
             // eslint-disable-next-line @typescript-eslint/no-use-before-define
             return mergeObjects(item, obj2[index]);
@@ -112,16 +110,12 @@ function mergeArray (obj1: any[], obj2: any) {
     });
 
     for (const key in obj2) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        if (merged[key] === undefined && isNotEmpty(obj2[key])) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            merged[key] = obj2[key];
+        if (mapped[key] === undefined && isNotEmpty(obj2[key])) {
+            mapped[key] = obj2[key];
         }
     }
 
-    return merged.filter((item: any) => isNotEmpty(item));
+    return mapped.filter((item: any) => isNotEmpty(item));
 }
 
 function mergeTwoObjects (obj1: any, obj2: any) {
@@ -129,7 +123,7 @@ function mergeTwoObjects (obj1: any, obj2: any) {
 
     for (const key in obj1) {
         if (obj2[key] !== undefined && obj2[key] !== null) {
-            if (!isValue(obj1[key])) {
+            if (!isValue(obj2[key])) {
                 // eslint-disable-next-line @typescript-eslint/no-use-before-define
                 const value = mergeObjects(obj1[key], obj2[key]);
 
