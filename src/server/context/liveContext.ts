@@ -1,4 +1,3 @@
-import { Context } from './context';
 import { Manager, MountFunction, UpgradeFunction, UnmountFunction } from './manager';
 import { Html } from '../parser/parser';
 
@@ -10,8 +9,6 @@ export interface Route {
 }
 
 export class LiveContext {
-    readonly #context: Context;
-
     readonly #manager: Manager;
 
     readonly #userId: string;
@@ -22,8 +19,7 @@ export class LiveContext {
 
     #styles: Html[];
 
-    constructor (userId: string, address: string, context: Context, manager: Manager) {
-        this.#context = context;
+    constructor (userId: string, address: string, manager: Manager) {
         this.#manager = manager;
         this.#userId = userId;
         this.#hookCount = -1;
@@ -70,7 +66,7 @@ export class LiveContext {
         const onUnMount = this.#manager.unMountHook.bind(this.#manager);
         const deleteState = this.#manager.deleteHookState.bind(this.#manager, hookKey);
         const isMounted = this.#manager.isMounted.bind(this.#manager);
-        const getEvent = this.#context.getEvent.bind(this.#context);
+        const getEvent = this.getEvent.bind(this);
 
         return {
             hookKey,
@@ -99,7 +95,7 @@ export class LiveContext {
     }
 
     reload () {
-        this.#context.reload(this.#userId);
+        this.#manager.context.reload(this.#userId);
     }
 
     getContext (route: Route): LiveContext {
@@ -128,6 +124,6 @@ export class LiveContext {
     }
 
     getEvent (userId: string) {
-        return this.#context.getEvent(userId);
+        return this.#manager.context.getEvent(userId);
     }
 }

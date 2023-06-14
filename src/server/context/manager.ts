@@ -83,6 +83,10 @@ export class Manager {
         return this.#absolutePath;
     }
 
+    get context () {
+        return this.#context;
+    }
+
     doneBuilding () {
         this.#isBuilt = true;
     }
@@ -208,7 +212,7 @@ export class Manager {
     }
 
     render (address: string, userId: string) {
-        const liveContext = new LiveContext(userId, address, this.#context, this);
+        const liveContext = new LiveContext(userId, address, this);
 
         const htmlData = this.#component(liveContext);
         const styles = liveContext.styles;
@@ -225,13 +229,13 @@ export class Manager {
 
         if (!userId) {
             userId = uuidV4();
-            const request = Request.fromRequest(req, this.#context, userId);
+            const request = Request.fromRequest(req, this, userId);
             const response = new Response(res);
 
             return this.#handleFirstHttpRequest(request, response, publicDir);
         }
 
-        const request = Request.fromRequest(req, this.#context, userId);
+        const request = Request.fromRequest(req, this, userId);
         const response = new Response(res);
 
         return this.#handleSubsequentHttpRequest(request, response, next);
@@ -252,7 +256,7 @@ export class Manager {
     }
 
     createContext (address: string, userId: string) {
-        return new LiveContext(userId, address, this.#context, this);
+        return new LiveContext(userId, address, this);
     }
 
     initRoute (route: Route) {
@@ -279,7 +283,7 @@ export class Manager {
 
         const manager = this.#children.get(path) as Manager;
 
-        return new LiveContext(userId, address, this.#context, manager);
+        return new LiveContext(userId, address, manager);
     }
 
     isMounted (userId: string) {
@@ -353,6 +357,7 @@ export class Manager {
         }
 
         this.#mountedUsers.add(req.userId);
+        req.updateManager(this);
         const promises = this.#mountFunctions.map((fn) => fn(req, res));
 
         return Promise.all(promises);

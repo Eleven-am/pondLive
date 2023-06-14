@@ -30,7 +30,7 @@ const pondChange = (handler: HandlerFunction) => {
 
 const pondInput = (handler: HandlerFunction) => {
     handler('[pond-input]', 'input', (_, element) => ({
-        value: null,
+        value: (element as HTMLInputElement).value,
         dataId: element.getAttribute('pond-data-id'),
     }));
 };

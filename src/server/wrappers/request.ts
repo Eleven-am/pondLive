@@ -1,31 +1,33 @@
 import { IncomingHttpHeaders, IncomingMessage } from 'http';
 
-import { Context } from '../context/context';
+import { Manager } from '../context/manager';
+import { parseAddress } from '../matcher/matcher';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 export class Request {
-    #path: URL;
+    readonly #path: URL;
 
-    #cookies: Record<string, string>;
+    readonly #cookies: Record<string, string>;
 
-    #headers: IncomingHttpHeaders;
+    readonly #headers: IncomingHttpHeaders;
 
-    #userId: string;
+    readonly #userId: string;
 
-    #method: Method;
+    readonly #method: Method;
 
-    readonly #context: Context;
+    #manager: Manager;
 
-    constructor (context: Context) {
-        this.#path = new URL('http://localhost');
-        this.#userId = '';
-        this.#cookies = {
-        };
-        this.#headers = {
-        };
-        this.#method = 'GET';
-        this.#context = context;
+    constructor (manager: Manager, userId: string, req: IncomingMessage) {
+        const cookies = req.headers.cookie?.split(';') ?? [];
+
+        this.#path = new URL(`https://${req.headers.host}${req.url}`);
+        this.#userId = userId;
+        this.#cookies = Object.fromEntries(cookies.map((cookie) => cookie.split('=')));
+
+        this.#headers = req.headers;
+        this.#method = req.method as Method;
+        this.#manager = manager;
     }
 
     get url (): URL {
@@ -49,21 +51,29 @@ export class Request {
     }
 
     get event () {
-        return this.#context.getEvent(this.#userId);
+        return this.#manager.context.getEvent(this.#userId);
     }
 
-    static fromRequest (req: IncomingMessage, context: Context, userId: string): Request {
-        const request = new Request(context);
+    get params (): Record<string, string> {
+        const data = parseAddress(this.#manager.path, this.#path.pathname);
 
-        request.#userId = userId;
-        request.#path = new URL(`https://${req.headers.host}${req.url}`);
-        request.#headers = req.headers;
-        request.#method = req.method as Method;
-        const cookies = request.#headers.cookie?.split(';') ?? [];
+        if (!data) {
+            return {};
+        }
 
-        request.#cookies = Object.fromEntries(cookies.map((cookie) => cookie.split('=')));
+        return data.params;
+    }
 
-        return request;
+    get query (): Record<string, string> {
+        return Object.fromEntries(this.#path.searchParams.entries());
+    }
+
+    static fromRequest (req: IncomingMessage, manager: Manager, userId: string): Request {
+        return new Request(manager, userId, req);
+    }
+
+    updateManager (manager: Manager) {
+        this.#manager = manager;
     }
 }
 

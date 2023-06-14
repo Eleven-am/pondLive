@@ -128,6 +128,12 @@ export declare class Request {
     // The cookies sent with the request
     cookies: Record<string, string>;
 
+    // The query parameters sent with the request
+    query: Record<string, string>;
+
+    // The parameters sent with the request
+    params: Record<string, string>;
+
     // The headers sent with the request
     headers: IncomingHttpHeaders;
 
@@ -212,7 +218,7 @@ export declare class ServerInfo<T> {
      * @param context - The context of the hook
      * @param setter - The function that sets the state
      */
-    setState(context: HookContext, setter: (state: T) => T): void;
+    setState(context: HookContext, setter: ((state: T) => T) | T): void;
 }
 
 export declare class ServerContext<T> {
@@ -240,7 +246,7 @@ export declare class ServerContext<T> {
      * @param context - The context of the hook
      * @param setter - The function that sets the state
      */
-    setState(context: HookContext, setter: (state: T) => T): void;
+    setState(context: HookContext, setter: ((state: T) => T) | T): void;
 }
 
 export class Html {}

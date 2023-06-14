@@ -83,6 +83,9 @@ export class ClientRouter {
             } catch (e) {
                 console.error(e);
             }
+
+            history.pushState(null, '', url);
+            emitEvent('navigate-end', { url });
         }
     }
 
@@ -105,8 +108,6 @@ export class ClientRouter {
             emitEvent('navigate-start', { url });
 
             await this.navigateTo(url);
-            history.pushState(null, '', url);
-            emitEvent('navigate-end', { url });
         });
     }
 
@@ -126,13 +127,13 @@ export class ClientRouter {
                     window.location.reload();
                     break;
                 case PondLiveActions.LIVE_ROUTER_GET_COOKIE:
-                    this.navigateTo(message.address ?? '', false);
+                    void this.navigateTo(message.address ?? '', false);
                     break;
                 case PondLiveActions.LIVE_ROUTER_UPDATE:
                     // TODO
                     break;
                 case PondLiveActions.LIVE_ROUTER_NAVIGATE:
-                    this.navigateTo(message.address ?? '');
+                    void this.navigateTo(message.address ?? '');
                     break;
                 default:
                     break;

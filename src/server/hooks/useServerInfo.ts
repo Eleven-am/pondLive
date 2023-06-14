@@ -3,6 +3,7 @@ import { Request } from '../wrappers/request';
 import { ServerEvent } from '../wrappers/serverEvent';
 
 export type HookContext = LiveContext | ServerEvent | Request;
+type Setter<T> = ((state: T) => T) | T;
 type Effect<T> = (change: T, event: ServerEvent) => (() => void) | Promise<(() => void)> | void | Promise<void>;
 type CreatedInfo<T> = [T, (context: HookContext, newState: Partial<T>) => void, (effect: Effect<T>) => void]
 
@@ -11,7 +12,7 @@ interface ServerInfo<T> {
     assign: (context: HookContext, newState: Partial<T>) => void;
     addEffect: (context: HookContext, identifier: string, effect: Effect<T>) => void;
     subscribe: (userId: string, callback: (userId: string, newState: T) => void) => void;
-    setState: (context: HookContext, setter: (state: T) => T) => void;
+    setState: (context: HookContext, setter: Setter<T>) => void;
     deleteEffect: (userId: string, identifier: string) => void;
 }
 
@@ -26,11 +27,13 @@ export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
     const effects: Record<string, Record<string, Effect<T>>> = {};
     let cleanup: (() => void)[] = [];
 
-    const modifyState = async (ctx: HookContext, newState: Partial<T>) => {
-        state = {
-            ...state,
-            ...newState,
-        };
+    async function modifyState (ctx: HookContext, newState: Partial<T> | T, partial = true) {
+        state = partial
+            ? {
+                ...state,
+                ...newState,
+            }
+            : newState as T;
 
         cleanup.forEach((x) => x());
 
@@ -63,7 +66,7 @@ export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
         Object.keys(subscribers).forEach((userId) => {
             subscribers[userId](userId, state);
         });
-    };
+    }
 
     return {
         getState: () => state,
@@ -80,7 +83,13 @@ export const createServerInfo = <T> (initialState: T): ServerInfo<T> => {
             };
         },
         setState: (ctx, setter) => {
-            void modifyState(ctx, setter(state));
+            if (typeof setter === 'function') {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                void modifyState(ctx, setter(state), false);
+            } else {
+                void modifyState(ctx, setter, false);
+            }
         },
         deleteEffect: (userId, identifier) => {
             if (!effects[userId]) {
@@ -98,13 +107,15 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
     const effects: Record<string, Record<string, Effect<T>>> = {};
     const cleanup: Record<string, (() => void)[]> = {};
 
-    const modifyState = async (ctx: HookContext, newState: Partial<T>) => {
+    async function modifyState (ctx: HookContext, newState: Partial<T> | T, partial = true) {
         const currentState = state.get(ctx.userId) as T;
 
-        state.set(ctx.userId, {
-            ...currentState,
-            ...newState,
-        });
+        state.set(ctx.userId, partial
+            ? {
+                ...currentState,
+                ...newState,
+            }
+            : newState as T);
 
         if (cleanup[ctx.userId]) {
             cleanup[ctx.userId].forEach((x) => x());
@@ -136,10 +147,14 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
         if (callback) {
             return callback(ctx.userId, state.get(ctx.userId) as T);
         }
-    };
+    }
 
     return {
         getState: (context) => {
+            if (context.userId === 'server') {
+                return initialState;
+            }
+
             if (!state.has(context.userId)) {
                 state.set(context.userId, initialState);
             }
@@ -164,7 +179,15 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
             };
         },
         setState: (context, setter) => {
-            void modifyState(context, setter(state.get(context.userId) ?? initialState));
+            const currentState = state.get(context.userId) ?? initialState;
+
+            if (typeof setter === 'function') {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                void modifyState(context, setter(currentState), false);
+            } else {
+                void modifyState(context, setter, false);
+            }
         },
         deleteEffect: (userId, identifier) => {
             if (!effects[userId]) {
@@ -176,7 +199,6 @@ export const createClientContext = <T> (initialState: T): ServerContext<T> => {
     };
 };
 
-
 export function useServerInfo <T> (context: LiveContext, serverInfo: ServerInfo<T> | ServerContext<T>): CreatedInfo<T> {
     const { getState, assign, subscribe, addEffect, deleteEffect } = serverInfo;
     const { hookKey, onUnMount } = context.setUpHook();
@@ -184,7 +206,7 @@ export function useServerInfo <T> (context: LiveContext, serverInfo: ServerInfo<
     const state = getState(context);
 
     if (!context.isBuilt) {
-        return [state, () => {}, () => {}];
+        return [state, assign, () => {}];
     }
 
     subscribe(context.userId, () => context.reload());
