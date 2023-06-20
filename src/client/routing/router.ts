@@ -41,7 +41,7 @@ export class ClientRouter {
     }
 
     public static connect (userId: string, watcher: DomWatcher, initialState: any) {
-        const client = new PondClient('ws://localhost:3000/live');
+        const client = new PondClient('/live');
 
         client.connect();
 
