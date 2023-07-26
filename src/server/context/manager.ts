@@ -422,8 +422,7 @@ export class Manager {
                     ${store}
                 </head>
                 <body>
-                    <div id="app">${html.toString()
-        .trim()}</div>
+                    <div id="app">${html.toString().trim()}</div>
                     <script src="/pondLive.js" defer></script>
                 </body>
                 </html>

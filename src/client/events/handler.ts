@@ -30,7 +30,7 @@ const handlerFunction = async (channel: ClientChannel, selector: string, callbac
                     address: window.location.toString(),
                 });
             } else {
-                broadcaster(channel, 'event', {
+                broadcaster(channel, {
                     ...data,
                     dataId,
                     action: eventType,

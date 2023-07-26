@@ -22,7 +22,6 @@ enum PondLiveActions {
     LIVE_ROUTER_GET_COOKIE = 'get-cookie',
 }
 
-
 export class ClientRouter {
     readonly #userId: string;
 

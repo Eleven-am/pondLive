@@ -8,7 +8,7 @@ const removeElementAndSiblings = (parent: Element, childIndex: number) => {
     }
 };
 
-export function replaceElements (obj1: Element, obj2: Element): void {
+function replaceElements (obj1: Element, obj2: Element): void {
     if (obj1 instanceof Text && obj2 instanceof Text && obj1.textContent !== obj2.textContent) {
         obj1.replaceWith(obj2.cloneNode(true));
 

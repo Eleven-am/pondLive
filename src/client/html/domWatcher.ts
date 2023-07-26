@@ -26,7 +26,7 @@ export class DomWatcher {
                             if (node instanceof HTMLElement) {
                                 const element = node as HTMLElement;
 
-                                this._removeElement(element);
+                                this.#removeElement(element);
                             }
                         }
 
@@ -36,7 +36,7 @@ export class DomWatcher {
                             if (node instanceof HTMLElement) {
                                 const element = node as HTMLElement;
 
-                                this._addNewElement(element);
+                                this.#addNewElement(element);
                             }
                         }
                         break;
@@ -162,7 +162,7 @@ export class DomWatcher {
         });
     }
 
-    private _addNewElement (node: HTMLElement): void {
+    #addNewElement (node: HTMLElement): void {
         for (const selector in this._modifiers) {
             if (node.matches(selector)) {
                 const modifier = this._modifiers[selector];
@@ -179,11 +179,11 @@ export class DomWatcher {
         }
 
         for (let i = 0; i < node.children.length; i++) {
-            this._addNewElement(node.children[i] as HTMLElement);
+            this.#addNewElement(node.children[i] as HTMLElement);
         }
     }
 
-    private _removeElement (node: HTMLElement): void {
+    #removeElement (node: HTMLElement): void {
         for (const selector in this._modifiers) {
             if (node.matches(selector)) {
                 const modifier = this._modifiers[selector];
@@ -200,7 +200,7 @@ export class DomWatcher {
         }
 
         for (let i = 0; i < node.children.length; i++) {
-            this._removeElement(node.children[i] as HTMLElement);
+            this.#removeElement(node.children[i] as HTMLElement);
         }
     }
 }

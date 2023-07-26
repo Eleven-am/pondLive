@@ -16,7 +16,7 @@ export const emitEvent = (event: string, data: any, element?: Element) => {
     }
 };
 
-export const broadcaster = (channel: ClientChannel, path: string, data: LiveEvent) => {
+export const broadcaster = (channel: ClientChannel, data: LiveEvent) => {
     channel.broadcastFrom('event', data);
 };
 
