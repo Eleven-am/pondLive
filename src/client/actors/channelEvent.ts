@@ -1,8 +1,8 @@
-import type { Channel } from '@eleven-am/pondsocket/types';
+import type { ClientChannel } from '@eleven-am/pondsocket/types';
 
 export type ChannelEventHandler = <T>(event: string, callback: (data: T) => void) => () => void;
 
-export function buildEventListener (channel: Channel): ChannelEventHandler {
+export function buildEventListener (channel: ClientChannel): ChannelEventHandler {
     return (event, callback, unsub = true) => {
         const unsubscribe = channel.onMessage((evt, message) => {
             if (evt === event) {

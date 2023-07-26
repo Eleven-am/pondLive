@@ -1,4 +1,4 @@
-import type { Channel } from '@eleven-am/pondsocket/types';
+import type { ClientChannel } from '@eleven-am/pondsocket/types';
 
 
 import { pondEventHandler } from './handler';
@@ -8,7 +8,7 @@ import { pondMouseEvents } from './pondMouseEvents';
 import { buildEventListener } from '../actors/channelEvent';
 import { DomWatcher } from '../html/domWatcher';
 
-export function initEventListeners (channel: Channel, watcher: DomWatcher, userId: string): void {
+export function initEventListeners (channel: ClientChannel, watcher: DomWatcher, userId: string): void {
     const handler = pondEventHandler(channel, watcher);
     const listener = buildEventListener(channel);
 

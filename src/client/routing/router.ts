@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-unresolved
 import PondClient from '@eleven-am/pondsocket/client';
-import type { Channel } from '@eleven-am/pondsocket/types';
+import type { ClientChannel } from '@eleven-am/pondsocket/types';
 
 import { UpdateData } from '../../server/context/context';
 import { Html } from '../../server/parser/parser';
@@ -26,11 +26,11 @@ enum PondLiveActions {
 export class ClientRouter {
     readonly #userId: string;
 
-    readonly #channel: Channel;
+    readonly #channel: ClientChannel;
 
     #virtualDom: Html;
 
-    constructor (channel: Channel, virtualDom: Html, userId: string) {
+    constructor (channel: ClientChannel, virtualDom: Html, userId: string) {
         this.#userId = userId;
         this.#channel = channel;
         this.#virtualDom = virtualDom;

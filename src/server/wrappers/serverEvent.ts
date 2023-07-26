@@ -1,4 +1,4 @@
-import type { Client } from '@eleven-am/pondsocket/types';
+import type { Channel } from '@eleven-am/pondsocket/types';
 
 import { CookieOptions } from './response';
 import { PondUploadResponse } from '../../client/actors/uploader';
@@ -30,7 +30,7 @@ export class ServerEvent {
 
     readonly #userId: string;
 
-    readonly #client: Client;
+    readonly #client: Channel;
 
     readonly #data: LiveEvent;
 
@@ -38,7 +38,7 @@ export class ServerEvent {
 
     readonly #context: Context;
 
-    constructor (userId: string, client: Client, context: Context, data: LiveEvent) {
+    constructor (userId: string, client: Channel, context: Context, data: LiveEvent) {
         this.#userId = userId;
         this.#client = client;
         this.#data = data;

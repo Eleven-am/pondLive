@@ -1,4 +1,4 @@
-import type { Channel } from '@eleven-am/pondsocket/types';
+import type { ClientChannel } from '@eleven-am/pondsocket/types';
 
 import { streamLinedBroadcaster, broadcaster } from './eventEmmiter';
 import { DomWatcher } from '../html/domWatcher';
@@ -11,7 +11,7 @@ export type HandlerCallback<GenericEvent extends Event = Event> = (event: Generi
 
 export type HandlerFunction<GenericEvent extends Event = Event> = (selector: string, event: string, callback: HandlerCallback<GenericEvent>) => void | Promise<void>;
 
-const handlerFunction = async (channel: Channel, selector: string, callback: HandlerCallback, element: HTMLElement, evt: Event) => {
+const handlerFunction = async (channel: ClientChannel, selector: string, callback: HandlerCallback, element: HTMLElement, evt: Event) => {
     evt.preventDefault();
     const attribute = selector.replace(/[\[\].#]/g, '');
     const eventType = element.getAttribute(attribute);
@@ -41,7 +41,7 @@ const handlerFunction = async (channel: Channel, selector: string, callback: Han
     }
 };
 
-export const pondEventHandler = (channel: Channel, watcher: DomWatcher) => (selector: string, event: string, callback: HandlerCallback<any>) => {
+export const pondEventHandler = (channel: ClientChannel, watcher: DomWatcher) => (selector: string, event: string, callback: HandlerCallback<any>) => {
     watcher.addEventListener(selector, event, async (element, evt) => {
         await handlerFunction(channel, selector, callback, element, evt);
     });

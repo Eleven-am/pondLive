@@ -6,7 +6,7 @@ import { Writable } from 'stream';
 import PondSocket from '@eleven-am/pondsocket';
 // eslint-disable-next-line import/no-unresolved
 import ponSocketExpress from '@eleven-am/pondsocket/express';
-import type { Client, JoinResponse, Endpoint } from '@eleven-am/pondsocket/types';
+import type { JoinResponse, Endpoint, Channel } from '@eleven-am/pondsocket/types';
 import busboy from 'busboy';
 import type { Express } from 'express';
 
@@ -147,7 +147,7 @@ export class Router {
         return liveApp;
     }
 
-    async #upgradeUser (userId: string, channel: Client, response: JoinResponse, address: string, pondSocketId: string) {
+    async #upgradeUser (userId: string, channel: Channel, response: JoinResponse, address: string, pondSocketId: string) {
         await this.#context.upgradeUserOnJoin(userId, channel, response, address, pondSocketId);
     }
 
@@ -238,8 +238,8 @@ export class Router {
 
     #setUpChannels (endpoint: Endpoint) {
         const channel = endpoint.createChannel('/:userId', (request, response) => {
-            const userId = request.event.params.userId;
-            const channel = request.client;
+            const { userId } = request.event.params;
+            const channel = request.channel;
             const address = request.joinParams.address as string;
             const pondSocketId = request.user.id;
 
@@ -254,8 +254,8 @@ export class Router {
 
         channel.onEvent('event', (request, response) => {
             const userId = request.user.assigns.userId as string;
-            const liveEvent = request.event.payload as unknown as LiveEvent;
-            const channel = request.client;
+            const liveEvent = request.event.payload as LiveEvent;
+            const channel = request.channel;
 
             response.accept();
             const event = new ServerEvent(userId, channel, this.#context, liveEvent);

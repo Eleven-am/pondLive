@@ -1,4 +1,4 @@
-import type { Channel } from '@eleven-am/pondsocket/types';
+import type { ClientChannel } from '@eleven-am/pondsocket/types';
 
 import { LiveEvent } from '../types';
 
@@ -16,10 +16,10 @@ export const emitEvent = (event: string, data: any, element?: Element) => {
     }
 };
 
-export const broadcaster = (channel: Channel, path: string, data: LiveEvent) => {
+export const broadcaster = (channel: ClientChannel, path: string, data: LiveEvent) => {
     channel.broadcastFrom('event', data);
 };
 
-export const streamLinedBroadcaster = (channel: Channel, event: string, data: LiveEvent) => {
+export const streamLinedBroadcaster = (channel: ClientChannel, event: string, data: LiveEvent) => {
     channel.broadcastFrom(event, data);
 };

@@ -295,8 +295,6 @@ function Greeter (ctx) {
         // cleanup actions can be performed by returning a function from the dataEffect
         
         // return () => { /* cleanup actions */ };
-        
-        // note that only one dataEffect can be used per component
     });
     
     ctx.onUnmount((event) => {

@@ -1,4 +1,4 @@
-import type { Client, JoinResponse } from '@eleven-am/pondsocket/types';
+import type { Channel, JoinResponse } from '@eleven-am/pondsocket/types';
 
 import { Route } from './liveContext';
 import { Manager } from './manager';
@@ -25,7 +25,7 @@ export enum PondLiveActions {
 
 interface ClientData {
     address: string;
-    channel: Client;
+    channel: Channel;
     virtualDom: Html;
 }
 
@@ -60,7 +60,7 @@ export class Context {
         this.queues = new UserQueue();
     }
 
-    upgradeUserOnJoin (userId: string, channel: Client, response: JoinResponse, address: string, pondSocketId: string) {
+    upgradeUserOnJoin (userId: string, channel: Channel, response: JoinResponse, address: string, pondSocketId: string) {
         const html = this.#upgrading.get(userId);
         const event = new ServerEvent(userId, channel, this, {
             address,
@@ -96,6 +96,12 @@ export class Context {
 
     addEntryPoint (route: Route) {
         const absolutePath = `/${route.path}`.replace(/\/+/g, '/');
+        const existingManager = this.#managers.find((manager) => manager.path === absolutePath);
+
+        if (existingManager) {
+            return existingManager;
+        }
+
         const manager = new Manager(this, route.component, absolutePath);
 
         manager.render('*', 'server');
