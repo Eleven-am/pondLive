@@ -159,7 +159,7 @@ export class ServerEvent {
             route: path,
         };
 
-        this.emit(identifier, event);
+        this.#client.broadcastMessage(identifier, event);
     }
 
     #rejectFile (identifier: string, message: string) {
@@ -168,7 +168,7 @@ export class ServerEvent {
             message,
         };
 
-        this.emit(identifier, event);
+        this.#client.broadcastMessage(identifier, event);
     }
 
     #buildFile (file: PondFile): UploadEvent {

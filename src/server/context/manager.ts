@@ -493,10 +493,10 @@ export class Manager {
             return;
         }
 
+        await fn(this);
+
         for (const [_, manager] of this.#children) {
             await manager.#performRenderAction(address, fn);
         }
-
-        await fn(this);
     }
 }
