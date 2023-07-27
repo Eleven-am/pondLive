@@ -93,7 +93,7 @@ export class ClientRouter {
             if (event === 'update') {
                 this.#updateDom(message as UpdateData);
             } else if (event === 'live-event') {
-                const { event: eventName, data } = message as { event: string, data: any };
+                const { event: eventName, data } = message;
 
                 emitEvent(eventName, data);
             }
