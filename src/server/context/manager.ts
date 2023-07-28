@@ -246,13 +246,17 @@ export class Manager {
             throw new Error('Cannot check if component can render before the building phase');
         }
 
+        if (parseAddress(this.#absolutePath, address)) {
+            return true;
+        }
+
         for (const [_, manager] of this.#children) {
             if (manager.canRender(address)) {
                 return true;
             }
         }
 
-        return Boolean(parseAddress(this.#absolutePath, address));
+        return false;
     }
 
     createContext (address: string, userId: string) {

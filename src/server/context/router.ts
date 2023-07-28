@@ -217,7 +217,7 @@ export class Router {
                     return;
                 }
 
-                this.#manageUpload(req, response, moveTo);
+                return this.#manageUpload(req, response, moveTo);
             } else if (cookies) {
                 if (req.method !== 'GET') {
                     response.status(405)
