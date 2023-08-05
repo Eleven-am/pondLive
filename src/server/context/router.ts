@@ -6,7 +6,7 @@ import { Writable } from 'stream';
 import PondSocket from '@eleven-am/pondsocket';
 // eslint-disable-next-line import/no-unresolved
 import ponSocketExpress from '@eleven-am/pondsocket/express';
-import type { JoinResponse, Endpoint, Channel } from '@eleven-am/pondsocket/types';
+import type { Endpoint } from '@eleven-am/pondsocket/types';
 import busboy from 'busboy';
 import type { Express } from 'express';
 
@@ -147,14 +147,6 @@ export class Router {
         return liveApp;
     }
 
-    async #upgradeUser (userId: string, channel: Channel, response: JoinResponse, address: string, pondSocketId: string) {
-        await this.#context.upgradeUserOnJoin(userId, channel, response, address, pondSocketId);
-    }
-
-    #performAction (event: ServerEvent) {
-        return this.#context.performAction(event);
-    }
-
     #manageUpload (req: IncomingMessage, res: Response, moveTo: string) {
         const busboyInstance = busboy({ headers: req.headers });
         const files: FileUpload[] = [];
@@ -237,7 +229,7 @@ export class Router {
     }
 
     #setUpChannels (endpoint: Endpoint) {
-        const channel = endpoint.createChannel('/:userId', (request, response) => {
+        const channel = endpoint.createChannel('/:userId', async (request, response) => {
             const { userId } = request.event.params;
             const channel = request.channel;
             const address = request.joinParams.address as string;
@@ -249,7 +241,7 @@ export class Router {
                 return;
             }
 
-            void this.#upgradeUser(userId, channel, response, address || '/', pondSocketId);
+            await this.#context.upgradeUserOnJoin(userId, channel, response, address || '/', pondSocketId);
         });
 
         channel.onEvent('event', (request, response) => {
@@ -260,7 +252,7 @@ export class Router {
             response.accept();
             const event = new ServerEvent(userId, channel, this.#context, liveEvent);
 
-            void this.#performAction(event);
+            return this.#context.performAction(event);
         });
 
         channel.onLeave((event) => {

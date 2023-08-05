@@ -36,8 +36,6 @@ export class Manager {
 
     readonly #component: Component;
 
-    readonly #state: Map<string, unknown>;
-
     readonly #children: Map<string, Manager>;
 
     readonly #mountedUsers: Set<string>;
@@ -57,7 +55,6 @@ export class Manager {
         this.#upgradeFunctions = [];
         this.#unmountFunctions = [];
         this.#component = component;
-        this.#state = new Map();
         this.#isBuilt = false;
         this.#children = new Map();
         this.#cleanups = new Map();
@@ -472,7 +469,7 @@ export class Manager {
                 return;
             }
 
-            await this.#context.upgradeUser(event);
+            await this.upgradeUser(event);
 
             const html = this.render(req.url.pathname, req.userId);
             const diff = client.virtualDom.differentiate(html);

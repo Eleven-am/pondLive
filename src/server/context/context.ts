@@ -73,7 +73,7 @@ export class Context {
             response.accept();
             event.reloadPage();
 
-            channel.banUser(pondSocketId, 'No upgrade available');
+            channel.evictUser(pondSocketId, 'No upgrade available');
 
             return;
         }
