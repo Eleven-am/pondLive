@@ -86,8 +86,8 @@ export class Router {
     execute () {
         this.addStaticRoute(serverDir);
 
-        return async (req: IncomingMessage, res: ServerResponse) => {
-            await this.#middleware.run(req, res, () => {
+        return (req: IncomingMessage, res: ServerResponse) => {
+            this.#middleware.run(req, res, () => {
                 res.statusCode = 404;
                 res.end('Not found');
             });
@@ -117,7 +117,7 @@ export class Router {
         const server = http.createServer(this.execute());
         const pondSocket = new PondSocket(server);
 
-        const endpoint = pondSocket.createEndpoint('/live', (request, response) => {
+        const endpoint = pondSocket.createEndpoint('/live', (_, response) => {
             response.accept();
         });
 
@@ -138,7 +138,7 @@ export class Router {
             void this.#middleware.run(request, response, next);
         });
 
-        const endpoint = liveApp.upgrade('/live', (request, response) => {
+        const endpoint = liveApp.upgrade('/live', (_, response) => {
             response.accept();
         });
 

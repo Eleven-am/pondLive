@@ -102,7 +102,7 @@ The `useRouter` hook is used to create a router for your application. It returns
 The `Home` component serves as the main entry point of the application and renders the `Counter` component as a child component when the path '/counter' is accessed. The `router` function is invoked within the template literal `${router(ctx)}` to render the appropriate component based on the current route.
 
 ### Styles
-Sure! Here's a simplified example that demonstrates the usage of `makeStyles` with a dynamic style based on a `number` prop:
+Here's a simplified example that demonstrates the usage of `makeStyles` with a dynamic style based on a `number` prop:
 
 ```javascript
 import { makeStyles, useState, html } from '@eleven-am/pondlive';
