@@ -36,10 +36,9 @@ export type CreatedState<T> = [T, SetState<T>, SetOnServer<T>];
 export type CSSProperties = Record<string, string | number>;
 export type CSSClasses = Record<string, CSSProperties>;
 export type CSSGenerator = (props: any) => CSSClasses;
-export type Action<T> = Record<string, (event: ServerEvent, prev: T) => T | void | Promise<T> | Promise<void>>;
+export type Action<T> = Record<string, (event: ServerEvent, prev: T) => T | Promise<T>>;
 export type RunAction<T> = (event: keyof T) => string;
-export type InitialState<A extends Action<any>> = A extends Action<infer T> ? T : never;
-export type CreatedAction<A extends Action<any>> = [InitialState<A>, RunAction<A>, SetOnServer<InitialState<A>>];
+export type CreatedAction<T, A extends Action<T>> = [T, RunAction<A>, SetOnServer<T>];
 export type Effect<T> = (change: T, event: ServerEvent) => (() => void) | Promise<(() => void)> | void | Promise<void>;
 export type CreatedInfo<T> = [T, (context: HookContext, newState: Partial<T>) => void, (effect: Effect<T>) => void];
 
@@ -148,30 +147,35 @@ export declare class Response {
      */
     status(code: number): Response;
 
-    /** Set the header of the response
+    /**
+     * Set the header of the response
      * @param name - The name of the header
      * @param value - The value of the header
      */
     setHeader(name: string, value: string): Response;
 
-    /** Set the cookie of the response
+    /**
+     * Set the cookie of the response
      * @param name - The name of the cookie
      * @param value - The value of the cookie
      * @param options - The options of the cookie
      */
     setCookie(name: string, value: string, options?: CookieOptions): Response;
 
-    /** Set the Page Title of the current page
+    /**
+     * Set the Page Title of the current page
      * @param title - The title of the page
      */
     setPageTitle(title: string): Response;
 
-    /** Navigate to a new page
+    /**
+     * Navigate to a new page
      * @param url - The url to navigate to
      */
     navigateTo(url: string): Response;
 
-    /** Modify the browser history without navigating to a new page
+    /**
+     * Modify the browser history without navigating to a new page
      * @param address - The address to replace the current page with
      */
     replace(address: string): Response;
@@ -283,13 +287,13 @@ export declare class Router {
  * The createServerInfo function creates a ServerInfo object that holds a single state object that can be accessed by all users
  * @param initialState - The initial state of the serverInfo object
  */
-export declare const createServerInfo: <T>(initialState: T) => ServerInfo<T>;
+export declare function createServerInfo<T>(initialState: T): ServerInfo<T>;
 
 /**
  * The createServerContext function creates a ServerContext object that holds a state object for each user
  * @param initialState - The initial state of the serverContext object
  */
-export declare const createClientContext: <T>(initialState: T) => ServerContext<T>;
+export declare function createClientContext<T>(initialState: T): ServerContext<T>;
 
 /**
  * The useServerInfo hook returns the current state of the serverInfo | serverContext object, and a function to set the state
@@ -327,7 +331,7 @@ export declare function makeStyles<B extends CSSGenerator>(classes: B): (context
  * @param initialState - The initial state of the component, which us used when no action has been triggered
  * @param actions - The actions to use
  */
-export declare function useAction<A extends Action<any>>(context: LiveContext, initialState: InitialState<A>, actions: A): CreatedAction<A>;
+export declare function useAction<A extends Action<infer T>>(context: LiveContext, initialState: T, actions: A): CreatedAction<T, A>;
 
 /**
  * The useRouter hook takes in multiple sub routes that can be rendered within a component, it returns the correct route to render
