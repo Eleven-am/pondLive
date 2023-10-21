@@ -150,6 +150,10 @@ export class ServerEvent {
         });
     }
 
+    getEvent (userId: string) {
+        return this.#context.getEvent(userId);
+    }
+
     #buildFileList (files: UploadList): UploadEventList {
         const filesList = files.files.map((file) => this.#buildFile(file));
 

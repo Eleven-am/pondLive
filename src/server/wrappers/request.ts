@@ -50,10 +50,6 @@ export class Request {
         return this.#userId;
     }
 
-    get event () {
-        return this.#manager.context.getEvent(this.#userId);
-    }
-
     get params (): Record<string, string> {
         const data = parseAddress(this.#manager.path, this.#path.pathname);
 
@@ -70,6 +66,10 @@ export class Request {
 
     static fromRequest (req: IncomingMessage, manager: Manager, userId: string): Request {
         return new Request(manager, userId, req);
+    }
+
+    getEvent (userId: string) {
+        return this.#manager.context.getEvent(userId);
     }
 
     updateManager (manager: Manager) {
