@@ -50,7 +50,7 @@ export interface UpdateData {
 }
 
 export type HookFunction = (event: ServerEvent) => void;
-export type UploadFunction = (files: UploadedFile[]) => void | Promise<void>;
+export type UploadFunction = (event: ServerEvent, files: UploadedFile[]) => void | Promise<void>;
 
 export class Context {
     readonly queues: UserQueue;
@@ -247,7 +247,7 @@ export class Context {
         this.#uploadMap.set(managerId, fn);
     }
 
-    triggerUpload (managerId: string, files: FileUpload[]) {
+    triggerUpload (managerId: string, userId: string, files: FileUpload[]) {
         const uploadFiles = files.map((file): UploadedFile => ({
             ...file,
             stream: () => fs.createReadStream(file.path),
@@ -259,7 +259,20 @@ export class Context {
             return;
         }
 
-        fn(uploadFiles);
+        const client = this.#clients.get(userId);
+
+        if (!client) {
+            return;
+        }
+
+        const event = new ServerEvent(userId, client.channel, this, {
+            address: client.address,
+            action: 'upload',
+            value: null,
+            dataId: null,
+        });
+
+        fn(event, uploadFiles);
     }
 
     #reload (userId: string) {

@@ -141,7 +141,7 @@ export class Router {
         return liveApp;
     }
 
-    #manageUpload (req: IncomingMessage, res: Response, moveTo: string, managerId: string) {
+    #manageUpload (req: IncomingMessage, res: Response, moveTo: string, managerId: string, userId: string) {
         const busboyInstance = busboy({ headers: req.headers });
         const files: FileUpload[] = [];
 
@@ -168,7 +168,7 @@ export class Router {
                     res.status(200)
                         .json({ files });
 
-                    this.#context.triggerUpload(managerId, files);
+                    this.#context.triggerUpload(managerId, userId, files);
                 }
             });
 
@@ -206,7 +206,7 @@ export class Router {
                     return;
                 }
 
-                return this.#manageUpload(req, response, uploadPath.moveTo, uploadPath.managerId);
+                return this.#manageUpload(req, response, uploadPath.moveTo, uploadPath.managerId, userId);
             } else if (cookies) {
                 if (req.method !== 'GET') {
                     response.status(405)

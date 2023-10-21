@@ -41,7 +41,7 @@ export type HookContext = LiveContext | ServerEvent | Request;
 export type MountFunction = (req: Request, res: Response) => void | Promise<void>;
 export type UpgradeFunction = (event: ServerEvent) => void | Promise<void>;
 export type UnmountFunction = (event: ServerEvent) => void | Promise<void>
-export type UploadFunction = (files: UploadedFile[]) => void | Promise<void>;
+export type UploadFunction = (event: ServerEvent, files: UploadedFile[]) => void | Promise<void>;
 export type SetState<T> = (state: (T | ((state: T, event: ServerEvent) => T | Promise<T>))) => string;
 export type SetOnServer<T> = (context: HookContext, state: (T | ((state: T) => T | Promise<T>))) => void;
 export type CreatedState<T> = [T, SetState<T>, SetOnServer<T>];

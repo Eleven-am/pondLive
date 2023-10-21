@@ -331,11 +331,11 @@ function Upload (ctx) {
         }
     });
     
-    ctx.onUpload((event) => {
+    ctx.onUpload((event, files) => {
         // this function is invoked when a file is uploaded
         // you can perform actions here such as getting
         
-        event[0].stream.on('data', (chunk) => {
+        files[0].stream.on('data', (chunk) => {
             // do something with the chunk
         });
     });
