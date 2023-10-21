@@ -17,6 +17,17 @@ interface PondEvent {
     formData?: Record<string, string>;
 }
 
+interface FileUpload {
+    name: string;
+    size: number;
+    mimetype: string;
+    path: string;
+}
+
+interface UploadedFile extends FileUpload {
+    stream: () => NodeJS.ReadableStream;
+}
+
 export interface Route {
     // The path the component will be mounted on
     path: string;
@@ -30,6 +41,7 @@ export type HookContext = LiveContext | ServerEvent | Request;
 export type MountFunction = (req: Request, res: Response) => void | Promise<void>;
 export type UpgradeFunction = (event: ServerEvent) => void | Promise<void>;
 export type UnmountFunction = (event: ServerEvent) => void | Promise<void>
+export type UploadFunction = (files: UploadedFile[]) => void | Promise<void>;
 export type SetState<T> = (state: (T | ((state: T, event: ServerEvent) => T | Promise<T>))) => string;
 export type SetOnServer<T> = (context: HookContext, state: (T | ((state: T) => T | Promise<T>))) => void;
 export type CreatedState<T> = [T, SetState<T>, SetOnServer<T>];
@@ -37,7 +49,7 @@ export type CSSProperties = Record<string, string | number>;
 export type CSSClasses = Record<string, CSSProperties>;
 export type CSSGenerator = (props: any) => CSSClasses;
 export type Action<T> = Record<string, (event: ServerEvent, prev: T) => T | Promise<T | void> | void>;
-export type RunAction<T> = (event: keyof T) => string;
+export type RunAction<T> = Record<keyof T, string>;
 export type CreatedAction<T, A extends Action<T>> = [T, RunAction<A>, SetOnServer<T>];
 export type Effect<T> = (change: T, event: ServerEvent) => (() => void) | Promise<(() => void)> | void | Promise<void>;
 export type CreatedInfo<T> = [T, (context: HookContext, newState: Partial<T>) => void, (effect: Effect<T>) => void];
@@ -202,6 +214,12 @@ export declare class LiveContext {
      * @param fn - The function to be called
      */
     onUnmount(fn: UnmountFunction): void;
+
+    /**
+     * Called when a user uploads a file | files
+     * @param fn - The function to be called
+     */
+    onUpload(fn: UploadFunction): void;
 }
 
 export declare class ServerInfo<T> {

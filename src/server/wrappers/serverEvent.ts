@@ -28,6 +28,8 @@ interface UploadEventList {
 export class ServerEvent {
     #uploadList: UploadEventList | null;
 
+    #managerId: string;
+
     readonly #userId: string;
 
     readonly #client: Channel;
@@ -45,6 +47,7 @@ export class ServerEvent {
         this.#url = new URL(data.address);
         this.#context = context;
         this.#uploadList = null;
+        this.#managerId = '';
     }
 
     get path () {
@@ -84,6 +87,14 @@ export class ServerEvent {
         this.#uploadList = this.#buildFileList(this.#data.files);
 
         return this.#uploadList;
+    }
+
+    get managerId (): string {
+        return this.#managerId;
+    }
+
+    set managerId (managerId: string) {
+        this.#managerId = managerId;
     }
 
     emit (event: string, data: any) {
@@ -153,7 +164,7 @@ export class ServerEvent {
     }
 
     #acceptFile (identifier: string, moveTo: string) {
-        const path = this.#context.addUploadPath(moveTo);
+        const path = this.#context.addUploadPath(moveTo, this.#managerId);
         const event: PondUploadResponse = {
             accepted: true,
             route: path,

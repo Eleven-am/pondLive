@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 import type { Channel, JoinResponse } from '@eleven-am/pondsocket/types';
 
 import { Route } from './liveContext';
@@ -29,6 +31,17 @@ interface ClientData {
     virtualDom: Html;
 }
 
+export interface FileUpload {
+    name: string;
+    size: number;
+    mimetype: string;
+    path: string;
+}
+
+interface UploadedFile extends FileUpload {
+    stream: () => NodeJS.ReadableStream;
+}
+
 export interface UpdateData {
     diff: Record<string, any> | null;
     [PondLiveHeaders.LIVE_ROUTER_ACTION]?: PondLiveActions;
@@ -37,6 +50,7 @@ export interface UpdateData {
 }
 
 export type HookFunction = (event: ServerEvent) => void;
+export type UploadFunction = (files: UploadedFile[]) => void | Promise<void>;
 
 export class Context {
     readonly queues: UserQueue;
@@ -51,6 +65,8 @@ export class Context {
 
     readonly #functionMap: Map<string, HookFunction>;
 
+    readonly #uploadMap: Map<string, UploadFunction>;
+
     constructor () {
         this.#clients = new Map();
         this.#upgrading = new Map();
@@ -58,6 +74,7 @@ export class Context {
         this.#functionMap = new Map();
         this.#managers = [];
         this.queues = new UserQueue();
+        this.#uploadMap = new Map();
     }
 
     upgradeUserOnJoin (userId: string, channel: Channel, response: JoinResponse, address: string, pondSocketId: string) {
@@ -153,11 +170,14 @@ export class Context {
         });
     }
 
-    addUploadPath (moveTo: string): string {
+    addUploadPath (moveTo: string, managerId: string): string {
         const uploadPath = uuidV4();
         const pathWithToken = `/upload/${uploadPath}`;
 
-        this.#dynamicRoutes.set(pathWithToken, moveTo);
+        this.#dynamicRoutes.set(pathWithToken, JSON.stringify({
+            moveTo,
+            managerId,
+        }));
 
         return pathWithToken;
     }
@@ -170,7 +190,7 @@ export class Context {
         return pathWithToken;
     }
 
-    getUploadPath (uploadPath: string): string | undefined {
+    getUploadPath (uploadPath: string): { moveTo: string, managerId: string } | undefined {
         if (!uploadPath.startsWith('/upload/')) {
             return;
         }
@@ -179,7 +199,14 @@ export class Context {
 
         this.#dynamicRoutes.delete(uploadPath);
 
-        return data;
+        if (!data) {
+            return;
+        }
+
+        try {
+            return JSON.parse(data);
+            // eslint-disable-next-line no-inline-comments
+        } catch { /* empty */ }
     }
 
     getCookiePath (cookiePath: string): string | undefined {
@@ -214,6 +241,25 @@ export class Context {
 
     addTask (userId: string, task: () => void | Promise<void>) {
         void this.queues.add(userId, task);
+    }
+
+    addUploadFunction (managerId: string, fn: UploadFunction) {
+        this.#uploadMap.set(managerId, fn);
+    }
+
+    triggerUpload (managerId: string, files: FileUpload[]) {
+        const uploadFiles = files.map((file): UploadedFile => ({
+            ...file,
+            stream: () => fs.createReadStream(file.path),
+        }));
+
+        const fn = this.#uploadMap.get(managerId);
+
+        if (!fn) {
+            return;
+        }
+
+        fn(uploadFiles);
     }
 
     #reload (userId: string) {

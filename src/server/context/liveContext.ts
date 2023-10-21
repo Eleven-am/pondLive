@@ -1,3 +1,4 @@
+import { UploadFunction } from './context';
 import { Manager, MountFunction, UpgradeFunction, UnmountFunction } from './manager';
 import { Html } from '../parser/parser';
 
@@ -59,6 +60,10 @@ export class LiveContext {
         this.#manager.onUnmount(fn);
     }
 
+    onUpload (fn: UploadFunction) {
+        this.#manager.onUpload(fn);
+    }
+
     setUpHook () {
         this.#hookCount += 1;
 
@@ -91,6 +96,7 @@ export class LiveContext {
             isMounted,
             deleteState,
             addDispatcher,
+            managerId: this.#manager.id,
         };
     }
 

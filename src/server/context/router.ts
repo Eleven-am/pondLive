@@ -10,7 +10,7 @@ import type { Endpoint } from '@eleven-am/pondsocket/types';
 import busboy from 'busboy';
 import type { Express } from 'express';
 
-import { Context, PondLiveHeaders } from './context';
+import { Context, PondLiveHeaders, FileUpload } from './context';
 import { Component } from './liveContext';
 import { LiveEvent } from '../../client/types';
 import { fileExists } from '../helpers/helpers';
@@ -18,12 +18,6 @@ import { Middleware } from '../middleware/middleware';
 import { Response } from '../wrappers/response';
 import { ServerEvent } from '../wrappers/serverEvent';
 
-
-interface FileUpload {
-    name: string;
-    size: number;
-    mimetype: string;
-}
 
 interface UploadType {
     filename: string;
@@ -147,7 +141,7 @@ export class Router {
         return liveApp;
     }
 
-    #manageUpload (req: IncomingMessage, res: Response, moveTo: string) {
+    #manageUpload (req: IncomingMessage, res: Response, moveTo: string, managerId: string) {
         const busboyInstance = busboy({ headers: req.headers });
         const files: FileUpload[] = [];
 
@@ -165,6 +159,7 @@ export class Router {
                     name: upload.filename,
                     size: writeStream.bytesWritten,
                     mimetype: upload.mimeType,
+                    path: tmpFile,
                 });
 
                 fileCount--;
@@ -172,6 +167,8 @@ export class Router {
                 if (finished && fileCount === 0) {
                     res.status(200)
                         .json({ files });
+
+                    this.#context.triggerUpload(managerId, files);
                 }
             });
 
@@ -194,14 +191,14 @@ export class Router {
                 return next();
             }
 
-            const moveTo = this.#context.getUploadPath(req.url ?? '');
+            const uploadPath = this.#context.getUploadPath(req.url ?? '');
             const cookies = this.#context.getCookiePath(req.url ?? '');
 
-            if (!moveTo && !cookies) {
+            if (!uploadPath && !cookies) {
                 return next();
             }
 
-            if (moveTo) {
+            if (uploadPath) {
                 if (req.method !== 'POST') {
                     response.status(405)
                         .json({ message: 'Method not allowed' });
@@ -209,7 +206,7 @@ export class Router {
                     return;
                 }
 
-                return this.#manageUpload(req, response, moveTo);
+                return this.#manageUpload(req, response, uploadPath.moveTo, uploadPath.managerId);
             } else if (cookies) {
                 if (req.method !== 'GET') {
                     response.status(405)

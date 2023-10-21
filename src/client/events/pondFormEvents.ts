@@ -35,6 +35,17 @@ const pondInput = (handler: HandlerFunction) => {
     }));
 };
 
+const pondCheck = (handler: HandlerFunction) => {
+    handler('[pond-check]', 'change', (_, element) => {
+        const dataId = element.getAttribute('pond-data-id');
+
+        return {
+            value: (element as HTMLInputElement).checked ? 'on' : 'off',
+            dataId,
+        };
+    });
+};
+
 const pondSubmit = (handler: HandlerFunction) => {
     handler('[pond-submit]', 'submit', (evt, element) => {
         evt.preventDefault();
@@ -77,5 +88,6 @@ export const pondFormInit = (handler: HandlerFunction, channelHandler: ChannelEv
     pondChange(handler);
     pondInput(handler);
     pondSubmit(handler);
+    pondCheck(handler);
     pondFile(handler, userId, channelHandler);
 };

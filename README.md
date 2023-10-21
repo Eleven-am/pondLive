@@ -62,8 +62,8 @@ function Counter(ctx) {
     <div>
       <h1>Counter</h1>
       <p>Count: ${count}</p>
-      <button pond-click=${action('increment')}>Increment</button>
-      <button pond-click=${action('decrement')}>Decrement</button>
+      <button pond-click=${action.increment}>Increment</button>
+      <button pond-click=${action.decrement}>Decrement</button>
     </div>
   `;
 }
@@ -315,3 +315,36 @@ function Greeter (ctx) {
 
 The `onUnmount` function can be used for performing actions during the unmount phase. In this example , the `onUnmount` function is used to decrement the count of active users when the component is unmounted. This ensures that the count is accurate even when users navigate away from the route.
 
+### Uploading
+When a user uploads a file, the `upload` function is invoked. The `upload` function is useful for performing actions when a file is uploaded.
+
+```javascript
+import { html, useAction } from '@eleven-am/pondlive';
+
+function Upload (ctx) {
+    const [_, action] = useAction(ctx, null, {
+        upload: (event) => {
+            // event.files contains that are to be uploaded
+            // you can perform actions here such as checking if the mimetype is valid
+            event.files?.accept('/path/to/save/file/'); // acceepts all files
+            // event.files?.files[0].accept(/path/to/save/file/); accepts only the first file
+        }
+    });
+    
+    ctx.onUpload((event) => {
+        // this function is invoked when a file is uploaded
+        // you can perform actions here such as getting
+        
+        event[0].stream.on('data', (chunk) => {
+            // do something with the chunk
+        });
+    });
+    
+    return html`
+        <form pond-upload="${action.upload}">
+            <input type="file" name="files" />
+            <button type="submit">Upload</button>
+        </form>
+    `;
+}
+```

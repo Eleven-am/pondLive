@@ -7,12 +7,16 @@ export type SetOnServer<T> = (event: HookContext, state: (T | ((state: T) => T |
 export type CreatedState<T> = [T, SetState<T>, SetOnServer<T>];
 
 export function useState<T> (context: LiveContext, initialState: T): CreatedState<T> {
-    const { getState, setState, addDispatcher, onUnMount, deleteState } = context.setUpStateHook<T>(initialState, 'useState');
+    const { getState, setState, addDispatcher, onUnMount, deleteState, managerId } = context.setUpStateHook(initialState, 'useState');
 
     const state = getState(context.userId);
 
     const setStateFn = async (state: (T | ((state: T, event: ServerEvent) => T | Promise<T>)), event: HookContext) => {
         let newState: T;
+
+        if (event instanceof ServerEvent) {
+            event.managerId = managerId;
+        }
 
         if (typeof state === 'function') {
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment

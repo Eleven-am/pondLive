@@ -2,7 +2,7 @@ import fs from 'fs';
 import { ServerResponse, IncomingMessage } from 'http';
 import path from 'path';
 
-import { Context, UpdateData, PondLiveHeaders, HookFunction } from './context';
+import { Context, UpdateData, PondLiveHeaders, HookFunction, UploadFunction } from './context';
 import { Component, LiveContext, Route } from './liveContext';
 import { getMimeType } from './router';
 import { uuidV4, deepCompare, fileExists, isEmpty } from '../helpers/helpers';
@@ -110,6 +110,14 @@ export class Manager {
         }
 
         this.#unmountFunctions.push(fn);
+    }
+
+    onUpload (fn: UploadFunction) {
+        if (this.#isBuilt) {
+            return;
+        }
+
+        this.#context.addUploadFunction(this.id, fn);
     }
 
     setUpHook (hookCount: number) {
