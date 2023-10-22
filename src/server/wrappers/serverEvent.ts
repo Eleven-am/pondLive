@@ -54,6 +54,10 @@ export class ServerEvent {
         return this.#url.pathname;
     }
 
+    get url () {
+        return this.#url;
+    }
+
     get userId () {
         return this.#userId;
     }

@@ -94,3 +94,32 @@ export function parseAddress (route: string | RegExp, address: string) {
         query,
     };
 }
+
+export function parseCommonPrefix (route: string, address: string) {
+    const routeParts = route.split('/');
+    const addressParts = address.split('/');
+
+    if (routeParts.length > addressParts.length) {
+        return null;
+    }
+
+    const prefixParts = routeParts
+        .map((segment, index) => {
+            if (index === routeParts.length - 1) {
+                if (segment === '*') {
+                    return addressParts.slice(index).join('/');
+                } else if (segment === '') {
+                    return '';
+                }
+            }
+
+            return addressParts[index];
+        })
+        .join('/');
+
+    if (parseAddress(route, prefixParts)) {
+        return prefixParts;
+    }
+
+    return null;
+}

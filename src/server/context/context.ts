@@ -112,7 +112,9 @@ export class Context {
     }
 
     addEntryPoint (route: Route) {
-        const absolutePath = `/${route.path}`.replace(/\/+/g, '/');
+        const absolutePath = `/${route.path}`
+            .replace(/\/$/g, '')
+            .replace(/\/+/g, '/');
         const existingManager = this.#managers.find((manager) => manager.path === absolutePath);
 
         if (existingManager) {

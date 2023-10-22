@@ -125,10 +125,6 @@ export class LiveContext {
         this.#styles = [...this.#styles, css];
     }
 
-    isMounted (userId: string) {
-        return this.#manager.isMounted(userId);
-    }
-
     getEvent (userId: string) {
         return this.#manager.context.getEvent(userId);
     }

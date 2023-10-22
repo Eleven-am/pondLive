@@ -6,7 +6,7 @@ import { Context, UpdateData, PondLiveHeaders, HookFunction, UploadFunction } fr
 import { Component, LiveContext, Route } from './liveContext';
 import { getMimeType } from './router';
 import { uuidV4, deepCompare, fileExists, isEmpty } from '../helpers/helpers';
-import { parseAddress } from '../matcher/matcher';
+import { parseCommonPrefix, parseAddress } from '../matcher/matcher';
 import { NextFunction } from '../middleware/middleware';
 import { html } from '../parser/parser';
 import { Request } from '../wrappers/request';
@@ -38,9 +38,9 @@ export class Manager {
 
     readonly #children: Map<string, Manager>;
 
-    readonly #mountedUsers: Set<string>;
+    readonly #mountedUsers: Map<string, string>;
 
-    readonly #upgradedUsers: Set<string>;
+    readonly #upgradedUsers: Map<string, string>;
 
     readonly #cleanups: Map<string, (() => void)[]>;
 
@@ -58,8 +58,8 @@ export class Manager {
         this.#isBuilt = false;
         this.#children = new Map();
         this.#cleanups = new Map();
-        this.#mountedUsers = new Set();
-        this.#upgradedUsers = new Set();
+        this.#mountedUsers = new Map();
+        this.#upgradedUsers = new Map();
         this.id = Math.random()
             .toString(36)
             .substring(7);
@@ -178,7 +178,7 @@ export class Manager {
         return hook.state.get(userId) as T;
     }
 
-    setHookState<T> (hookKey: string, newState: T, userId: string) {
+    setHookState<T> (hookKey: string, newState: T, userId: string, address: string) {
         const hook = this.#hooks.get(hookKey);
 
         if (!hook) {
@@ -246,22 +246,18 @@ export class Manager {
         return this.#handleSubsequentHttpRequest(request, response, next);
     }
 
-    canRender (address: string) {
+    canRender (address: string): boolean {
         if (!this.#isBuilt) {
             throw new Error('Cannot check if component can render before the building phase');
         }
 
-        if (parseAddress(this.#absolutePath, address)) {
+        const children = Array.from(this.#children.values());
+
+        if (parseAddress(this.#absolutePath, address) !== null) {
             return true;
         }
 
-        for (const [_, manager] of this.#children) {
-            if (manager.canRender(address)) {
-                return true;
-            }
-        }
-
-        return false;
+        return children.some((manager) => manager.canRender(address));
     }
 
     createContext (address: string, userId: string) {
@@ -327,11 +323,14 @@ export class Manager {
             throw new Error('Cannot upgrade component before the building phase');
         }
 
-        if (this.#upgradedUsers.has(event.userId)) {
+        const prefix = parseCommonPrefix(this.#absolutePath, event.url.pathname);
+        const previous = this.#upgradedUsers.get(event.userId);
+
+        if ((previous && previous === prefix) || prefix === null) {
             return;
         }
 
-        this.#upgradedUsers.add(event.userId);
+        this.#upgradedUsers.set(event.userId, prefix);
         const promises = this.#upgradeFunctions.map((fn) => fn(event));
 
         return Promise.all(promises);
@@ -361,12 +360,15 @@ export class Manager {
             return;
         }
 
-        if (this.#mountedUsers.has(req.userId)) {
+        const prefix = parseCommonPrefix(this.#absolutePath, req.url.pathname);
+        const previous = this.#mountedUsers.get(req.userId);
+
+        if ((previous && previous === prefix) || prefix === null) {
             return;
         }
 
-        this.#mountedUsers.add(req.userId);
         req.updateManager(this);
+        this.#mountedUsers.set(req.userId, prefix);
         const promises = this.#mountFunctions.map((fn) => fn(req, res));
 
         return Promise.all(promises);
