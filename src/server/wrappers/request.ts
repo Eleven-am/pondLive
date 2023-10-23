@@ -1,7 +1,7 @@
 import { IncomingHttpHeaders, IncomingMessage } from 'http';
 
 import { Manager } from '../context/manager';
-import { parseAddress } from '../matcher/matcher';
+import { parseAddress, parseCommonPrefix } from '../matcher/matcher';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -51,7 +51,7 @@ export class Request {
     }
 
     get params (): Record<string, string> {
-        const data = parseAddress(this.#manager.path, this.#path.pathname);
+        const data = parseAddress(this.#manager.path, parseCommonPrefix(this.#manager.path, this.#path.pathname) ?? '');
 
         if (!data) {
             return {};
